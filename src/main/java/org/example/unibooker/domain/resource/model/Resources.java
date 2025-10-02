@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.unibooker.common.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +15,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Resources {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Resources extends BaseEntity {
     private String name;
     private String description;
     private Integer capacity;

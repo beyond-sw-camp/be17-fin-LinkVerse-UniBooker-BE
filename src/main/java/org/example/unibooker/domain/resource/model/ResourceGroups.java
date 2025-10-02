@@ -16,9 +16,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResourceGroups extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     private String name;
     private ReservationType reservationType;
     private String description;

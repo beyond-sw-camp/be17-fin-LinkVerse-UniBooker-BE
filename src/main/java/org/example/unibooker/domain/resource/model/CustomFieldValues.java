@@ -5,16 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.unibooker.common.BaseEntity;
 
 @Getter
 @Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomFieldValues {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class CustomFieldValues extends BaseEntity {
     private Long targetId;
     private String fieldValue;
 
