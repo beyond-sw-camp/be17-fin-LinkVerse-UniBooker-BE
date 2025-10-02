@@ -2,6 +2,7 @@ package org.example.unibooker.domain.reservation.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.unibooker.common.BaseEntity;
 
 import java.time.LocalDateTime;
 
@@ -10,12 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Reservations {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private LocalDateTime createdAt; // 생성 일시
-    private LocalDateTime updatedAt; // 수정 일시
+public class Reservations extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
