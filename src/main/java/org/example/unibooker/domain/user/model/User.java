@@ -41,14 +41,25 @@ public class User extends BaseEntity {
     @Comment("상태")
     private UserStatus status;
 
+    @Column(name = "company_id")
+    @Comment("기업 ID")
+    private Long companyId;
+
+    @Column(nullable = false)
+    @Comment("첫 로그인 여부")
+    private Boolean isFirstLogin = false;
+
     @Builder
-    public User(String email, String password, String name, String phone, UserRole role, UserStatus status) {
+    public User(String email, String password, String name, String phone,
+                UserRole role, UserStatus status, Long companyId, Boolean isFirstLogin) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.phone = phone;
         this.role = role != null ? role : UserRole.USER;
         this.status = status != null ? status : UserStatus.ACTIVE;
+        this.companyId = companyId;
+        this.isFirstLogin = isFirstLogin != null ? isFirstLogin : false;
     }
 
     // 비즈니스 로직 메서드
@@ -84,6 +95,10 @@ public class User extends BaseEntity {
     public void restore() {
         this.setDeletedAt(null);
         this.status = UserStatus.ACTIVE;
+    }
+
+    public void completeFirstLogin() {
+        this.isFirstLogin = false;
     }
 
     // 상태 확인 메서드
