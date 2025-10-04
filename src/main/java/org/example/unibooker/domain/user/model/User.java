@@ -9,7 +9,7 @@ import org.example.unibooker.common.BaseEntity;
 import org.hibernate.annotations.Comment;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자")
