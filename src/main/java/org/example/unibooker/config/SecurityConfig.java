@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/admin/status").permitAll()
 
                         // 로그인 (향후 구현)
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
 
                         // 정적 리소스
                         .requestMatchers("/uploads/**").permitAll()

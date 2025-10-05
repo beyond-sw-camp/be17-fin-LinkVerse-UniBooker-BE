@@ -8,6 +8,7 @@ import org.example.unibooker.domain.user.model.UserDto;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.repository.UserRepository;
+import org.example.unibooker.utils.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     /**
      * 일반 사용자 회원가입
@@ -90,6 +92,63 @@ public class UserService {
     private void validateDuplicateEmail(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
+        }
+    }
+
+    /**
+     * 로그인
+     */
+    @Transactional(readOnly = true)
+    public UserDto.LoginResponse login(UserDto.LoginRequest request) {
+        // 1. 이메일로 사용자 조회
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BaseException(BaseResponseStatus.INVALID_PASSWORD);
+        }
+
+        // 3. 계정 상태 확인
+        validateUserStatus(user);
+
+        // 4. JWT 토큰 생성 (TODO: JwtUtil 구현 필요)
+         String accessToken = jwtUtil.createAccessToken(user);
+         String refreshToken = jwtUtil.createRefreshToken(user);
+
+        // 5. 응답 생성
+        return UserDto.LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .passwordChangeRequired(user.getIsFirstLogin())
+                .companyId(user.getCompanyId())
+                .build();
+    }
+
+    /**
+     * 사용자 상태 검증
+     */
+    private void validateUserStatus(User user) {
+        // INACTIVE - 관리자는 승인 대기, 일반 사용자는 이메일 인증 대기
+        if (user.isInactive()) {
+            if (user.isManager() || user.isAdmin()) {
+                throw new BaseException(BaseResponseStatus.APPROVAL_PENDING);
+            }
+            // 일반 사용자의 INACTIVE는 현재 자동 ACTIVE 처리되므로 발생하지 않음
+        }
+
+        // SUSPENDED - 정지된 계정
+        if (user.isSuspended()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_SUSPENDED);
+        }
+
+        // DELETED - 탈퇴한 계정
+        if (user.isDeleted()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
         }
     }
 }
