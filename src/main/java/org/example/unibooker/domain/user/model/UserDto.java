@@ -94,4 +94,22 @@ public class UserDto {
         @NotBlank(message = "비밀번호는 필수입니다")
         private String password;
     }
+
+    // ========== 프로필 조회 Response ==========
+
+    @Getter
+    @Builder
+    public static class ProfileResponse {
+        private Long id;
+        private String name;
+        private String email;
+        private String phone;
+        private UserRole role;
+        private UserStatus status;
+        private Long companyId;
+        private String companyName;  // 기업 관리자인 경우 기업명 포함
+        private Boolean isFirstLogin;
+        private LocalDateTime createdAt;  // BaseEntity에서 자동 설정
+        private LocalDateTime updatedAt;  // BaseEntity에서 자동 갱신
+    }
 }

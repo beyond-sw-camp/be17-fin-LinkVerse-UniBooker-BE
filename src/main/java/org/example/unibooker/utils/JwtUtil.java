@@ -99,6 +99,14 @@ public class JwtUtil {
     }
 
     /**
+     * 토큰에서 역할(Role) 추출
+     */
+    public String getRole(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    /**
      * 토큰 유효성 검증
      */
     public boolean validateToken(String token) {

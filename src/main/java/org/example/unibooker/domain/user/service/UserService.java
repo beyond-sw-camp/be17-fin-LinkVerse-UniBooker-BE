@@ -3,6 +3,8 @@ package org.example.unibooker.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.domain.company.model.Company;
+import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.User;
 import org.example.unibooker.domain.user.model.UserDto;
 import org.example.unibooker.domain.user.model.UserRole;
@@ -20,6 +22,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CompanyRepository companyRepository;
     private final JwtUtil jwtUtil;
 
     /**
@@ -150,5 +153,40 @@ public class UserService {
         if (user.isDeleted()) {
             throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
         }
+    }
+
+    /**
+     * 내 프로필 조회
+     */
+    @Transactional(readOnly = true)
+    public UserDto.ProfileResponse getMyProfile(Long userId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 기업명 조회 (ADMIN 또는 MANAGER인 경우)
+        String companyName = null;
+        if (user.getCompanyId() != null) {
+            Company company = companyRepository.findById(user.getCompanyId())
+                    .orElse(null);
+            if (company != null) {
+                companyName = company.getCompanyName();
+            }
+        }
+
+        // 3. Response 생성
+        return UserDto.ProfileResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())
+                .status(user.getStatus())
+                .companyId(user.getCompanyId())
+                .companyName(companyName)
+                .isFirstLogin(user.getIsFirstLogin())
+                .createdAt(user.getCreatedAt())  // BaseEntity에서 자동 설정됨
+                .updatedAt(user.getUpdatedAt())  // BaseEntity에서 자동 갱신됨
+                .build();
     }
 }

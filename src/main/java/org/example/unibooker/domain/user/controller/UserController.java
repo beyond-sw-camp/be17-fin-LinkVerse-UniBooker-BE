@@ -87,4 +87,16 @@ public class UserController {
 
         return BaseResponse.success(loginResponse);
     }
+
+    // ========== 프로필 관리 ==========
+
+    @Operation(summary = "내 프로필 조회",
+            description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
+    @GetMapping("/me")
+    public BaseResponse<UserDto.ProfileResponse> getMyProfile(
+            @AuthenticationPrincipal Long userId) {
+
+        UserDto.ProfileResponse response = userService.getMyProfile(userId);
+        return BaseResponse.success(response);
+    }
 }
