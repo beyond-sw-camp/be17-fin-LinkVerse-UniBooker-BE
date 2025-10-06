@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.user.model.AdminDto;
+import org.example.unibooker.domain.user.model.ManagerDto;
 import org.example.unibooker.domain.user.model.UserDto;
 import org.example.unibooker.domain.user.service.AdminService;
 import org.example.unibooker.domain.user.service.UserService;
@@ -108,6 +109,19 @@ public class UserController {
             @AuthenticationPrincipal Long userId) {
 
         UserDto.ProfileResponse response = userService.updateMyProfile(userId, request);
+        return BaseResponse.success(response);
+    }
+
+    // ========== 매니저 관리 (신규 추가) ==========
+
+    @Operation(summary = "매니저 계정 생성",
+            description = "관리자가 매니저 계정을 생성합니다. 생성된 계정 정보는 이메일로 발송됩니다.")
+    @PostMapping("/managers")
+    public BaseResponse<ManagerDto.CreateResponse> createManager(
+            @RequestBody @Valid ManagerDto.CreateRequest request,
+            @AuthenticationPrincipal Long userId) {
+
+        ManagerDto.CreateResponse response = adminService.createManager(request, userId);
         return BaseResponse.success(response);
     }
 }
