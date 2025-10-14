@@ -23,4 +23,14 @@ public interface EmailService {
      * @param tempPassword 임시 비밀번호
      */
     void sendManagerCreationEmail(String to, String name, String companyName, String tempPassword);
+
+    /**
+     * 관리자 승인 이메일 발송 (편의 메서드)
+     *
+     * @param to 수신자 이메일 (관리자)
+     * @param name 관리자 이름
+     * @param companyName 회사명
+     * @param tempPassword 임시 비밀번호
+     */
+    void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword);
 }

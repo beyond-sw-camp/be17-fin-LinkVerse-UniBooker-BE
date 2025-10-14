@@ -33,6 +33,17 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         return renderTemplate("email/ManagerCreation", variables);
     }
 
+    @Override
+    public String renderAdminApprovalTemplate(String name, String companyName, String tempPassword) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", name);
+        variables.put("companyName", companyName);
+        variables.put("tempPassword", tempPassword);
+        variables.put("loginUrl", loginUrl);
+
+        return renderTemplate("email/AdminApproval", variables);
+    }
+
     /**
      * Thymeleaf 템플릿 렌더링 공통 메서드
      *
