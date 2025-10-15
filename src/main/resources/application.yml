@@ -22,3 +22,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+file:
+  upload:
+    path: uploads/
+    company-logo-path: company/logos/
+    max-size: 5242880
