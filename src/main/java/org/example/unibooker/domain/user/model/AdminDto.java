@@ -19,9 +19,19 @@ public class AdminDto {
     @NoArgsConstructor
     public static class SignUpRequest {
 
+        @NotBlank(message = "사업자등록번호는 필수입니다")
+        @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$",
+                message = "사업자등록번호 형식이 올바르지 않습니다 (XXX-XX-XXXXX)")
+        private String businessNumber;
+
         @NotBlank(message = "기업명은 필수입니다")
         @Size(min = 2, max = 100, message = "기업명은 2~100자여야 합니다")
         private String companyName;
+
+        @NotBlank(message = "Company Slug는 필수입니다")
+        @Pattern(regexp = "^[a-z0-9-]{3,30}$",
+                message = "Company Slug는 소문자, 숫자, 하이픈(-)만 사용 가능하며 3~30자여야 합니다")
+        private String companySlug;
 
         @NotBlank(message = "이름은 필수입니다")
         @Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다")
@@ -44,6 +54,8 @@ public class AdminDto {
         private String message;
         private String email;
         private String companyName;
+        private String companySlug;
+        private String serviceUrl;
         private Integer estimatedDays;
     }
 
@@ -54,6 +66,7 @@ public class AdminDto {
     public static class StatusResponse {
         private CompanyStatus status;
         private String companyName;
+        private String companySlug;
         private String email;
         private String rejectionReason;
         private LocalDateTime appliedAt;

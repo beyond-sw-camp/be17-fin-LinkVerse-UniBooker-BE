@@ -25,4 +25,24 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * 기업명 존재 여부 확인
      */
     boolean existsByCompanyName(String companyName);
+
+    /**
+     * 사업자등록번호로 조회
+     */
+    Optional<Company> findByBusinessNumber(String businessNumber);
+
+    /**
+     * 사업자등록번호 존재 여부 확인
+     */
+    boolean existsByBusinessNumber(String businessNumber);
+
+    /**
+     * companySlug로 조회
+     */
+    Optional<Company> findByCompanySlug(String companySlug);
+
+    /**
+     * companySlug 존재 여부 확인
+     */
+    boolean existsByCompanySlug(String companySlug);
 }

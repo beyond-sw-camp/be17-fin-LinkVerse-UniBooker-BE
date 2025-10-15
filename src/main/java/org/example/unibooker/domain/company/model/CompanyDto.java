@@ -10,6 +10,16 @@ import java.time.LocalDateTime;
 
 public class CompanyDto {
 
+    // ========== Slug 중복 확인 Response ==========
+    @Getter
+    @Builder
+    public static class SlugCheckResponse {
+        private Boolean exists;      // true: 이미 사용 중, false: 사용 가능
+        private Boolean available;   // true: 사용 가능, false: 사용 불가
+        private String message;      // 결과 메시지
+        private String slug;         // 확인한 slug
+    }
+
     // ========== 승인/거절 Request ==========
 
     @Getter
@@ -27,6 +37,7 @@ public class CompanyDto {
     public static class PendingResponse {
         private Long companyId;
         private String companyName;
+        private String companySlug;
         private String logoUrl;
         private String adminName;
         private String email;
@@ -43,6 +54,7 @@ public class CompanyDto {
         // Company 정보
         private Long companyId;
         private String companyName;
+        private String companySlug;
         private String logoUrl;
         private CompanyStatus status;
         private LocalDateTime createdAt;
@@ -66,6 +78,8 @@ public class CompanyDto {
         private String message;
         private Long companyId;
         private String companyName;
+        private String companySlug;
+        private String serviceUrl;
         private CompanyStatus status;
         private LocalDateTime processedAt;
     }

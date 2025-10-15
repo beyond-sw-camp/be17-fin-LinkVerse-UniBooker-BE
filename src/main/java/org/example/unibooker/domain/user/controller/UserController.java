@@ -89,6 +89,17 @@ public class UserController {
         return BaseResponse.success(loginResponse);
     }
 
+    // ========== 중복 확인 ==========
+
+    @Operation(summary = "이메일 중복 확인", description = "이메일이 이미 사용 중인지 확인합니다.")
+    @GetMapping("/check-email")
+    public BaseResponse<Boolean> checkEmail(
+            @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다") String email) {
+
+        boolean exists = userService.existsByEmail(email);
+        return BaseResponse.success(exists);
+    }
+
     // ========== 프로필 관리 ==========
 
     @Operation(summary = "내 프로필 조회",

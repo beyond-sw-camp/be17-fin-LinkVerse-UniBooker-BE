@@ -21,6 +21,14 @@ public class Company extends BaseEntity {
     @Comment("기업명")
     private String companyName;
 
+    @Column(nullable = false, unique = true, length = 12)
+    @Comment("사업자등록번호")
+    private String businessNumber;
+
+    @Column(nullable = false, unique = true, length = 30)
+    @Comment("기업 URL Slug")
+    private String companySlug;
+
     @Column(length = 255)
     @Comment("기업 로고 URL")
     private String logoUrl;
@@ -41,8 +49,11 @@ public class Company extends BaseEntity {
     private String rejectionReason;
 
     @Builder
-    public Company(String companyName, String logoUrl, CompanyStatus status) {
+    public Company(String businessNumber, String companyName, String companySlug,
+                   String logoUrl, CompanyStatus status) {
+        this.businessNumber = businessNumber;
         this.companyName = companyName;
+        this.companySlug = companySlug;
         this.logoUrl = logoUrl;
         this.status = status != null ? status : CompanyStatus.PENDING;
     }
@@ -70,7 +81,8 @@ public class Company extends BaseEntity {
         this.companyName = companyName;
     }
 
-    // 상태 확인 메서드
+    public String getServiceUrl(String baseUrl) { return baseUrl + "/c/" + this.companySlug; }
+
     public boolean isPending() {
         return this.status == CompanyStatus.PENDING;
     }
