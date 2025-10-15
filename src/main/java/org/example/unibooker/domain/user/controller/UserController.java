@@ -2,6 +2,8 @@ package org.example.unibooker.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +65,26 @@ public class UserController {
 
         AdminDto.StatusResponse response = adminService.checkSignUpStatus(email);
         return BaseResponse.success(response);
+    }
+
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    @PostMapping("/login")
+    public BaseResponse<UserDto.LoginResponse> login(
+            @RequestBody @Valid UserDto.LoginRequest request,
+            HttpServletResponse response) {
+
+        UserDto.LoginResponse loginResponse = userService.login(request);
+
+        // Refresh Token을 HttpOnly Cookie에 저장
+        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);   // JavaScript 접근 불가 (XSS 방어)
+        refreshTokenCookie.setSecure(true);     // HTTPS만 전송
+        refreshTokenCookie.setPath("/");        // 모든 경로에서 사용
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일 (초 단위)
+        // refreshTokenCookie.setSameSite("Strict");  // CSRF 방어 (Spring Boot 3.x+)
+
+        response.addCookie(refreshTokenCookie);
+
+        return BaseResponse.success(loginResponse);
     }
 }

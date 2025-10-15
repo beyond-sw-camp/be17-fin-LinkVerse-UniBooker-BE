@@ -80,4 +80,18 @@ public class UserDto {
         private Boolean passwordChangeRequired;
         private Long companyId;
     }
+
+    // ========== 로그인 Request ==========
+
+    @Getter
+    @NoArgsConstructor
+    public static class LoginRequest {
+
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "올바른 이메일 형식이 아닙니다")
+        private String email;
+
+        @NotBlank(message = "비밀번호는 필수입니다")
+        private String password;
+    }
 }

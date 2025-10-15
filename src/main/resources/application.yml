@@ -1,30 +1,82 @@
+# =================================================================
+# Spring Boot 기본 설정
+# =================================================================
 spring:
   application:
-    name: unibooker
+    name: unibooker  # 애플리케이션 이름
 
   # =================================================================
-  # ?????? ??
+  # 데이터베이스 설정
   # =================================================================
   datasource:
-    url: ${DB_URL}
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL}  # 데이터베이스 연결 URL (환경변수)
+    driver-class-name: org.mariadb.jdbc.Driver  # MariaDB JDBC 드라이버
+    username: ${DB_USERNAME}  # DB 사용자명 (환경변수)
+    password: ${DB_PASSWORD}  # DB 비밀번호 (환경변수)
 
+  # SQL 초기화 설정
   sql:
     init:
-      mode: always
+      mode: always  # 애플리케이션 시작 시 항상 SQL 스크립트 실행 (data.sql, schema.sql)
 
+  # =================================================================
+  # JPA/Hibernate 설정
+  # =================================================================
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_OPTION}
-    show-sql: true
+      ddl-auto: ${JPA_DDL_OPTION}  # DDL 자동 생성 옵션 (create, update, validate, none 등)
+    show-sql: true  # 실행되는 SQL 쿼리를 콘솔에 출력
     properties:
       hibernate:
-        format_sql: true
+        format_sql: true  # SQL 쿼리를 보기 좋게 포맷팅하여 출력
 
+# =================================================================
+# 파일 업로드 설정
+# =================================================================
 file:
   upload:
-    path: uploads/
-    company-logo-path: company/logos/
-    max-size: 5242880
+    path: uploads/  # 파일 업로드 기본 경로
+    company-logo-path: company/logos/  # 기업 로고 저장 경로
+    max-size: 5242880  # 최대 파일 크기 (5MB = 5 * 1024 * 1024 bytes)
+
+# =================================================================
+# JWT 토큰 설정
+# =================================================================
+jwt:
+  # JWT 서명에 사용할 비밀키 (환경변수 권장, 최소 256비트 이상)
+  secret: ${JWT_SECRET}
+  
+  # Access Token 유효 시간 (1시간 = 3,600,000 밀리초)
+  # 사용자 인증에 사용되며, 짧은 유효기간으로 보안 강화
+  access-token-validity: 3600000
+  
+  # Refresh Token 유효 시간 (7일 = 604,800,000 밀리초)
+  # Access Token 재발급에 사용되며, 긴 유효기간으로 사용자 편의성 제공
+  refresh-token-validity: 604800000
+
+# =================================================================
+# 서버 설정
+# =================================================================
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: strict  # CSRF 방어
+        secure: true       # HTTPS only
+
+# =================================================================
+# 이메일 설정 (Gmail SMTP)
+# =================================================================
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+            required: true
+          auth: true
+          timeout: 5000
