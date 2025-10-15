@@ -99,4 +99,15 @@ public class UserController {
         UserDto.ProfileResponse response = userService.getMyProfile(userId);
         return BaseResponse.success(response);
     }
+
+    @Operation(summary = "내 프로필 수정",
+            description = "현재 로그인한 사용자의 프로필 정보를 수정합니다.")
+    @PatchMapping("/me")
+    public BaseResponse<UserDto.ProfileResponse> updateMyProfile(
+            @RequestBody @Valid UserDto.ProfileUpdateRequest request,
+            @AuthenticationPrincipal Long userId) {
+
+        UserDto.ProfileResponse response = userService.updateMyProfile(userId, request);
+        return BaseResponse.success(response);
+    }
 }

@@ -112,4 +112,19 @@ public class UserDto {
         private LocalDateTime createdAt;  // BaseEntity에서 자동 설정
         private LocalDateTime updatedAt;  // BaseEntity에서 자동 갱신
     }
+
+    // ========== 프로필 수정 Request ==========
+
+    @Getter
+    @NoArgsConstructor
+    public static class ProfileUpdateRequest {
+
+        @NotBlank(message = "이름은 필수입니다")
+        @Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다")
+        private String name;
+
+        @Pattern(regexp = "^010-\\d{4}-\\d{4}$",
+                message = "연락처 형식이 올바르지 않습니다 (010-XXXX-XXXX)")
+        private String phone;
+    }
 }

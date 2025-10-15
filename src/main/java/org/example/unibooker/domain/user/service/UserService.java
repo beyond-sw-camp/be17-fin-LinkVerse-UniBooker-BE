@@ -115,7 +115,7 @@ public class UserService {
         // 3. 계정 상태 확인
         validateUserStatus(user);
 
-        // 4. JWT 토큰 생성 (TODO: JwtUtil 구현 필요)
+        // 4. JWT 토큰 생성
          String accessToken = jwtUtil.createAccessToken(user);
          String refreshToken = jwtUtil.createRefreshToken(user);
 
@@ -188,5 +188,26 @@ public class UserService {
                 .createdAt(user.getCreatedAt())  // BaseEntity에서 자동 설정됨
                 .updatedAt(user.getUpdatedAt())  // BaseEntity에서 자동 갱신됨
                 .build();
+    }
+
+    /**
+     * 내 프로필 수정
+     */
+    @Transactional
+    public UserDto.ProfileResponse updateMyProfile(Long userId,
+                                                   UserDto.ProfileUpdateRequest request) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 정보 수정
+        user.updateName(request.getName());
+
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            user.updatePhone(request.getPhone());
+        }
+
+        // 3. 변경 후 프로필 반환
+        return getMyProfile(userId);
     }
 }
