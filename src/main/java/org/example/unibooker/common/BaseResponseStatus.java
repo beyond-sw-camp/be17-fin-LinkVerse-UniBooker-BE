@@ -27,6 +27,13 @@ public enum BaseResponseStatus {
     ALREADY_APPROVED(40002, "이미 승인된 기업입니다."),
     ALREADY_REJECTED(40003, "이미 거절된 신청입니다."),
     COMPANY_NOT_APPROVED(40004, "승인되지 않은 기업입니다. 승인 후 매니저를 생성할 수 있습니다."),
+    DUPLICATE_BUSINESS_NUMBER(40005, "이미 등록된 사업자등록번호입니다."),
+    INVALID_BUSINESS_NUMBER_FORMAT(40006, "올바른 사업자등록번호 형식이 아닙니다."),
+
+    // ==========  Company Slug 관련 ==========
+    INVALID_SLUG_FORMAT(40007, "Company Slug 형식이 올바르지 않습니다. (소문자, 숫자, 하이픈만 가능, 3-30자)"),
+    RESERVED_SLUG(40008, "사용할 수 없는 예약어입니다."),
+    DUPLICATE_SLUG(40009, "이미 사용 중인 Company Slug입니다."),
 
     // ========== 50000: Auth 관련 (향후 로그인 구현 시 사용) ==========
     UNAUTHORIZED(50000, "인증되지 않은 사용자입니다."),

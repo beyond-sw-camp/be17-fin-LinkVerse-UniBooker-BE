@@ -58,8 +58,8 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword) {
-        String htmlContent = templateService.renderAdminApprovalTemplate(name, companyName, tempPassword);
+    public void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword, String serviceUrl) {
+        String htmlContent = templateService.renderAdminApprovalTemplate(name, companyName, tempPassword, serviceUrl);
         String subject = "[UniBooker] 기업 가입이 승인되었습니다";
 
         sendHtmlEmail(to, subject, htmlContent);

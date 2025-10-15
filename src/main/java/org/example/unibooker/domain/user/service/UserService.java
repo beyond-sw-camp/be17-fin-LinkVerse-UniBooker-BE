@@ -210,4 +210,11 @@ public class UserService {
         // 3. 변경 후 프로필 반환
         return getMyProfile(userId);
     }
+
+    /**
+     * 이메일 중복 확인
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

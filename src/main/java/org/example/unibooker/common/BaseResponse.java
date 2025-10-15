@@ -1,6 +1,7 @@
 package org.example.unibooker.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
@@ -37,6 +38,15 @@ public class BaseResponse<T> {
         this.code = status.getCode();
         this.message = status.getMessage();
         this.data = null;
+    }
+
+    /**
+     * 성공 여부 판단
+     * - code가 1000(SUCCESS)이면 true
+     */
+    @JsonProperty("isSuccess")
+    public boolean isSuccess() {
+        return this.code == BaseResponseStatus.SUCCESS.getCode();
     }
 
     // ========== Static Factory Methods ==========

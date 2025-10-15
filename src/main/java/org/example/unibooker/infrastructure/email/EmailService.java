@@ -31,6 +31,7 @@ public interface EmailService {
      * @param name 관리자 이름
      * @param companyName 회사명
      * @param tempPassword 임시 비밀번호
+     * @param serviceUrl 서비스 URL
      */
-    void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword);
+    void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword, String serviceUrl);
 }
