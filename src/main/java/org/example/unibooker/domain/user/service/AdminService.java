@@ -6,11 +6,9 @@ import org.example.unibooker.domain.company.model.Company;
 import org.example.unibooker.domain.company.model.CompanyDto;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
-import org.example.unibooker.domain.user.model.AdminDto;
-import org.example.unibooker.domain.user.model.User;
-import org.example.unibooker.domain.user.model.UserRole;
-import org.example.unibooker.domain.user.model.UserStatus;
+import org.example.unibooker.domain.user.model.*;
 import org.example.unibooker.domain.user.repository.UserRepository;
+import org.example.unibooker.infrastructure.email.EmailService;
 import org.example.unibooker.utils.FileUploadUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,14 +26,17 @@ public class AdminService {
     // 1. 필드 선언
     private final SignUp signUpService;
     private final Approval approvalService;
+    private final ManagerManagement managerManagement;
 
     // 2. 생성자
     public AdminService(UserRepository userRepository,
                         CompanyRepository companyRepository,
                         PasswordEncoder passwordEncoder,
-                        FileUploadUtil fileUploadUtil) {
+                        FileUploadUtil fileUploadUtil,
+                        EmailService emailService) {
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
         this.approvalService = new Approval(companyRepository, userRepository);
+        this.managerManagement = new ManagerManagement(userRepository, companyRepository, passwordEncoder, emailService);
     }
 
     // ========== 회원가입 관련 ==========
@@ -340,5 +341,196 @@ public class AdminService {
 
     public CompanyDto.ApprovalResponse rejectCompany(Long companyId, String rejectionReason) {
         return approvalService.rejectCompany(companyId, rejectionReason);
+    }
+
+    // ========== 매니저 관리 (신규) ==========
+
+    /**
+     * 매니저 계정 관리
+     */
+    @Transactional(readOnly = true)
+    public static class ManagerManagement {
+
+        private final UserRepository userRepository;
+        private final CompanyRepository companyRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final EmailService emailService;  // ← infrastructure 패키지의 EmailService
+
+        // 임시 비밀번호 생성 관련 상수
+        private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
+        private static final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
+        private static final String NUMBER = "0123456789";
+        private static final String SPECIAL_CHAR = "@$!%*#?&";
+        private static final String PASSWORD_CHARS = CHAR_LOWER + CHAR_UPPER + NUMBER + SPECIAL_CHAR;
+        private static final int TEMP_PASSWORD_LENGTH = 8;
+
+        public ManagerManagement(UserRepository userRepository,
+                                 CompanyRepository companyRepository,
+                                 PasswordEncoder passwordEncoder,
+                                 EmailService emailService) {
+            this.userRepository = userRepository;
+            this.companyRepository = companyRepository;
+            this.passwordEncoder = passwordEncoder;
+            this.emailService = emailService;
+        }
+
+        /**
+         * 매니저 계정 생성
+         */
+        @Transactional
+        public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
+            // 1. 권한 검증
+            User admin = validateAdminAuthority(currentUserId);
+
+            // 2. 회사 상태 확인
+            Company company = validateCompanyStatus(admin.getCompanyId());
+
+            // 3. 이메일 중복 체크
+            validateEmailDuplicate(request.getEmail());
+
+            // 4. 임시 비밀번호 생성
+            String temporaryPassword = generateTemporaryPassword();
+
+            // 5. 매니저 계정 생성 및 저장
+            User manager = createManagerUser(request, company.getId(), temporaryPassword);
+
+            // 6. 이메일 발송 (동기 처리)
+            sendManagerCreationEmail(request, company, temporaryPassword);
+
+            // 7. 응답 반환
+            return buildCreateResponse(manager, company);
+        }
+
+        /**
+         * 관리자 권한 검증
+         */
+        private User validateAdminAuthority(Long userId) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            if (!user.hasAdminAuthority()) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            return user;
+        }
+
+        /**
+         * 회사 상태 검증
+         */
+        private Company validateCompanyStatus(Long companyId) {
+            Company company = companyRepository.findById(companyId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+
+            if (company.getStatus() != CompanyStatus.APPROVED) {
+                throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
+            }
+
+            return company;
+        }
+
+        /**
+         * 이메일 중복 검증
+         */
+        private void validateEmailDuplicate(String email) {
+            if (userRepository.existsByEmail(email)) {
+                throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
+            }
+        }
+
+        /**
+         * 매니저 User 엔티티 생성 및 저장
+         */
+        private User createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
+            String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+            User manager = User.builder()
+                    .email(request.getEmail())
+                    .password(encodedPassword)
+                    .name(request.getName())
+                    .phone(request.getPhone())
+                    .role(UserRole.MANAGER)
+                    .status(UserStatus.INACTIVE)
+                    .companyId(companyId)
+                    .isFirstLogin(true)
+                    .build();
+
+            return userRepository.save(manager);
+        }
+
+        /**
+         * 매니저 생성 이메일 발송
+         */
+        private void sendManagerCreationEmail(ManagerDto.CreateRequest request, Company company, String temporaryPassword) {
+            try {
+                emailService.sendManagerCreationEmail(
+                        request.getEmail(),
+                        request.getName(),
+                        company.getCompanyName(),
+                        temporaryPassword
+                );
+            } catch (Exception e) {
+                // 이메일 발송 실패 시 예외 던지기 (트랜잭션 롤백)
+                throw new BaseException(BaseResponseStatus.EMAIL_SEND_FAILED);
+            }
+        }
+
+        /**
+         * 응답 DTO 생성
+         */
+        private ManagerDto.CreateResponse buildCreateResponse(User manager, Company company) {
+            return ManagerDto.CreateResponse.builder()
+                    .message("매니저 계정이 성공적으로 생성되었습니다. 이메일을 확인해주세요.")
+                    .managerId(manager.getId())
+                    .email(manager.getEmail())
+                    .name(manager.getName())
+                    .companyName(company.getCompanyName())
+                    .createdAt(manager.getCreatedAt())
+                    .build();
+        }
+
+        /**
+         * 임시 비밀번호 생성
+         */
+        private String generateTemporaryPassword() {
+            SecureRandom random = new SecureRandom();
+            StringBuilder password = new StringBuilder(TEMP_PASSWORD_LENGTH);
+
+            // 각 문자 종류에서 최소 1개씩 포함
+            password.append(CHAR_LOWER.charAt(random.nextInt(CHAR_LOWER.length())));
+            password.append(CHAR_UPPER.charAt(random.nextInt(CHAR_UPPER.length())));
+            password.append(NUMBER.charAt(random.nextInt(NUMBER.length())));
+            password.append(SPECIAL_CHAR.charAt(random.nextInt(SPECIAL_CHAR.length())));
+
+            // 나머지 랜덤 채우기
+            for (int i = 4; i < TEMP_PASSWORD_LENGTH; i++) {
+                password.append(PASSWORD_CHARS.charAt(random.nextInt(PASSWORD_CHARS.length())));
+            }
+
+            return shuffleString(password.toString(), random);
+        }
+
+        /**
+         * 문자열 섞기
+         */
+        private String shuffleString(String input, SecureRandom random) {
+            char[] characters = input.toCharArray();
+            for (int i = characters.length - 1; i > 0; i--) {
+                int j = random.nextInt(i + 1);
+                char temp = characters[i];
+                characters[i] = characters[j];
+                characters[j] = temp;
+            }
+            return new String(characters);
+        }
+    }
+
+    // ========== 퍼블릭 메서드 ==========
+
+    // 기존 메서드들...
+
+    // 매니저 관리 관련 (신규)
+    public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
+        return managerManagement.createManager(request, currentUserId);
     }
 }

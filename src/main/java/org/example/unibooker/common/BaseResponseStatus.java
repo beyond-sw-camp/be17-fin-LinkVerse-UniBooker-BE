@@ -26,6 +26,7 @@ public enum BaseResponseStatus {
     DUPLICATE_COMPANY_NAME(40001, "이미 등록된 기업명입니다."),
     ALREADY_APPROVED(40002, "이미 승인된 기업입니다."),
     ALREADY_REJECTED(40003, "이미 거절된 신청입니다."),
+    COMPANY_NOT_APPROVED(40004, "승인되지 않은 기업입니다. 승인 후 매니저를 생성할 수 있습니다."),
 
     // ========== 50000: Auth 관련 (향후 로그인 구현 시 사용) ==========
     UNAUTHORIZED(50000, "인증되지 않은 사용자입니다."),
@@ -37,11 +38,15 @@ public enum BaseResponseStatus {
     APPROVAL_REJECTED(50006, "가입 신청이 거절되었습니다."),
     ACCOUNT_SUSPENDED(50007, "정지된 계정입니다."),
     ACCOUNT_DELETED(50008, "탈퇴한 계정입니다."),
+    UNAUTHORIZED_ACTION(50009, "해당 작업을 수행할 권한이 없습니다."),
 
     // ========== 60000: File 관련 ==========
     INVALID_FILE_TYPE(60000, "지원하지 않는 파일 형식입니다. (jpg, jpeg, png만 가능)"),
     FILE_SIZE_EXCEEDED(60001, "파일 크기는 5MB를 초과할 수 없습니다."),
-    FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다.");
+    FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다."),
+
+    // ========== 70000: Email 관련 ==========
+    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다.");
 
     private final int code;
     private final String message;
