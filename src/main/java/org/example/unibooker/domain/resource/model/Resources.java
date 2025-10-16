@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.user.model.User;
+import org.example.unibooker.domain.user.model.Users;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -43,10 +43,10 @@ public class Resources extends BaseEntity {
     // 생성자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private User createdBy;
+    private Users createdBy;
 
     // 수정자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
-    private User updatedBy;
+    private Users updatedBy;
 }

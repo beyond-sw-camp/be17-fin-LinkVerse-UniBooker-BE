@@ -6,8 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.company.model.Company;
-import org.example.unibooker.domain.user.model.User;
+import org.example.unibooker.domain.company.model.Companies;
+import org.example.unibooker.domain.user.model.Users;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,17 +32,17 @@ public class ResourceGroups extends BaseEntity {
     // 기업키
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
-    private Company company;
+    private Companies company;
 
     // 생성자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private User createdBy;
+    private Users createdBy;
 
     // 수정자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
-    private User updatedBy;
+    private Users updatedBy;
 
     // 커스텀 필드
     @OneToMany(mappedBy = "resourceGroup", cascade = CascadeType.ALL, orphanRemoval = true)
