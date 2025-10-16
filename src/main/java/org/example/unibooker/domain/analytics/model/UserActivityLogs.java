@@ -1,15 +1,16 @@
-package org.example.unibooker.domain.activity.model;
+package org.example.unibooker.domain.analytics.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.example.unibooker.common.BaseEntity;
-import org.springframework.security.core.userdetails.User;
+import org.example.unibooker.domain.company.model.Company;
+import org.example.unibooker.domain.user.model.User;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_activity_events")
-public class UserActivityEvent extends BaseEntity {
+public class UserActivityLogs extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @Schema(description = "이벤트를 발생시킨 유저")

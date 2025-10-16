@@ -1,8 +1,9 @@
-package org.example.unibooker.domain.dashboard.model;
+package org.example.unibooker.domain.analytics.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.example.unibooker.common.BaseEntity;
+import org.example.unibooker.domain.resource.model.Resources;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,7 @@ public class ResourceStatistics extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id", nullable = false)
     @Schema(description = "통계를 수집한 리소스")
-    private Resource resource;
+    private Resources resource;
 
     @Column(name = "stat_start_date")
     @Schema(description = "통계 시작 날짜", example = "2025-10-01T00:00:00")
