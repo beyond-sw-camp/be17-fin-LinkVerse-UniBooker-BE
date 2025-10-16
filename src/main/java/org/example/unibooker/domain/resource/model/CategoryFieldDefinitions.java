@@ -1,6 +1,6 @@
 package org.example.unibooker.domain.resource.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,10 +12,9 @@ import org.example.unibooker.common.BaseEntity;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResourceImages extends BaseEntity {
-    private String resourceImage;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_id")
-    private Resources resource;
+public class CategoryFieldDefinitions extends BaseEntity {
+    private String fieldName;
+    private String description;
+    private CustomDataType dataType;
+    private ServiceCategory category;
 }

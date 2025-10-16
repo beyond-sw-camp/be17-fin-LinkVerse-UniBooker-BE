@@ -17,11 +17,21 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomFieldDefinitions extends BaseEntity {
     private CustomeTargetType targetType;
-    private Long targetId;
     private String fieldName;
+    private String description;
     private CustomDataType dataType;
     private Boolean isRequired;
 
+    // 서비스 커스텀 필드 값
     @OneToMany(mappedBy = "customFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CustomFieldValues> customFieldValues = new ArrayList<>();
+    private List<ResourceCustomFieldValues> resourceCustomFieldValues = new ArrayList<>();
+
+    // 사용자 커스텀 필드 값
+    @OneToMany(mappedBy = "customFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCustomFieldValues> userCustomFieldValues = new ArrayList<>();
+
+    // 리소스 그룹
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_group_id")
+    private ResourceGroups resourceGroup;
 }
