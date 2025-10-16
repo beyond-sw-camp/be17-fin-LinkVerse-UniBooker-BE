@@ -3,15 +3,22 @@ package org.example.unibooker.domain.user.service;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.constants.ReservedSlugs;
 import org.example.unibooker.common.exception.BaseException;
-import org.example.unibooker.domain.company.model.Company;
-import org.example.unibooker.domain.company.model.CompanyDto;
+import org.example.unibooker.domain.company.model.entity.Company;
+import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.*;
+import org.example.unibooker.domain.user.model.dto.AdminDto;
+import org.example.unibooker.domain.user.model.dto.ManagerDto;
+import org.example.unibooker.domain.user.model.entity.User;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.example.unibooker.infrastructure.email.EmailService;
 import org.example.unibooker.utils.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -133,11 +140,6 @@ public class AdminService {
 
         /**
          * Company Slug 유효성 검증
-         * - 형식(소문자, 숫자, 하이픈 3-30자)
-         * - 시작/끝 하이픈 금지
-         * - 연속 하이픈 금지
-         * - 예약어 검증
-         * - 중복 검증
          */
         private void validateCompanySlug(String slug) {
             if (!SLUG_PATTERN.matcher(slug).matches()) {
@@ -196,7 +198,7 @@ public class AdminService {
         }
 
         /**
-         * 임시 비밀번호 생성 (8자리, 소문자+대문자+숫자+특수문자 포함)
+         * 임시 비밀번호 생성
          */
         private String generateTemporaryPassword() {
             SecureRandom random = new SecureRandom();
@@ -306,9 +308,6 @@ public class AdminService {
 
         /**
          * 기업 승인 처리
-         * - Company 상태를 APPROVED로 변경
-         * - Admin User 활성화 (ACTIVE)
-         * - 새 임시 비밀번호 생성 및 이메일 발송
          */
         @Transactional
         public CompanyDto.ApprovalResponse approveCompany(Long companyId, Long approvedBy) {
@@ -356,8 +355,6 @@ public class AdminService {
 
         /**
          * 기업 거절 처리
-         * - Company 상태를 REJECTED로 변경
-         * - 거절 사유 저장
          */
         @Transactional
         public CompanyDto.ApprovalResponse rejectCompany(Long companyId, String rejectionReason) {
@@ -488,10 +485,6 @@ public class AdminService {
 
         /**
          * 매니저 계정 생성
-         * - Admin 권한 검증
-         * - Company 승인 상태 검증
-         * - 이메일 중복 검증
-         * - Manager User 생성 및 이메일 발송
          */
         @Transactional
         public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
@@ -505,6 +498,113 @@ public class AdminService {
             sendManagerCreationEmail(request, company, temporaryPassword);
 
             return buildCreateResponse(manager, company);
+        }
+
+        /**
+         * 관리자가 자신의 기업 소속 매니저 목록 조회
+         */
+        public ManagerDto.ManagerListResponse getManagers(Long adminUserId, int page, int size) {
+            // 1. Admin 권한 검증
+            User admin = validateAdminAuthority(adminUserId);
+
+            // 2. 페이징 처리
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+            // 3. 같은 기업의 매니저 조회
+            Page<User> managerPage = userRepository.findByCompanyIdAndRole(
+                    admin.getCompanyId(),
+                    UserRole.MANAGER,
+                    pageable
+            );
+
+            // 4. DTO 변환
+            List<ManagerDto.ManagerListResponse.ManagerInfo> managers = managerPage.getContent().stream()
+                    .map(this::convertToManagerInfo)
+                    .collect(Collectors.toList());
+
+            // 5. 응답 생성
+            return ManagerDto.ManagerListResponse.builder()
+                    .managers(managers)
+                    .totalElements(managerPage.getTotalElements())
+                    .totalPages(managerPage.getTotalPages())
+                    .currentPage(page)
+                    .pageSize(size)
+                    .build();
+        }
+
+        /**
+         * 슈퍼관리자가 모든 관리자+매니저 조회
+         */
+        public AdminDto.AdminListResponse getAllAdmins(int page, int size, UserRole role, UserStatus status) {
+            // 1. 페이징 처리
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+            // 2. 조회 조건에 따라 분기
+            Page<User> adminPage;
+
+            if (role != null && status != null) {
+                // 권한 + 상태 둘 다 필터링
+                adminPage = userRepository.findByRoleAndStatus(role, status, pageable);
+            } else if (role != null) {
+                // 권한만 필터링
+                adminPage = userRepository.findByRole(role, pageable);
+            } else if (status != null) {
+                // 상태만 필터링
+                adminPage = userRepository.findByStatus(status, pageable);
+            } else {
+                // 전체 조회 (ADMIN, MANAGER, SUPER만)
+                adminPage = userRepository.findByRoleIn(
+                        List.of(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPER),
+                        pageable
+                );
+            }
+
+            // 3. DTO 변환
+            List<AdminDto.AdminListResponse.AdminInfo> admins = adminPage.getContent().stream()
+                    .map(this::convertToAdminInfo)
+                    .collect(Collectors.toList());
+
+            // 4. 응답 생성
+            return AdminDto.AdminListResponse.builder()
+                    .admins(admins)
+                    .totalElements(adminPage.getTotalElements())
+                    .totalPages(adminPage.getTotalPages())
+                    .currentPage(page)
+                    .pageSize(size)
+                    .build();
+        }
+
+        /**
+         * 슈퍼관리자가 관리자/매니저 상태 변경
+         */
+        @Transactional
+        public void updateAdminStatus(Long userId, AdminDto.AdminStatusUpdateRequest request) {
+            // 1. 사용자 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 2. 권한 확인 (ADMIN 또는 MANAGER만)
+            if (!user.hasAdminAuthority() && !user.isManager()) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 3. 상태 변경
+            switch (request.getStatus()) {
+                case ACTIVE:
+                    user.activate();
+                    break;
+                case INACTIVE:
+                    user.deactivate();
+                    break;
+                case SUSPENDED:
+                    user.suspend();
+                    break;
+                case DELETED:
+                    user.delete();
+                    break;
+                default:
+                    throw new BaseException(BaseResponseStatus.INVALID_USER_STATUS);
+            }
         }
 
         /**
@@ -581,6 +681,41 @@ public class AdminService {
         }
 
         /**
+         * 매니저 계정 삭제
+         */
+        @Transactional
+        public ManagerDto.ManagerDeleteResponse deleteManager(Long managerId, Long adminUserId) {
+            // 1. Admin 권한 검증
+            User admin = validateAdminAuthority(adminUserId);
+
+            // 2. 매니저 조회
+            User manager = userRepository.findById(managerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 3. 매니저 권한 확인
+            if (!manager.isManager()) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 4. 같은 회사 소속인지 확인
+            if (!manager.getCompanyId().equals(admin.getCompanyId())) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 5. 매니저 삭제 처리
+            manager.delete();
+
+            // 6. 응답 생성
+            return ManagerDto.ManagerDeleteResponse.builder()
+                    .message("매니저 계정이 삭제되었습니다.")
+                    .managerId(manager.getId())
+                    .name(manager.getName())
+                    .email(manager.getEmail())
+                    .deletedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        /**
          * CreateResponse DTO 생성
          */
         private ManagerDto.CreateResponse buildCreateResponse(User manager, Company company) {
@@ -591,6 +726,46 @@ public class AdminService {
                     .name(manager.getName())
                     .companyName(company.getCompanyName())
                     .createdAt(manager.getCreatedAt())
+                    .build();
+        }
+
+        /**
+         * User -> ManagerInfo DTO 변환
+         */
+        private ManagerDto.ManagerListResponse.ManagerInfo convertToManagerInfo(User manager) {
+            return ManagerDto.ManagerListResponse.ManagerInfo.builder()
+                    .managerId(manager.getId())
+                    .name(manager.getName())
+                    .email(manager.getEmail())
+                    .phone(manager.getPhone())
+                    .status(manager.getStatus())
+                    .isFirstLogin(manager.getIsFirstLogin())
+                    .createdAt(manager.getCreatedAt())
+                    .lastLoginAt(null) // TODO: 마지막 로그인 시간 추가 시 구현
+                    .build();
+        }
+
+        /**
+         * User -> AdminInfo DTO 변환
+         */
+        private AdminDto.AdminListResponse.AdminInfo convertToAdminInfo(User admin) {
+            Company company = null;
+            if (admin.getCompanyId() != null) {
+                company = companyRepository.findById(admin.getCompanyId()).orElse(null);
+            }
+
+            return AdminDto.AdminListResponse.AdminInfo.builder()
+                    .userId(admin.getId())
+                    .name(admin.getName())
+                    .email(admin.getEmail())
+                    .phone(admin.getPhone())
+                    .role(admin.getRole())
+                    .status(admin.getStatus())
+                    .companyId(admin.getCompanyId())
+                    .companyName(company != null ? company.getCompanyName() : null)
+                    .companySlug(company != null ? company.getCompanySlug() : null)
+                    .createdAt(admin.getCreatedAt())
+                    .lastLoginAt(null) // TODO: 마지막 로그인 시간 추가 시 구현
                     .build();
         }
 
@@ -656,5 +831,30 @@ public class AdminService {
 
     public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
         return managerManagement.createManager(request, currentUserId);
+    }
+
+    /**
+     * 관리자의 매니저 목록 조회
+     */
+    public ManagerDto.ManagerListResponse getManagers(Long userId, int page, int size) {
+        return managerManagement.getManagers(userId, page, size);
+    }
+
+    public ManagerDto.ManagerDeleteResponse deleteManager(Long managerId, Long currentUserId) {
+        return managerManagement.deleteManager(managerId, currentUserId);
+    }
+
+    /**
+     * 슈퍼관리자가 모든 관리자/매니저 조회
+     */
+    public AdminDto.AdminListResponse getAllAdmins(int page, int size, UserRole role, UserStatus status) {
+        return managerManagement.getAllAdmins(page, size, role, status);
+    }
+
+    /**
+     * 슈퍼관리자가 관리자/매니저 상태 변경
+     */
+    public void updateAdminStatus(Long userId, AdminDto.AdminStatusUpdateRequest request) {
+        managerManagement.updateAdminStatus(userId, request);
     }
 }

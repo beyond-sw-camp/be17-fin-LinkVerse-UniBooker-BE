@@ -3,10 +3,10 @@ package org.example.unibooker.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
-import org.example.unibooker.domain.company.model.Company;
+import org.example.unibooker.domain.company.model.entity.Company;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
-import org.example.unibooker.domain.user.model.User;
-import org.example.unibooker.domain.user.model.UserDto;
+import org.example.unibooker.domain.user.model.entity.User;
+import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.repository.UserRepository;
@@ -15,6 +15,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
+/**
+ * 사용자 비즈니스 로직 처리 서비스
+ * - 일반 사용자 회원가입, 로그인, 로그아웃
+ * - 비밀번호 변경, 프로필 조회/수정
+ * - 회원 탈퇴
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,26 +38,24 @@ public class UserService {
      */
     @Transactional
     public UserDto.SignUpResponse signUpUser(UserDto.SignUpRequest request) {
-        // 이메일 중복 체크
         validateDuplicateEmail(request.getEmail());
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // User 엔티티 생성
+        // birthDate, gender 추가
         User user = User.builder()
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .name(request.getName())
                 .phone(request.getPhone())
+                .birthDate(request.getBirthDate())
+                .gender(request.getGender())
                 .role(UserRole.USER)
                 .status(UserStatus.ACTIVE)
                 .build();
 
-        // 저장
         User savedUser = userRepository.save(user);
 
-        // 응답 DTO 생성
         return UserDto.SignUpResponse.builder()
                 .id(savedUser.getId())
                 .name(savedUser.getName())
@@ -57,6 +63,85 @@ public class UserService {
                 .role(savedUser.getRole())
                 .status(savedUser.getStatus())
                 .createdAt(savedUser.getCreatedAt())
+                .build();
+    }
+
+    /**
+     * 로그인
+     */
+    @Transactional(readOnly = true)
+    public UserDto.LoginResponse login(UserDto.LoginRequest request) {
+        // 1. 이메일로 사용자 조회
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BaseException(BaseResponseStatus.INVALID_PASSWORD);
+        }
+
+        // 3. 계정 상태 확인
+        validateUserStatus(user);
+
+        // 4. JWT 토큰 생성
+        String accessToken = jwtUtil.createAccessToken(user);
+        String refreshToken = jwtUtil.createRefreshToken(user);
+
+        // 5. 응답 생성
+        return UserDto.LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .passwordChangeRequired(user.getIsFirstLogin())
+                .companyId(user.getCompanyId())
+                .build();
+    }
+
+    /**
+     * 로그아웃
+     */
+    @Transactional
+    public UserDto.LogoutResponse logout(Long userId, UserDto.LogoutRequest request) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 리프레시 토큰 무효화 처리 (Redis 등에서 삭제)
+        // TODO: Redis에서 refreshToken 제거 로직 구현
+        // jwtUtil.invalidateRefreshToken(request.getRefreshToken());
+
+        // 3. 응답 생성
+        return UserDto.LogoutResponse.builder()
+                .message("로그아웃이 완료되었습니다.")
+                .logoutAt(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * 회원 탈퇴
+     */
+    @Transactional
+    public UserDto.WithdrawResponse withdraw(Long userId, UserDto.WithdrawRequest request) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. 비밀번호 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BaseException(BaseResponseStatus.INVALID_PASSWORD);
+        }
+
+        // 3. 회원 탈퇴 처리 (소프트 삭제)
+        user.delete();
+
+        // 4. 응답 생성
+        return UserDto.WithdrawResponse.builder()
+                .message("회원 탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.")
+                .email(user.getEmail())
+                .withdrawnAt(LocalDateTime.now())
                 .build();
     }
 
@@ -90,72 +175,6 @@ public class UserService {
     }
 
     /**
-     * 이메일 중복 체크
-     */
-    private void validateDuplicateEmail(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
-        }
-    }
-
-    /**
-     * 로그인
-     */
-    @Transactional(readOnly = true)
-    public UserDto.LoginResponse login(UserDto.LoginRequest request) {
-        // 1. 이메일로 사용자 조회
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
-
-        // 2. 비밀번호 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BaseException(BaseResponseStatus.INVALID_PASSWORD);
-        }
-
-        // 3. 계정 상태 확인
-        validateUserStatus(user);
-
-        // 4. JWT 토큰 생성
-         String accessToken = jwtUtil.createAccessToken(user);
-         String refreshToken = jwtUtil.createRefreshToken(user);
-
-        // 5. 응답 생성
-        return UserDto.LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .userId(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .passwordChangeRequired(user.getIsFirstLogin())
-                .companyId(user.getCompanyId())
-                .build();
-    }
-
-    /**
-     * 사용자 상태 검증
-     */
-    private void validateUserStatus(User user) {
-        // INACTIVE - 관리자는 승인 대기, 일반 사용자는 이메일 인증 대기
-        if (user.isInactive()) {
-            if (user.isManager() || user.isAdmin()) {
-                throw new BaseException(BaseResponseStatus.APPROVAL_PENDING);
-            }
-            // 일반 사용자의 INACTIVE는 현재 자동 ACTIVE 처리되므로 발생하지 않음
-        }
-
-        // SUSPENDED - 정지된 계정
-        if (user.isSuspended()) {
-            throw new BaseException(BaseResponseStatus.ACCOUNT_SUSPENDED);
-        }
-
-        // DELETED - 탈퇴한 계정
-        if (user.isDeleted()) {
-            throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
-        }
-    }
-
-    /**
      * 내 프로필 조회
      */
     @Transactional(readOnly = true)
@@ -180,13 +199,15 @@ public class UserService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .birthDate(user.getBirthDate())
+                .gender(user.getGender())
                 .role(user.getRole())
                 .status(user.getStatus())
                 .companyId(user.getCompanyId())
                 .companyName(companyName)
                 .isFirstLogin(user.getIsFirstLogin())
-                .createdAt(user.getCreatedAt())  // BaseEntity에서 자동 설정됨
-                .updatedAt(user.getUpdatedAt())  // BaseEntity에서 자동 갱신됨
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 
@@ -207,6 +228,14 @@ public class UserService {
             user.updatePhone(request.getPhone());
         }
 
+        if (request.getBirthDate() != null && !request.getBirthDate().isBlank()) {
+            user.updateBirthDate(request.getBirthDate());
+        }
+
+        if (request.getGender() != null) {
+            user.updateGender(request.getGender());
+        }
+
         // 3. 변경 후 프로필 반환
         return getMyProfile(userId);
     }
@@ -216,5 +245,37 @@ public class UserService {
      */
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 이메일 중복 체크
+     */
+    private void validateDuplicateEmail(String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
+        }
+    }
+
+    /**
+     * 사용자 상태 검증
+     */
+    private void validateUserStatus(User user) {
+        // INACTIVE - 관리자는 승인 대기, 일반 사용자는 이메일 인증 대기
+        if (user.isInactive()) {
+            if (user.isManager() || user.isAdmin()) {
+                throw new BaseException(BaseResponseStatus.APPROVAL_PENDING);
+            }
+            // 일반 사용자의 INACTIVE는 현재 자동 ACTIVE 처리되므로 발생하지 않음
+        }
+
+        // SUSPENDED - 정지된 계정
+        if (user.isSuspended()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_SUSPENDED);
+        }
+
+        // DELETED - 탈퇴한 계정
+        if (user.isDeleted()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
+        }
     }
 }
