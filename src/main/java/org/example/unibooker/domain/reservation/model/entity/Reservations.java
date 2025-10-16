@@ -13,16 +13,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Reservations extends BaseEntity {
 
+    // 사용자 키
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private Users users; // 사용자 키
+    private Users users;
 
+    // 리소스 키
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
-    private Resources resources; // 리소스 키
+    private Resources resources;
 
+    // 생성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private Users createdBy;
+
+    // 예약 상태
     @Enumerated(EnumType.STRING)
-    private ReservationStatus status; // 예약 상태
+    private ReservationStatus status;
 
     private Integer attendeeCount; // 참석 인원
     private LocalDateTime startTime; // 시작 일시
