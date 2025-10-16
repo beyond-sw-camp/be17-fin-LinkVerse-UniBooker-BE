@@ -3,8 +3,8 @@ package org.example.unibooker.domain.analytics.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.company.model.Companies;
-import org.example.unibooker.domain.user.model.Users;
+import org.example.unibooker.domain.company.model.entity.Companies;
+import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.LocalDateTime;
 

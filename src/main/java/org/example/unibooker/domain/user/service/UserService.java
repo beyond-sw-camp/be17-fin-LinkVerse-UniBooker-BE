@@ -3,9 +3,9 @@ package org.example.unibooker.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
-import org.example.unibooker.domain.company.model.entity.Company;
+import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
-import org.example.unibooker.domain.user.model.entity.User;
+import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
@@ -43,7 +43,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         // birthDate, gender 추가
-        User user = User.builder()
+        Users user = Users.builder()
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .name(request.getName())
@@ -54,7 +54,7 @@ public class UserService {
                 .status(UserStatus.ACTIVE)
                 .build();
 
-        User savedUser = userRepository.save(user);
+        Users savedUser = userRepository.save(user);
 
         return UserDto.SignUpResponse.builder()
                 .id(savedUser.getId())
@@ -72,7 +72,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto.LoginResponse login(UserDto.LoginRequest request) {
         // 1. 이메일로 사용자 조회
-        User user = userRepository.findByEmail(request.getEmail())
+        Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 비밀번호 검증
@@ -106,7 +106,7 @@ public class UserService {
     @Transactional
     public UserDto.LogoutResponse logout(Long userId, UserDto.LogoutRequest request) {
         // 1. 사용자 조회
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 리프레시 토큰 무효화 처리 (Redis 등에서 삭제)
@@ -126,7 +126,7 @@ public class UserService {
     @Transactional
     public UserDto.WithdrawResponse withdraw(Long userId, UserDto.WithdrawRequest request) {
         // 1. 사용자 조회
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 비밀번호 확인
@@ -151,7 +151,7 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, UserDto.PasswordChangeRequest request) {
         // 사용자 조회
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 현재 비밀번호 확인
@@ -180,13 +180,13 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto.ProfileResponse getMyProfile(Long userId) {
         // 1. 사용자 조회
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 기업명 조회 (ADMIN 또는 MANAGER인 경우)
         String companyName = null;
         if (user.getCompanyId() != null) {
-            Company company = companyRepository.findById(user.getCompanyId())
+            Companies company = companyRepository.findById(user.getCompanyId())
                     .orElse(null);
             if (company != null) {
                 companyName = company.getCompanyName();
@@ -218,7 +218,7 @@ public class UserService {
     public UserDto.ProfileResponse updateMyProfile(Long userId,
                                                    UserDto.ProfileUpdateRequest request) {
         // 1. 사용자 조회
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 정보 수정
@@ -259,7 +259,7 @@ public class UserService {
     /**
      * 사용자 상태 검증
      */
-    private void validateUserStatus(User user) {
+    private void validateUserStatus(Users user) {
         // INACTIVE - 관리자는 승인 대기, 일반 사용자는 이메일 인증 대기
         if (user.isInactive()) {
             if (user.isManager() || user.isAdmin()) {

@@ -3,14 +3,14 @@ package org.example.unibooker.domain.user.service;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.constants.ReservedSlugs;
 import org.example.unibooker.common.exception.BaseException;
-import org.example.unibooker.domain.company.model.entity.Company;
+import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.*;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
-import org.example.unibooker.domain.user.model.entity.User;
+import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.example.unibooker.infrastructure.email.EmailService;
 import org.example.unibooker.utils.FileUploadUtil;
@@ -99,13 +99,13 @@ public class AdminService {
             validateCompanySlug(request.getCompanySlug());
             validateDuplicateEmail(request.getEmail());
 
-            Company company = createCompany(request, logoFile);
-            Company savedCompany = companyRepository.save(company);
+            Companies company = createCompany(request, logoFile);
+            Companies savedCompany = companyRepository.save(company);
 
             String temporaryPassword = generateTemporaryPassword();
             String encodedPassword = passwordEncoder.encode(temporaryPassword);
 
-            User admin = createAdmin(request, savedCompany, encodedPassword);
+            Users admin = createAdmin(request, savedCompany, encodedPassword);
             userRepository.save(admin);
 
             return AdminDto.SignUpResponse.builder()
@@ -122,10 +122,10 @@ public class AdminService {
          * 회원가입 신청 상태 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            User user = userRepository.findByEmail(email)
+            Users user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-            Company company = companyRepository.findById(user.getCompanyId())
+            Companies company = companyRepository.findById(user.getCompanyId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             return AdminDto.StatusResponse.builder()
@@ -166,13 +166,13 @@ public class AdminService {
         /**
          * Company 엔티티 생성
          */
-        private Company createCompany(AdminDto.SignUpRequest request, MultipartFile logoFile) {
+        private Companies createCompany(AdminDto.SignUpRequest request, MultipartFile logoFile) {
             String logoUrl = null;
             if (logoFile != null && !logoFile.isEmpty()) {
                 logoUrl = fileUploadUtil.uploadCompanyLogo(logoFile);
             }
 
-            return Company.builder()
+            return Companies.builder()
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
@@ -184,8 +184,8 @@ public class AdminService {
         /**
          * Admin User 엔티티 생성
          */
-        private User createAdmin(AdminDto.SignUpRequest request, Company company, String encodedPassword) {
-            return User.builder()
+        private Users createAdmin(AdminDto.SignUpRequest request, Companies company, String encodedPassword) {
+            return Users.builder()
                     .email(request.getEmail())
                     .password(encodedPassword)
                     .name(request.getName())
@@ -286,7 +286,7 @@ public class AdminService {
          * 승인 대기 중인 기업 목록 조회
          */
         public List<CompanyDto.PendingResponse> getPendingCompanies() {
-            List<Company> pendingCompanies = companyRepository.findByStatus(CompanyStatus.PENDING);
+            List<Companies> pendingCompanies = companyRepository.findByStatus(CompanyStatus.PENDING);
 
             return pendingCompanies.stream()
                     .map(this::convertToPendingResponse)
@@ -297,10 +297,10 @@ public class AdminService {
          * 기업 상세 정보 조회
          */
         public CompanyDto.DetailResponse getCompanyDetail(Long companyId) {
-            Company company = companyRepository.findById(companyId)
+            Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-            User admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
+            Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             return convertToDetailResponse(company, admin);
@@ -311,14 +311,14 @@ public class AdminService {
          */
         @Transactional
         public CompanyDto.ApprovalResponse approveCompany(Long companyId, Long approvedBy) {
-            Company company = companyRepository.findById(companyId)
+            Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             if (company.getStatus() == CompanyStatus.APPROVED) {
                 throw new BaseException(BaseResponseStatus.ALREADY_APPROVED);
             }
 
-            User admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
+            Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             String newTempPassword = generateTemporaryPassword();
@@ -358,7 +358,7 @@ public class AdminService {
          */
         @Transactional
         public CompanyDto.ApprovalResponse rejectCompany(Long companyId, String rejectionReason) {
-            Company company = companyRepository.findById(companyId)
+            Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             if (company.getStatus() == CompanyStatus.REJECTED) {
@@ -413,8 +413,8 @@ public class AdminService {
         /**
          * Company -> PendingResponse DTO 변환
          */
-        private CompanyDto.PendingResponse convertToPendingResponse(Company company) {
-            User admin = userRepository.findByCompanyIdAndRole(company.getId(), UserRole.ADMIN)
+        private CompanyDto.PendingResponse convertToPendingResponse(Companies company) {
+            Users admin = userRepository.findByCompanyIdAndRole(company.getId(), UserRole.ADMIN)
                     .orElse(null);
 
             return CompanyDto.PendingResponse.builder()
@@ -433,7 +433,7 @@ public class AdminService {
         /**
          * Company + User -> DetailResponse DTO 변환
          */
-        private CompanyDto.DetailResponse convertToDetailResponse(Company company, User admin) {
+        private CompanyDto.DetailResponse convertToDetailResponse(Companies company, Users admin) {
             return CompanyDto.DetailResponse.builder()
                     .companyId(company.getId())
                     .companyName(company.getCompanyName())
@@ -488,12 +488,12 @@ public class AdminService {
          */
         @Transactional
         public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
-            User admin = validateAdminAuthority(currentUserId);
-            Company company = validateCompanyStatus(admin.getCompanyId());
+            Users admin = validateAdminAuthority(currentUserId);
+            Companies company = validateCompanyStatus(admin.getCompanyId());
             validateEmailDuplicate(request.getEmail());
 
             String temporaryPassword = generateTemporaryPassword();
-            User manager = createManagerUser(request, company.getId(), temporaryPassword);
+            Users manager = createManagerUser(request, company.getId(), temporaryPassword);
 
             sendManagerCreationEmail(request, company, temporaryPassword);
 
@@ -505,13 +505,13 @@ public class AdminService {
          */
         public ManagerDto.ManagerListResponse getManagers(Long adminUserId, int page, int size) {
             // 1. Admin 권한 검증
-            User admin = validateAdminAuthority(adminUserId);
+            Users admin = validateAdminAuthority(adminUserId);
 
             // 2. 페이징 처리
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
             // 3. 같은 기업의 매니저 조회
-            Page<User> managerPage = userRepository.findByCompanyIdAndRole(
+            Page<Users> managerPage = userRepository.findByCompanyIdAndRole(
                     admin.getCompanyId(),
                     UserRole.MANAGER,
                     pageable
@@ -540,7 +540,7 @@ public class AdminService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
             // 2. 조회 조건에 따라 분기
-            Page<User> adminPage;
+            Page<Users> adminPage;
 
             if (role != null && status != null) {
                 // 권한 + 상태 둘 다 필터링
@@ -580,7 +580,7 @@ public class AdminService {
         @Transactional
         public void updateAdminStatus(Long userId, AdminDto.AdminStatusUpdateRequest request) {
             // 1. 사용자 조회
-            User user = userRepository.findById(userId)
+            Users user = userRepository.findById(userId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             // 2. 권한 확인 (ADMIN 또는 MANAGER만)
@@ -610,8 +610,8 @@ public class AdminService {
         /**
          * Admin 권한 검증
          */
-        private User validateAdminAuthority(Long userId) {
-            User user = userRepository.findById(userId)
+        private Users validateAdminAuthority(Long userId) {
+            Users user = userRepository.findById(userId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             if (!user.hasAdminAuthority()) {
@@ -624,8 +624,8 @@ public class AdminService {
         /**
          * Company 승인 상태 검증
          */
-        private Company validateCompanyStatus(Long companyId) {
-            Company company = companyRepository.findById(companyId)
+        private Companies validateCompanyStatus(Long companyId) {
+            Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             if (company.getStatus() != CompanyStatus.APPROVED) {
@@ -647,10 +647,10 @@ public class AdminService {
         /**
          * Manager User 엔티티 생성
          */
-        private User createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
+        private Users createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
             String encodedPassword = passwordEncoder.encode(temporaryPassword);
 
-            User manager = User.builder()
+            Users manager = Users.builder()
                     .email(request.getEmail())
                     .password(encodedPassword)
                     .name(request.getName())
@@ -667,7 +667,7 @@ public class AdminService {
         /**
          * 매니저 생성 이메일 발송
          */
-        private void sendManagerCreationEmail(ManagerDto.CreateRequest request, Company company, String temporaryPassword) {
+        private void sendManagerCreationEmail(ManagerDto.CreateRequest request, Companies company, String temporaryPassword) {
             try {
                 emailService.sendManagerCreationEmail(
                         request.getEmail(),
@@ -686,10 +686,10 @@ public class AdminService {
         @Transactional
         public ManagerDto.ManagerDeleteResponse deleteManager(Long managerId, Long adminUserId) {
             // 1. Admin 권한 검증
-            User admin = validateAdminAuthority(adminUserId);
+            Users admin = validateAdminAuthority(adminUserId);
 
             // 2. 매니저 조회
-            User manager = userRepository.findById(managerId)
+            Users manager = userRepository.findById(managerId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             // 3. 매니저 권한 확인
@@ -718,7 +718,7 @@ public class AdminService {
         /**
          * CreateResponse DTO 생성
          */
-        private ManagerDto.CreateResponse buildCreateResponse(User manager, Company company) {
+        private ManagerDto.CreateResponse buildCreateResponse(Users manager, Companies company) {
             return ManagerDto.CreateResponse.builder()
                     .message("매니저 계정이 성공적으로 생성되었습니다. 이메일을 확인해주세요.")
                     .managerId(manager.getId())
@@ -732,7 +732,7 @@ public class AdminService {
         /**
          * User -> ManagerInfo DTO 변환
          */
-        private ManagerDto.ManagerListResponse.ManagerInfo convertToManagerInfo(User manager) {
+        private ManagerDto.ManagerListResponse.ManagerInfo convertToManagerInfo(Users manager) {
             return ManagerDto.ManagerListResponse.ManagerInfo.builder()
                     .managerId(manager.getId())
                     .name(manager.getName())
@@ -748,8 +748,8 @@ public class AdminService {
         /**
          * User -> AdminInfo DTO 변환
          */
-        private AdminDto.AdminListResponse.AdminInfo convertToAdminInfo(User admin) {
-            Company company = null;
+        private AdminDto.AdminListResponse.AdminInfo convertToAdminInfo(Users admin) {
+            Companies company = null;
             if (admin.getCompanyId() != null) {
                 company = companyRepository.findById(admin.getCompanyId()).orElse(null);
             }
