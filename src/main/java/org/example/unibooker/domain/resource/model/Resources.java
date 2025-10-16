@@ -6,7 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
+import org.example.unibooker.domain.user.model.User;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,17 +21,32 @@ import java.util.List;
 public class Resources extends BaseEntity {
     private String name;
     private String description;
+    private Boolean isActive;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private Integer capacity;
+    private Integer row;
+    private Integer column;
     private ResourceStatus status;
 
+    // 리소스 그룹
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_group_id")
     private ResourceGroups resourceGroup;
 
+    // 리소스 이미지
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResourceImages> resourceImages = new ArrayList<>();
 
+    // 생성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
-    // TODO: 기업키 연결 - 다대일
-    // TODO: 수정자키 연결 - 다대일
+    // 수정자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
 }

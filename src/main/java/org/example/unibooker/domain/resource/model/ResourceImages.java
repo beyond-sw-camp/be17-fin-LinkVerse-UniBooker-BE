@@ -18,6 +18,4 @@ public class ResourceImages extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
     private Resources resource;
-
-    // TODO: 기업키 연결 - 다대일
 }
