@@ -79,7 +79,7 @@
 <br><br>
 
 ## 🖥 Swagger
-> 추후 추가 예정
+> [Swagger-UI 링크](http://15.165.158.232/swagger-ui/index.html)
 
 <br><br>
 
