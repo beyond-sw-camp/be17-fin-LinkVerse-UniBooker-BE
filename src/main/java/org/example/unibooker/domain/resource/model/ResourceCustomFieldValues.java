@@ -12,8 +12,8 @@ import org.example.unibooker.common.BaseEntity;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomFieldValues extends BaseEntity {
-    private Long targetId;
+public class ResourceCustomFieldValues extends BaseEntity {
+    private Long resourceId;
     private String fieldValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
