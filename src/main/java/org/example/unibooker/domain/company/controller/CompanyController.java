@@ -6,7 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
-import org.example.unibooker.domain.company.model.CompanyDto;
+import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.company.service.CompanyService;
 import org.example.unibooker.domain.user.service.AdminService;

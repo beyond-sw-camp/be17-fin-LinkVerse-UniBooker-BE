@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.example.unibooker.domain.user.model.User;
+import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class JwtUtil {
     /**
      * Access Token 생성
      */
-    public String createAccessToken(User user) {
+    public String createAccessToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("email", user.getEmail());
@@ -49,7 +49,7 @@ public class JwtUtil {
     /**
      * Refresh Token 생성
      */
-    public String createRefreshToken(User user) {
+    public String createRefreshToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
 

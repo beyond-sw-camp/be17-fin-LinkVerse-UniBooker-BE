@@ -2,7 +2,7 @@ package org.example.unibooker.domain.company.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.constants.ReservedSlugs;
-import org.example.unibooker.domain.company.model.CompanyDto;
+import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,9 +1,10 @@
-package org.example.unibooker.domain.company.model;
+package org.example.unibooker.domain.company.model.dto;
 
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.user.model.UserStatus;
 
 import java.time.LocalDateTime;

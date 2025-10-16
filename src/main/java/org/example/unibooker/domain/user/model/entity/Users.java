@@ -20,7 +20,7 @@ import org.hibernate.annotations.Comment;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자")
-public class User extends BaseEntity {
+public class Users extends BaseEntity {
 
     @Column(nullable = false, length = 50)
     @Comment("이름")
@@ -69,9 +69,9 @@ public class User extends BaseEntity {
      * User 생성자 (Builder 패턴)
      */
     @Builder
-    public User(String email, String password, String name, String phone,
-                String birthDate, Gender gender,
-                UserRole role, UserStatus status, Long companyId, Boolean isFirstLogin) {
+    public Users(String email, String password, String name, String phone,
+                 String birthDate, Gender gender,
+                 UserRole role, UserStatus status, Long companyId, Boolean isFirstLogin) {
         this.email = email;
         this.password = password;
         this.name = name;

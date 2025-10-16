@@ -1,4 +1,4 @@
-package org.example.unibooker.domain.company.model;
+package org.example.unibooker.domain.company.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
+import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("기업")
-public class Company extends BaseEntity {
+public class Companies extends BaseEntity {
 
     @Column(nullable = false, length = 100)
     @Comment("기업명")
@@ -49,8 +50,8 @@ public class Company extends BaseEntity {
     private String rejectionReason;
 
     @Builder
-    public Company(String businessNumber, String companyName, String companySlug,
-                   String logoUrl, CompanyStatus status) {
+    public Companies(String businessNumber, String companyName, String companySlug,
+                     String logoUrl, CompanyStatus status) {
         this.businessNumber = businessNumber;
         this.companyName = companyName;
         this.companySlug = companySlug;

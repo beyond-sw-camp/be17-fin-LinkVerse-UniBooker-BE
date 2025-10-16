@@ -6,8 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.company.model.Companies;
-import org.example.unibooker.domain.user.model.Users;
+import org.example.unibooker.domain.company.model.entity.Companies;
+import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.util.ArrayList;
 import java.util.List;
