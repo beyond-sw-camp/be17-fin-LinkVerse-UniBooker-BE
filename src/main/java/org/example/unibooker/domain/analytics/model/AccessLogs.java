@@ -3,10 +3,10 @@ package org.example.unibooker.domain.analytics.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.company.model.Company;
+import org.example.unibooker.domain.company.model.Companies;
 import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.example.unibooker.domain.resource.model.Resources;
-import org.example.unibooker.domain.user.model.User;
+import org.example.unibooker.domain.user.model.Users;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ public class AccessLogs extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @Schema(description = "대기열에 있는 사용자")
-    private User user;
+    private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_group_id", nullable = true)
@@ -31,7 +31,7 @@ public class AccessLogs extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     @Schema(description = "서비스를 제공하는 기업")
-    private Company company;
+    private Companies company;
 
     @Column(name = "requested_at", nullable = false)
     @Schema(description = "접속 요청 시각", example = "2025-10-02T15:00:00")
