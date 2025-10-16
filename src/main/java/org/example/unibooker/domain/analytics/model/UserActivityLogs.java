@@ -3,8 +3,8 @@ package org.example.unibooker.domain.analytics.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.company.model.Company;
-import org.example.unibooker.domain.user.model.User;
+import org.example.unibooker.domain.company.model.Companies;
+import org.example.unibooker.domain.user.model.Users;
 
 import java.time.LocalDateTime;
 
@@ -14,12 +14,12 @@ public class UserActivityLogs extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @Schema(description = "이벤트를 발생시킨 유저")
-    private User user;
+    private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     @Schema(description = "서비스 제공 회사")
-    private Company company;
+    private Companies company;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
