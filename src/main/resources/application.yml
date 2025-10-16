@@ -29,6 +29,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
 
   # =================================================================
   # 이메일 설정 (Gmail SMTP) - 여기로 이동!
