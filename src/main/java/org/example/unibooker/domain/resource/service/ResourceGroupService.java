@@ -114,4 +114,14 @@ public class ResourceGroupService {
         // BaseEntity의 softDelete() 호출
         resourceGroup.softDelete();
     }
+
+
+    // -------------------- 리소스 그룹 삭제 --------------------
+    @Transactional(readOnly = true)
+    public ResourceGroupDto.ServiceRegisterFieldRes getServiceRegisterField(Long resourceGroupId) {
+        ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+        return ResourceGroupDto.ServiceRegisterFieldRes.fromEntity(resourceGroup);
+    }
 }
