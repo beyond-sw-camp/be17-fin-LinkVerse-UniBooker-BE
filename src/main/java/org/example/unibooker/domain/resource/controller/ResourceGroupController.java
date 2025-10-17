@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
+import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
+import org.example.unibooker.domain.resource.service.ResourceGroupService;
+import org.example.unibooker.domain.user.model.dto.UserDto;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,12 +17,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/resource-group")
 public class ResourceGroupController {
+    private final ResourceGroupService resourceGroupService;
 
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 그룹 생성", description = "예약/신청 서비스 그룹을 생성합니다.")
     @PostMapping
     public void register(@RequestBody ResourceGroupDto.ResourceGroupRegisterReq dto) {
-        // TODO: 서비스 그룹 생성 컨트롤러 구현
+        // TODO : 로그인 기능이 개발되면 userId 받아오는 거 수정
+        resourceGroupService.register(dto, dto.getUserId());
     }
 
 

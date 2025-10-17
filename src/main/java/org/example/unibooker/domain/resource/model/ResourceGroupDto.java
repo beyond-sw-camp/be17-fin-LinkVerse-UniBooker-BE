@@ -16,6 +16,7 @@ public class ResourceGroupDto {
     @Schema(description = "서비스 그룹 생성 요청 DTO")
     public static class ResourceGroupRegisterReq {
 
+        // TODO : 로그인 기능 개발되면 삭제
         private Long userId;
 
         @Schema(description = "서비스 그룹 이름", example = "회의실")
