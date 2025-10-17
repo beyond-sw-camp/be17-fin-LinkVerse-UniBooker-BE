@@ -18,6 +18,7 @@ import org.hibernate.annotations.Comment;
 @Entity
 @Table(name = "users")
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자")
 public class Users extends BaseEntity {
