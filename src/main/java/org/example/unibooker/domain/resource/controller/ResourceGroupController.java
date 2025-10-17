@@ -42,18 +42,18 @@ public class ResourceGroupController {
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회", description = "특정 서비스 그룹의 이름, 설명, 썸네일 이미지를 조회합니다.")
     @GetMapping("/{resourceGroupId}")
-    public ResourceGroupDto.ResourceGroupDetailRes getResourceGroupById(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ResourceGroupDetailRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ResourceGroupDetailRes> getResourceGroupById(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ResourceGroupDetailRes response = resourceGroupService.getResourceGroupById(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 
     // ---------------- 수정용 상세 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회(수정용)", description = "특정 서비스 그룹을 생성할 때 입력한 데이터 전체를 조회합니다.")
     @GetMapping("/{resourceGroupId}/edit")
-    public ResourceGroupDto.ResourceGroupUpdateRes getResourceGroupDetailById(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ResourceGroupUpdateRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ResourceGroupUpdateRes> getResourceGroupDetailById(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ResourceGroupUpdateRes response = resourceGroupService.getResourceGroupUpdateDetail(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 

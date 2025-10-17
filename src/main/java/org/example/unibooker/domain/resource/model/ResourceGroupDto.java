@@ -72,6 +72,16 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
+
+        public static ResourceGroupUpdateRes fromEntity(ResourceGroups group) {
+            return ResourceGroupUpdateRes.builder()
+                    .name(group.getName())
+                    .description(group.getDescription())
+                    .thumbnail(group.getThumbnail())
+                    .category(group.getCategory().name())
+                    .isAlwaysAvailable(group.getIsAlwaysAvailable())
+                    .build();
+        }
     }
 
 
