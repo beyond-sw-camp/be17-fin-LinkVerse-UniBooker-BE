@@ -9,6 +9,7 @@ import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,5 +58,25 @@ public class ResourceGroupService {
         return ResourceGroupDto.ResourceGroupListRes.builder()
                 .resourceGroups(dtoList)
                 .build();
+    }
+
+
+    // -------------------- 리소스 그룹 조회 --------------------
+    @Transactional(readOnly = true)
+    public ResourceGroupDto.ResourceGroupDetailRes getResourceGroupById(Long resourceGroupId) {
+        ResourceGroups group = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 서비스 그룹이 존재하지 않습니다."));
+
+        return ResourceGroupDto.ResourceGroupDetailRes.fromEntity(group);
+    }
+
+
+    // -------------------- 리소스 그룹 조회 (수정용) --------------------
+    @Transactional(readOnly = true)
+    public ResourceGroupDto.ResourceGroupUpdateRes getResourceGroupUpdateDetail(Long resourceGroupId) {
+        ResourceGroups group = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+        return ResourceGroupDto.ResourceGroupUpdateRes.fromEntity(group);
     }
 }
