@@ -49,4 +49,15 @@ public class ResourceGroups extends BaseEntity {
     // 커스텀 필드
     @OneToMany(mappedBy = "resourceGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomFieldDefinitions> customFieldDefinitions = new ArrayList<>();
+
+
+    // 서비스 그룹 수정 함수
+    public void update(String name, String description, String thumbnail, String category, Boolean isAlwaysAvailable, Users updatedBy) {
+        if (name != null) this.name = name;
+        if (description != null) this.description = description;
+        if (thumbnail != null) this.thumbnail = thumbnail;
+        if (category != null) this.category = ServiceCategory.valueOf(category);
+        if (isAlwaysAvailable != null) this.isAlwaysAvailable = isAlwaysAvailable;
+        this.updatedBy = updatedBy;
+    }
 }
