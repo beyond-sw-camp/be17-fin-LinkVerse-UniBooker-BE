@@ -27,6 +27,23 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     boolean existsByEmail(String email);
 
+    // ========== 기업별 이메일 중복 확인 ==========
+
+    /**
+     * 이메일과 기업 ID로 사용자 조회
+     */
+    Optional<Users> findByEmailAndCompanyId(String email, Long companyId);
+
+    /**
+     * 특정 기업 내에서 이메일 존재 여부 확인
+     */
+    boolean existsByEmailAndCompanyId(String email, Long companyId);
+
+    /**
+     * 이메일로 모든 사용자 조회 (여러 기업에 가입한 경우)
+     */
+    List<Users> findAllByEmail(String email);
+
     /**
      * 기업 ID와 권한으로 사용자 조회
      */

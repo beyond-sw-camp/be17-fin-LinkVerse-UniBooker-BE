@@ -23,7 +23,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3000", "http://localhost:8080")  // Vue 개발 서버
+                .allowedOrigins(
+                        "http://localhost:3000",
+                        "http://localhost:5173",  // ← 이 줄 추가!
+                        "http://localhost:8080"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)  // Cookie 허용

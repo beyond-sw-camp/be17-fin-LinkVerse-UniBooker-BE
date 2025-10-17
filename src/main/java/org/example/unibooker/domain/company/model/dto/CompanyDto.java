@@ -1,5 +1,6 @@
 package org.example.unibooker.domain.company.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -83,5 +84,28 @@ public class CompanyDto {
         private String serviceUrl;
         private CompanyStatus status;
         private LocalDateTime processedAt;
+    }
+
+    // ========== 일반 사용자용 공개 정보 Response (추가) ==========
+
+    /**
+     * 일반 사용자용 기업 공개 정보
+     */
+    @Getter
+    @Builder
+    @Schema(description = "기업 공개 정보 응답 (일반 사용자용)")
+    public static class PublicInfoResponse {
+
+        @Schema(description = "기업 ID", example = "1")
+        private Long id;
+
+        @Schema(description = "기업명", example = "ABC 회사")
+        private String companyName;
+
+        @Schema(description = "Company Slug", example = "company-a")
+        private String companySlug;
+
+        @Schema(description = "로고 URL", example = "https://example.com/logo.png")
+        private String logoUrl;
     }
 }

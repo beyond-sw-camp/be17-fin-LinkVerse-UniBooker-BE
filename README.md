@@ -73,13 +73,18 @@
 </div>
 <br><br>
 
-## 🏗️ 시스템 아키텍처
-![시스템 아키텍처](https://github.com/user-attachments/assets/de043fce-568c-4d4f-83ef-5ac65454e2e8)
+## 🏗️ 시스템 아키텍처 [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/3.-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
+![3. 시스템아키텍처](https://github.com/user-attachments/assets/3ee61bd4-ea56-418a-883f-76f39a38b772)
 
 <br><br>
 
-## 🖥 Swagger
-> [Swagger-UI 링크](http://15.165.158.232/swagger-ui/index.html)
+## 🛢️ ERD [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/5.-ERD)
+![5. ERD](https://github.com/user-attachments/assets/0b21618e-43e3-4f0f-97cf-3f959b31c888)
+
+<br><br>
+
+## 🖥 Swagger [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/6.-Swagger-UI)
+> [Swagger-UI 링크로 이동하기](http://15.165.158.232/swagger-ui/index.html)
 
 <br><br>
 
@@ -87,3 +92,11 @@
 > 추후 추가 예정
 
 <br><br>
+
+## 📄 프로젝트 상세 문서
+#### 📌 프로젝트 기획서
+> [프로젝트 기획서 보러가기](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/1.-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B8%B0%ED%9A%8D%EC%84%9C)
+#### 📌 요구사항 정의서
+> [요구사항 정의서 보러가기](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/2.-%EC%9A%94%EA%B5%AC%EC%82%AC%ED%95%AD-%EC%A0%95%EC%9D%98%EC%84%9C)
+#### 📌 WBS
+> [WBS 보러가기](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/4.-WBS)
