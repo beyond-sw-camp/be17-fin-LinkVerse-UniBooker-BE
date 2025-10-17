@@ -128,6 +128,9 @@ public class ResourceGroupDto {
     @Schema(description = "서비스 그룹 수정 요청 DTO")
     public static class ResourceGroupUpdateReq {
 
+        // TODO : 로그인 기능 개발되면 삭제
+        private Long userId;
+
         @Schema(description = "리소스 그룹 이름", example = "동아리")
         private String name;
 
