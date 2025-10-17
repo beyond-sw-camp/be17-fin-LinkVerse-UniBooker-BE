@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.service.ResourceGroupService;
@@ -22,18 +23,19 @@ public class ResourceGroupController {
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 그룹 생성", description = "예약/신청 서비스 그룹을 생성합니다.")
     @PostMapping
-    public void register(@RequestBody ResourceGroupDto.ResourceGroupRegisterReq dto) {
+    public BaseResponse register(@RequestBody ResourceGroupDto.ResourceGroupRegisterReq dto) {
         // TODO : 로그인 기능이 개발되면 userId 받아오는 거 수정
         resourceGroupService.register(dto, dto.getUserId());
+        return BaseResponse.success("서비스 그룹이 생성되었습니다.");
     }
 
 
     // ---------------- 목록 조회 ----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("company/{companyId}")
-    public ResourceGroupDto.ResourceGroupListRes getAllResourceGroups(@PathVariable Long companyId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ResourceGroupListRes.builder().resourceGroups(List.of()).build();
+    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@PathVariable Long companyId) {
+        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(companyId);
+        return BaseResponse.success(response);
     }
 
 
