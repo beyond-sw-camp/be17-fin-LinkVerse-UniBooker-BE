@@ -10,6 +10,9 @@ import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ResourceGroupService {
@@ -17,6 +20,7 @@ public class ResourceGroupService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
 
+    // -------------------- 리소스 그룹 등록 --------------------
     public void register(ResourceGroupDto.ResourceGroupRegisterReq dto, Long userId) {
         // 리소스 그룹 이름 중복 체크 (같은 회사 내 동일 이름 방지)
         if (resourceGroupRepository.existsByNameAndCompanyId(dto.getName(), dto.getCompanyId())) {
@@ -35,5 +39,23 @@ public class ResourceGroupService {
         ResourceGroups group = dto.toEntity(authUser, company);
 
         resourceGroupRepository.save(group);
+    }
+
+
+    // -------------------- 리소스 그룹 목록 조회 --------------------
+    public ResourceGroupDto.ResourceGroupListRes getResourceGroupsByCompanyId(Long companyId) {
+
+        // 특정 기업(companyId)에 속한 모든 리소스 그룹을 조회
+        List<ResourceGroups> groups = resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
+
+        // Entity -> DTO 변환
+        List<ResourceGroupDto.ResourceGroupDetailRes> dtoList = groups.stream()
+                .map(ResourceGroupDto.ResourceGroupDetailRes::fromEntity)
+                .collect(Collectors.toList());
+
+        // List로 만들어서 반환
+        return ResourceGroupDto.ResourceGroupListRes.builder()
+                .resourceGroups(dtoList)
+                .build();
     }
 }
