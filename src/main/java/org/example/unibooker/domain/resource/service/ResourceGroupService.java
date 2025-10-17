@@ -79,4 +79,24 @@ public class ResourceGroupService {
 
         return ResourceGroupDto.ResourceGroupUpdateRes.fromEntity(group);
     }
+
+
+    // -------------------- 리소스 그룹 수정 --------------------
+    @Transactional
+    public void updateResourceGroup(Long resourceGroupId, ResourceGroupDto.ResourceGroupUpdateReq dto, Long userId) {
+        ResourceGroups resourceGroup = resourceGroupRepository.findById(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        resourceGroup.update(
+                dto.getName(),
+                dto.getDescription(),
+                dto.getThumbnail(),
+                dto.getCategory(),
+                dto.getIsAlwaysAvailable(),
+                user
+        );
+    }
 }

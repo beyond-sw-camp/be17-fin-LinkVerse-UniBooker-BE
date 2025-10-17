@@ -60,9 +60,10 @@ public class ResourceGroupController {
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 그룹 수정", description = "기존의 예약/신청 서비스 그룹을 수정합니다.")
     @PutMapping("/{resourceGroupId}")
-    public void update(@PathVariable Long resourceGroupId,
+    public BaseResponse update(@PathVariable Long resourceGroupId,
                        @RequestBody ResourceGroupDto.ResourceGroupUpdateReq dto) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+        resourceGroupService.updateResourceGroup(resourceGroupId, dto, dto.getUserId());
+        return BaseResponse.success("서비스 그룹이 수정되었습니다.");
     }
 
 
