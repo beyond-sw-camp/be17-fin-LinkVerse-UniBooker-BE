@@ -74,14 +74,14 @@ public class CustomFieldController {
     }
 
     @Operation(summary = "커스텀 필드 값 조회", description = "커스텀 필드에 대한 값을 조회합니다.")
-    @GetMapping("/value/{customFieldId}")
-    public CustomFieldDto.CustomFieldValueListRes getCustomFieldValue(@PathVariable Long customFieldId) {
+    @GetMapping("/value/{customFieldValueId}")
+    public CustomFieldDto.CustomFieldValueListRes getCustomFieldValue(@PathVariable Long customFieldValueId) {
         // TODO
         return null;
     }
 
     @Operation(summary = "커스텀 필드 값 수정", description = "커스텀 필드 값을 수정합니다.")
-    @PutMapping("/value/{customFieldId}")
+    @PutMapping("/value/{customFieldValueId}")
     public void updateCustomFieldValue(
             @PathVariable Long customFieldId,
             @RequestBody CustomFieldDto.CustomFieldValue dto

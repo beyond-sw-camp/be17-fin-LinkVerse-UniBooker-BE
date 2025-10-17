@@ -3,6 +3,8 @@ package org.example.unibooker.domain.resource.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import org.example.unibooker.domain.company.model.entity.Companies;
+import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.util.List;
 
@@ -14,6 +16,9 @@ public class ResourceGroupDto {
     @Schema(description = "서비스 그룹 생성 요청 DTO")
     public static class ResourceGroupRegisterReq {
 
+        // TODO : 로그인 기능 개발되면 삭제
+        private Long userId;
+
         @Schema(description = "서비스 그룹 이름", example = "회의실")
         private String name;
 
@@ -24,13 +29,27 @@ public class ResourceGroupDto {
         private String thumbnail;
 
         @Schema(description = "서비스 카테고리", example = "RESERVATION(예약형)/SEAT(좌석형)/EVENT(신청형)")
-        private String category;
+        private ServiceCategory category;
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
         @Schema(description = "기업 ID", example = "1")
         private Long companyId;
+
+        public ResourceGroups toEntity(Users authUser, Companies company) {
+           return ResourceGroups.builder()
+                    .name(name)
+                    .description(description)
+                    .thumbnail(thumbnail)
+                    .category(category)
+                    .isAlwaysAvailable(isAlwaysAvailable)
+                    .isActive(true)
+                    .company(company)
+                    .createdBy(authUser)
+                    .updatedBy(authUser)
+                    .build();
+        }
     }
 
 

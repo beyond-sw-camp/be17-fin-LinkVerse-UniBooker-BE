@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ResourceGroupRepository extends JpaRepository<ResourceGroups, Long> {
-
+    boolean existsByNameAndCompanyId(String name, Long companyId); // 중복 체크용
 }
