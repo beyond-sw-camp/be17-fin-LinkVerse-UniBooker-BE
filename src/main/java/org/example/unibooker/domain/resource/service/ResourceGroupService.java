@@ -99,4 +99,19 @@ public class ResourceGroupService {
                 user
         );
     }
+
+
+    // -------------------- 리소스 그룹 삭제 --------------------
+    @Transactional
+    public void deleteResourceGroup(Long resourceGroupId) {
+        ResourceGroups resourceGroup = resourceGroupRepository.findById(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+        if (resourceGroup.getDeletedAt() != null) {
+            throw new IllegalArgumentException("이미 삭제된 리소스 그룹입니다.");
+        }
+
+        // BaseEntity의 softDelete() 호출
+        resourceGroup.softDelete();
+    }
 }

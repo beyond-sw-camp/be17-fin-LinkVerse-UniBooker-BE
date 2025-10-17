@@ -70,8 +70,9 @@ public class ResourceGroupController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 그룹 삭제", description = "기존의 예약/신청 서비스 그룹을 삭제합니다.")
     @DeleteMapping("/{resourceGroupId}")
-    public void delete(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 삭제 컨트롤러 구현
+    public BaseResponse delete(@PathVariable Long resourceGroupId) {
+        resourceGroupService.deleteResourceGroup(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 삭제되었습니다.");
     }
 
 
