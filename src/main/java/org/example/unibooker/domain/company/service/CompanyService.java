@@ -1,8 +1,11 @@
 package org.example.unibooker.domain.company.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.constants.ReservedSlugs;
+import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
+import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,5 +93,28 @@ public class CompanyService {
             return false;
         }
         return SLUG_PATTERN.matcher(slug).matches();
+    }
+
+    /**
+     * Company Slug로 기업 정보 조회 (일반 사용자용)
+     */
+    @Transactional(readOnly = true)
+    public CompanyDto.PublicInfoResponse getCompanyBySlug(String companySlug) {
+        // 1. Company Slug로 기업 조회
+        Companies company = companyRepository.findByCompanySlug(companySlug)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+
+        // 2. 승인된 기업인지 확인
+        if (!company.isApproved()) {
+            throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
+        }
+
+        // 3. 공개 정보 반환
+        return CompanyDto.PublicInfoResponse.builder()
+                .id(company.getId())
+                .companyName(company.getCompanyName())
+                .companySlug(company.getCompanySlug())
+                .logoUrl(company.getLogoUrl())
+                .build();
     }
 }

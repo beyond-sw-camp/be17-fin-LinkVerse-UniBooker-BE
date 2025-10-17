@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 사용자 비즈니스 로직 처리 서비스
@@ -34,15 +35,26 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     /**
-     * 일반 사용자 회원가입
+     * 일반 사용자 회원가입 (기업별)
      */
     @Transactional
     public UserDto.SignUpResponse signUpUser(UserDto.SignUpRequest request) {
-        validateDuplicateEmail(request.getEmail());
+        // 1. 기업 존재 여부 확인
+        Companies company = companyRepository.findById(request.getCompanyId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
+        // 2. 기업이 승인된 상태인지 확인
+        if (!company.isApproved()) {
+            throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
+        }
+
+        // 3. 해당 기업 내에서 이메일 중복 확인
+        validateDuplicateEmailInCompany(request.getEmail(), request.getCompanyId());
+
+        // 4. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // birthDate, gender 추가
+        // 5. Users 엔티티 생성
         Users user = Users.builder()
                 .email(request.getEmail())
                 .password(encodedPassword)
@@ -50,6 +62,7 @@ public class UserService {
                 .phone(request.getPhone())
                 .birthDate(request.getBirthDate())
                 .gender(request.getGender())
+                .companyId(request.getCompanyId())  // ← 기업 ID 설정
                 .role(UserRole.USER)
                 .status(UserStatus.ACTIVE)
                 .build();
@@ -60,10 +73,60 @@ public class UserService {
                 .id(savedUser.getId())
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
+                .companyId(savedUser.getCompanyId())  // ← 추가
                 .role(savedUser.getRole())
                 .status(savedUser.getStatus())
                 .createdAt(savedUser.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * 특정 기업 내에서 이메일 중복 확인
+     */
+    private void validateDuplicateEmailInCompany(String email, Long companyId) {
+        if (userRepository.existsByEmailAndCompanyId(email, companyId)) {
+            throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL_IN_COMPANY);
+        }
+    }
+
+    /**
+     * 특정 기업 내에서 이메일 중복 여부 확인
+     */
+    public boolean existsByEmailAndCompany(String email, Long companyId) {
+        return userRepository.existsByEmailAndCompanyId(email, companyId);
+    }
+
+    /**
+     * 이메일로 가입한 모든 계정 조회
+     */
+    @Transactional(readOnly = true)
+    public List<UserDto.AccountInfo> getAccountsByEmail(String email) {
+        List<Users> users = userRepository.findAllByEmail(email);
+
+        return users.stream()
+                .map(user -> {
+                    // 기업 정보 조회
+                    String companyName = null;
+                    if (user.getCompanyId() != null) {
+                        Companies company = companyRepository.findById(user.getCompanyId())
+                                .orElse(null);
+                        if (company != null) {
+                            companyName = company.getCompanyName();
+                        }
+                    }
+
+                    return UserDto.AccountInfo.builder()
+                            .userId(user.getId())
+                            .email(user.getEmail())
+                            .name(user.getName())
+                            .companyId(user.getCompanyId())
+                            .companyName(companyName)
+                            .role(user.getRole())
+                            .status(user.getStatus())
+                            .createdAt(user.getCreatedAt())
+                            .build();
+                })
+                .toList();
     }
 
     /**

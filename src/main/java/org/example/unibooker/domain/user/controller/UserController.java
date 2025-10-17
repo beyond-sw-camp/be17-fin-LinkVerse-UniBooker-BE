@@ -1,6 +1,7 @@
 package org.example.unibooker.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,10 +9,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.domain.company.model.dto.CompanyDto;
+import org.example.unibooker.domain.company.service.CompanyService;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 일반 사용자 회원 관리 컨트롤러
@@ -148,16 +153,35 @@ public class UserController {
 
     // ========== 이메일 중복 확인 ==========
 
+    // ========== 이메일 중복 확인 (기업별) ==========
+
     /**
-     * 이메일 중복 확인
+     * 이메일 중복 확인 (특정 기업 내에서)
      */
-    @Operation(summary = "이메일 중복 확인",
-            description = "이메일이 이미 사용 중인지 확인합니다. true: 사용 중, false: 사용 가능")
+    @Operation(summary = "이메일 중복 확인 (기업별)",
+            description = "특정 기업 내에서 이메일이 이미 사용 중인지 확인합니다. " +
+                    "true: 해당 기업에서 사용 중, false: 해당 기업에서 사용 가능")
     @GetMapping("/check-email")
     public BaseResponse<Boolean> checkEmail(
+            @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다") String email,
+            @RequestParam @Schema(description = "기업 ID", example = "1") Long companyId) {
+
+        boolean exists = userService.existsByEmailAndCompany(email, companyId);
+        return BaseResponse.success(exists);
+    }
+
+// ========== 이메일로 가입한 모든 기업 조회 (추가) ==========
+
+    /**
+     * 이메일로 가입한 기업 목록 조회
+     */
+    @Operation(summary = "이메일로 가입한 기업 목록 조회",
+            description = "해당 이메일로 가입한 모든 기업의 계정 정보를 조회합니다.")
+    @GetMapping("/accounts")
+    public BaseResponse<List<UserDto.AccountInfo>> getAccountsByEmail(
             @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다") String email) {
 
-        boolean exists = userService.existsByEmail(email);
-        return BaseResponse.success(exists);
+        List<UserDto.AccountInfo> accounts = userService.getAccountsByEmail(email);
+        return BaseResponse.success(accounts);
     }
 }
