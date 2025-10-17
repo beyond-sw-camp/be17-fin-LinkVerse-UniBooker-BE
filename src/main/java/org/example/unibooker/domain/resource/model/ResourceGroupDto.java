@@ -80,6 +80,9 @@ public class ResourceGroupDto {
     @Schema(description = "리소스 그룹 상세 조회 응답 DTO")
     public static class ResourceGroupDetailRes {
 
+        @Schema(description = "서비스 그룹 아이디", example = "1")
+        private Long id;
+
         @Schema(description = "서비스 그룹 이름", example = "회의실")
         private String name;
 
@@ -88,6 +91,15 @@ public class ResourceGroupDto {
 
         @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
         private String thumbnail;
+
+        public static ResourceGroupDetailRes fromEntity(ResourceGroups entity) {
+            return ResourceGroupDetailRes.builder()
+                    .id(entity.getId())
+                    .name(entity.getName())
+                    .description(entity.getDescription())
+                    .thumbnail(entity.getThumbnail())
+                    .build();
+        }
     }
 
 
