@@ -28,4 +28,10 @@ public abstract class BaseEntity {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt; // Soft delete용
+
+
+    // 공통 soft delete 처리
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
 }

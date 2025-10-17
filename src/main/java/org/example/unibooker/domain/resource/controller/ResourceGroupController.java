@@ -70,17 +70,18 @@ public class ResourceGroupController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 그룹 삭제", description = "기존의 예약/신청 서비스 그룹을 삭제합니다.")
     @DeleteMapping("/{resourceGroupId}")
-    public void delete(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 삭제 컨트롤러 구현
+    public BaseResponse delete(@PathVariable Long resourceGroupId) {
+        resourceGroupService.deleteResourceGroup(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 삭제되었습니다.");
     }
 
 
     // ---------------- 서비스 그룹 카테고리 & 상시 모집 여부 조회 ----------------
     @Operation(summary = "서비스 그룹의 카테고리 & 상시 모집 여부 조회", description = "서비스 생성에 필요한 필수입력 필드 구성을 위한 데이터를 조회합니다.")
     @GetMapping("/{resourceGroupId}/register")
-    public ResourceGroupDto.ServiceRegisterFieldRes getServiceRegisterField(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ServiceRegisterFieldRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ServiceRegisterFieldRes> getServiceRegisterField(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ServiceRegisterFieldRes response = resourceGroupService.getServiceRegisterField(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 

@@ -161,5 +161,13 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
+
+        public static ServiceRegisterFieldRes fromEntity(ResourceGroups entity) {
+            return ServiceRegisterFieldRes.builder()
+                    .name(entity.getName())
+                    .category(entity.getCategory())
+                    .isAlwaysAvailable(entity.getIsAlwaysAvailable())
+                    .build();
+        }
     }
 }
