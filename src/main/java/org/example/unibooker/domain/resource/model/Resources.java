@@ -39,18 +39,24 @@ public class Resources extends BaseEntity {
     private Boolean isActive = true;
 
     /** 예약 시작일 */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate startDate;
 
     /** 예약 종료일 */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate endDate;
 
     /** 예약 시작 시간 */
+    @Column(nullable = true)
     private LocalTime startTime;
 
     /** 예약 종료 시간 */
+    @Column(nullable = true)
     private LocalTime endTime;
+
+    /** 시간 간격 */
+    @Column(nullable = true)
+    private int timeInterval;
 
     /** 수용 인원 */
     @Column(nullable = false)
@@ -86,4 +92,15 @@ public class Resources extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     private Users updatedBy;
+
+
+    public void setTimeInterval(TimeIntervalType type) {
+        if (type != null) {
+            this.timeInterval = type.getMinutes();
+        }
+    }
+
+    public TimeIntervalType getTimeIntervalEnum() {
+        return TimeIntervalType.fromMinutes(this.timeInterval);
+    }
 }

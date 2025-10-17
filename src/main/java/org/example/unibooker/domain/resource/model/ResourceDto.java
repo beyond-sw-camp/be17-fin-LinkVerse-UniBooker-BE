@@ -40,6 +40,9 @@ public class ResourceDto {
         @Schema(description = "종료 시간", example = "19:00", nullable = true)
         private LocalTime endTime;
 
+        @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
+        private int time_interval;
+
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
 
@@ -76,6 +79,9 @@ public class ResourceDto {
 
         @Schema(description = "종료 시간", example = "19:00", nullable = true)
         private LocalTime endTime;
+
+        @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
+        private int time_interval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
