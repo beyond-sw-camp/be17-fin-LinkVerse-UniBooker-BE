@@ -21,6 +21,8 @@ public class ResourceGroups extends BaseEntity {
     private String name;
     private String description;
     private String thumbnail;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private ServiceCategory category;
     private Boolean isAlwaysAvailable; // 상시모집 여부
     private Boolean isActive; // 활성화 여부
