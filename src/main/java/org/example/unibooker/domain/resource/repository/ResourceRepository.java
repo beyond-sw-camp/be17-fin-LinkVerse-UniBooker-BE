@@ -7,6 +7,4 @@ import java.util.Optional;
 
 public interface ResourceRepository extends JpaRepository<Resources, Long> {
     Optional<Resources> findById(Long resourceId);
-
-    Optional<Resources> findByResourceGroupId(Long resourceGroupId);
 }

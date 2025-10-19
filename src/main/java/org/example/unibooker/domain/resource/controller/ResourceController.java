@@ -47,9 +47,9 @@ public class ResourceController {
 
     // ---------------- 수정용 상세 조회 ----------------
     @Operation(summary = "서비스 상세 조회(수정용)", description = "서비스 생성할 때 입력한 데이터 전체를 조회합니다.")
-    @GetMapping("/{resourceGroupId}/edit")
-    public BaseResponse<ResourceDto.ResourceUpdateRes> getResourceDetailById(@PathVariable Long resourceGroupId) {
-        ResourceDto.ResourceUpdateRes response = resourceService.getResourceDetailForUpdate(resourceGroupId);
+    @GetMapping("/{resourceId}/edit")
+    public BaseResponse<ResourceDto.ResourceUpdateRes> getResourceDetailById(@PathVariable Long resourceId) {
+        ResourceDto.ResourceUpdateRes response = resourceService.getResourceDetailForUpdate(resourceId);
         return BaseResponse.success(response);
     }
 

@@ -171,6 +171,9 @@ public class ResourceDto {
     @Schema(description = "리소스 목록 조회 정보 DTO")
     public static class ResourceListInfo {
 
+        @Schema(description = "서비스 아이디", example = "회의실 101")
+        private Long id;
+
         @Schema(description = "서비스 이름", example = "회의실 101")
         private String name;
 
@@ -182,6 +185,7 @@ public class ResourceDto {
 
         public static ResourceListInfo fromEntity(Resources resource) {
             return new ResourceListInfo(
+                    resource.getId(),
                     resource.getName(),
                     resource.getDescription(),
                     resource.getResourceImages() != null && !resource.getResourceImages().isEmpty()
