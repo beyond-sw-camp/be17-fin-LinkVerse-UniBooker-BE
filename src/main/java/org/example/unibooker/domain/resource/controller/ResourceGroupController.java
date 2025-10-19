@@ -85,11 +85,24 @@ public class ResourceGroupController {
     }
 
 
-    // ---------------- 서비스 그룹 활성화 상태 변경 ----------------
-    @Operation(summary = "서비스 그룹의 활성화 상태를 변경", description = "서비스 그룹의 활성화 상태를 변경합니다.")
-    @GetMapping("active/{resourceGroupId}")
-    public void ServiceGroupActivationToggle(@PathVariable Long resourceGroupId,
-                                        @RequestParam Boolean isActive) {
-        // TODO
+    // ---------------- 서비스 그룹 활성화 ----------------
+    @Operation(summary = "서비스 그룹 활성화", description = "비활성화된 서비스 그룹을 활성화합니다.")
+    @GetMapping("/active/{resourceGroupId}")
+    public BaseResponse activateResourceGroup(
+            @PathVariable Long resourceGroupId) {
+
+        resourceGroupService.activate(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 활성화되었습니다.");
+    }
+
+
+    // ---------------- 서비스 그룹 비활성화 ----------------
+    @Operation(summary = "서비스 그룹 비활성화", description = "활성화된 서비스 그룹을 비활성화합니다.")
+    @GetMapping("/inactive/{resourceGroupId}")
+    public BaseResponse deactivateResourceGroup(
+            @PathVariable Long resourceGroupId) {
+
+        resourceGroupService.deactivate(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 비활성화되었습니다.");
     }
 }
