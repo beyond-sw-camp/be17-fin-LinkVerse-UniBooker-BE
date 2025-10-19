@@ -46,6 +46,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/admin/signup").permitAll()
 
+                        // ===== 관리자 회원가입 및 로그인 (추가) =====
+                        .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()
+
                         // 중복 확인 관련 (추가)
                         .requestMatchers(HttpMethod.GET, "/api/users/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()

@@ -134,9 +134,11 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserDto.LoginResponse login(UserDto.LoginRequest request) {
-        // 1. 이메일로 사용자 조회
-        Users user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        // 1. 이메일 + companyId로 사용자 조회
+        Users user = userRepository.findByEmailAndCompanyId(
+                request.getEmail(),
+                request.getCompanyId()
+        ).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
