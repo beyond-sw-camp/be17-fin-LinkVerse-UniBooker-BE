@@ -183,6 +183,9 @@ public class ResourceDto {
         @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
         private String resourceImage;
 
+        @Schema(description = "서비스 상태", example = "PROGRESS_BEFORE/PROGRESS_BEFORE/CLOSE")
+        private ResourceStatus status;
+
         public static ResourceListInfo fromEntity(Resources resource) {
             return new ResourceListInfo(
                     resource.getId(),
@@ -190,7 +193,8 @@ public class ResourceDto {
                     resource.getDescription(),
                     resource.getResourceImages() != null && !resource.getResourceImages().isEmpty()
                             ? resource.getResourceImages().get(0).getResourceImage()
-                            : null
+                            : null,
+                    resource.getStatus()
             );
         }
     }
@@ -203,6 +207,12 @@ public class ResourceDto {
 
         @Schema(description = "리소스 목록")
         private List<ResourceListInfo> resources;
+
+        public static ResourceListRes fromEntity(List<ResourceListInfo> resourceList) {
+            return ResourceListRes.builder()
+                    .resources(resourceList)
+                    .build();
+        }
     }
 
 
