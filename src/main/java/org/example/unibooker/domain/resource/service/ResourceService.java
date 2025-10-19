@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +40,22 @@ public class ResourceService {
     }
 
 
+    // -------------------- 리소스 목록 조회 --------------------
+    public ResourceDto.ResourceListRes getAllResourcesByGroupId(Long serviceGroupId) {
+        List<Resources> resources = resourceRepository
+                .findAllByResourceGroupIdAndIsActiveTrueAndDeletedAtIsNull(serviceGroupId);
+
+        List<ResourceDto.ResourceListInfo> resourceInfos = resources.stream()
+                .map(ResourceDto.ResourceListInfo::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResourceDto.ResourceListRes.fromEntity(resourceInfos);
+    }
+
+
     // -------------------- 리소스 상세 조회 (수정용) --------------------
     public ResourceDto.ResourceUpdateRes getResourceDetailForUpdate(Long resourceId) {
-        Resources resource = resourceRepository.findById(resourceId)
+        Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
 
         return ResourceDto.ResourceUpdateRes.fromEntity(resource);
@@ -49,7 +64,7 @@ public class ResourceService {
 
     // -------------------- 리소스 상세 조회 (목록 조회용) --------------------
     public ResourceDto.ResourceListInfo getResourceById(Long resourceId) {
-        Resources resource = resourceRepository.findById(resourceId)
+        Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
 
         return ResourceDto.ResourceListInfo.fromEntity(resource);
