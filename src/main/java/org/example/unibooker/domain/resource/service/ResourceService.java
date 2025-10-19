@@ -38,6 +38,24 @@ public class ResourceService {
     }
 
 
+    // -------------------- 리소스 상세 조회 (수정용) --------------------
+    public ResourceDto.ResourceUpdateRes getResourceDetailForUpdate(Long resourceGroupId) {
+        Resources resource = resourceRepository.findByResourceGroupId(resourceGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스 그룹입니다."));
+
+        return ResourceDto.ResourceUpdateRes.fromEntity(resource);
+    }
+
+
+    // -------------------- 리소스 상세 조회 (목록 조회용) --------------------
+    public ResourceDto.ResourceListInfo getResourceById(Long resourceId) {
+        Resources resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
+
+        return ResourceDto.ResourceListInfo.fromEntity(resource);
+    }
+
+
     // -------------------- 리소스 수정 --------------------
     @Transactional
     public void update(Long resourceId, ResourceDto.ResourceUpdateReq dto) {

@@ -30,7 +30,7 @@ public class ResourceController {
 
     // ---------------- 목록 조회 ----------------
     @Operation(summary = "서비스 목록 조회", description = "서비스 목록을 조회합니다.")
-    @GetMapping("/{serviceGroupId}")
+    @GetMapping("/group/{serviceGroupId}")
     public void getAllResources() {
         // TODO: 서비스 그룹 수정 컨트롤러 구현
     }
@@ -39,16 +39,18 @@ public class ResourceController {
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 상세 조회", description = "서비스를 상세 조회합니다.")
     @GetMapping("/{resourceId}")
-    public void getResourceById() {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+    public BaseResponse<ResourceDto.ResourceListInfo> getResourceById(@PathVariable Long resourceId) {
+        ResourceDto.ResourceListInfo response = resourceService.getResourceById(resourceId);
+        return BaseResponse.success(response);
     }
 
 
     // ---------------- 수정용 상세 조회 ----------------
     @Operation(summary = "서비스 상세 조회(수정용)", description = "서비스 생성할 때 입력한 데이터 전체를 조회합니다.")
     @GetMapping("/{resourceGroupId}/edit")
-    public void getResourceDetailById() {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+    public BaseResponse<ResourceDto.ResourceUpdateRes> getResourceDetailById(@PathVariable Long resourceGroupId) {
+        ResourceDto.ResourceUpdateRes response = resourceService.getResourceDetailForUpdate(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 
