@@ -1,6 +1,8 @@
 package org.example.unibooker.domain.resource.service;
 
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceGroupService {
@@ -118,24 +121,78 @@ public class ResourceGroupService {
     // -------------------- 리소스 그룹 삭제 --------------------
     @Transactional
     public void deleteResourceGroup(Long resourceGroupId) {
-        ResourceGroups resourceGroup = resourceGroupRepository.findById(resourceGroupId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+        try {
+            ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
-        if (resourceGroup.getDeletedAt() != null) {
-            throw new IllegalArgumentException("이미 삭제된 리소스 그룹입니다.");
+            if (!Boolean.TRUE.equals(resourceGroup.getIsActive())) {
+                throw new IllegalArgumentException("이미 비활성화 또는 삭제된 리소스 그룹입니다.");
+            }
+
+            resourceGroup.setIsActive(false);
+            resourceGroup.softDelete();
+
+            // TODO : 수정자 기록
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 잠시 후 다시 시도해주세요.", e);
         }
-
-        // BaseEntity의 softDelete() 호출
-        resourceGroup.softDelete();
     }
 
 
-    // -------------------- 리소스 그룹 삭제 --------------------
+    // -------------------- 리소스 그룹의 정보 반환 (리소스 생성에 필요한 필드 조회를 위함) --------------------
     @Transactional(readOnly = true)
     public ResourceGroupDto.ServiceRegisterFieldRes getServiceRegisterField(Long resourceGroupId) {
         ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         return ResourceGroupDto.ServiceRegisterFieldRes.fromEntity(resourceGroup);
+    }
+
+
+    // -------------------- 리소스 그룹 활성화  --------------------
+    @Transactional
+    public void activate(Long resourceGroupId) {
+
+        try {
+            // TODO : 플랫폼 관리자 권한을 가졌는지 확인
+
+            ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+            if (Boolean.TRUE.equals(resourceGroup.getIsActive())) {
+                log.info("이미 활성화된 서비스 그룹입니다. id={}", resourceGroupId);
+                return;
+            }
+
+            resourceGroup.setIsActive(true);
+            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+
+            log.info("서비스 그룹 활성화 완료 - id={}", resourceGroupId);
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 다시 시도해주세요.");
+        }
+    }
+
+
+    // -------------------- 리소스 그룹 비활성화  --------------------
+    @Transactional
+    public void deactivate(Long resourceGroupId) {
+        try {
+            ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+
+            if (Boolean.FALSE.equals(resourceGroup.getIsActive())) {
+                log.info("이미 비활성화된 서비스 그룹입니다. id={}", resourceGroupId);
+                return;
+            }
+
+            resourceGroup.setIsActive(false);
+            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+
+            log.info("서비스 그룹 비활성화 완료 - id={}", resourceGroupId);
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 다시 시도해주세요.");
+        }
     }
 }
