@@ -44,21 +44,27 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 회원가입 관련
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/admin/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()  // ← 관리자 회원가입
 
-                        // 중복 확인 관련 (추가)
+                        // 중복 확인 관련 (회원가입 시 필요)
                         .requestMatchers(HttpMethod.GET, "/api/users/check-email").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()  // ← 추가!
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
-                        
-                        // 일반 사용자용 기업 정보 조회 (추가)
+
+                        // 일반 사용자용 기업 정보 조회
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 
                         // 승인 상태 조회
-                        .requestMatchers(HttpMethod.GET, "/api/users/admin/status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()  // ← 관리자 상태 조회
 
                         // 로그인
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/login").permitAll()  // ← 관리자 로그인
+
+                        // 로그아웃
+                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()  // ← 관리자 로그아웃
 
                         // 정적 리소스
                         .requestMatchers("/uploads/**").permitAll()
