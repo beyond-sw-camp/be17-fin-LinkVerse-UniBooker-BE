@@ -2,6 +2,7 @@ package org.example.unibooker.domain.resource.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.ResourceDto;
@@ -54,8 +55,10 @@ public class ResourceController {
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 수정", description = "기존의 예약/신청 서비스를 수정합니다.")
     @PutMapping("/{resourceId}")
-    public void update() {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+    public BaseResponse update(@PathVariable Long resourceId,
+                               @RequestBody @Valid ResourceDto.ResourceUpdateReq dto) {
+        resourceService.update(resourceId, dto);
+        return BaseResponse.success("서비스가 수정되었습니다.");
     }
 
 
