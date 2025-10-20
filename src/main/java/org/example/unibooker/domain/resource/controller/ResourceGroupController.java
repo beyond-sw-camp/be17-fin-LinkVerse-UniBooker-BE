@@ -37,52 +37,67 @@ public class ResourceGroupController {
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회", description = "특정 서비스 그룹의 이름, 설명, 썸네일 이미지를 조회합니다.")
     @GetMapping("/{resourceGroupId}")
-    public ResourceGroupDto.ResourceGroupDetailRes getResourceGroupById(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ResourceGroupDetailRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ResourceGroupDetailRes> getResourceGroupById(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ResourceGroupDetailRes response = resourceGroupService.getResourceGroupById(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 
     // ---------------- 수정용 상세 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회(수정용)", description = "특정 서비스 그룹을 생성할 때 입력한 데이터 전체를 조회합니다.")
     @GetMapping("/{resourceGroupId}/edit")
-    public ResourceGroupDto.ResourceGroupUpdateRes getResourceGroupDetailById(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ResourceGroupUpdateRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ResourceGroupUpdateRes> getResourceGroupDetailById(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ResourceGroupUpdateRes response = resourceGroupService.getResourceGroupUpdateDetail(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 그룹 수정", description = "기존의 예약/신청 서비스 그룹을 수정합니다.")
     @PutMapping("/{resourceGroupId}")
-    public void update(@PathVariable Long resourceGroupId,
+    public BaseResponse update(@PathVariable Long resourceGroupId,
                        @RequestBody ResourceGroupDto.ResourceGroupUpdateReq dto) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+        resourceGroupService.updateResourceGroup(resourceGroupId, dto, dto.getUserId());
+        return BaseResponse.success("서비스 그룹이 수정되었습니다.");
     }
 
 
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 그룹 삭제", description = "기존의 예약/신청 서비스 그룹을 삭제합니다.")
     @DeleteMapping("/{resourceGroupId}")
-    public void delete(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 삭제 컨트롤러 구현
+    public BaseResponse delete(@PathVariable Long resourceGroupId) {
+        resourceGroupService.deleteResourceGroup(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 삭제되었습니다.");
     }
 
 
     // ---------------- 서비스 그룹 카테고리 & 상시 모집 여부 조회 ----------------
     @Operation(summary = "서비스 그룹의 카테고리 & 상시 모집 여부 조회", description = "서비스 생성에 필요한 필수입력 필드 구성을 위한 데이터를 조회합니다.")
     @GetMapping("/{resourceGroupId}/register")
-    public ResourceGroupDto.ServiceRegisterFieldRes getServiceRegisterField(@PathVariable Long resourceGroupId) {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
-        return ResourceGroupDto.ServiceRegisterFieldRes.builder().build();
+    public BaseResponse<ResourceGroupDto.ServiceRegisterFieldRes> getServiceRegisterField(@PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ServiceRegisterFieldRes response = resourceGroupService.getServiceRegisterField(resourceGroupId);
+        return BaseResponse.success(response);
     }
 
 
-    // ---------------- 서비스 그룹 활성화 상태 변경 ----------------
-    @Operation(summary = "서비스 그룹의 활성화 상태를 변경", description = "서비스 그룹의 활성화 상태를 변경합니다.")
-    @GetMapping("active/{resourceGroupId}")
-    public void ServiceGroupActivationToggle(@PathVariable Long resourceGroupId,
-                                        @RequestParam Boolean isActive) {
-        // TODO
+    // ---------------- 서비스 그룹 활성화 ----------------
+    @Operation(summary = "서비스 그룹 활성화", description = "비활성화된 서비스 그룹을 활성화합니다.")
+    @GetMapping("/active/{resourceGroupId}")
+    public BaseResponse activateResourceGroup(
+            @PathVariable Long resourceGroupId) {
+
+        resourceGroupService.activate(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 활성화되었습니다.");
+    }
+
+
+    // ---------------- 서비스 그룹 비활성화 ----------------
+    @Operation(summary = "서비스 그룹 비활성화", description = "활성화된 서비스 그룹을 비활성화합니다.")
+    @GetMapping("/inactive/{resourceGroupId}")
+    public BaseResponse deactivateResourceGroup(
+            @PathVariable Long resourceGroupId) {
+
+        resourceGroupService.deactivate(resourceGroupId);
+        return BaseResponse.success("서비스 그룹이 비활성화되었습니다.");
     }
 }

@@ -22,6 +22,7 @@ public enum BaseResponseStatus {
     PASSWORD_MISMATCH(30003, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."),
     INVALID_USER_STATUS(30004, "유효하지 않은 사용자 상태입니다."),
     INVALID_USER_ROLE(30005, "유효하지 않은 사용자 권한입니다."),
+    DUPLICATE_EMAIL_IN_COMPANY(30006, "해당 기업에 이미 등록된 이메일입니다."),  // ← 추가
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),

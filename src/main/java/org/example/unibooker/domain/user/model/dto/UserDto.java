@@ -1,10 +1,7 @@
 package org.example.unibooker.domain.user.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +37,10 @@ public class UserDto {
                 example = "Password123!", required = true)
         private String password;
 
+        @NotNull(message = "기업 ID는 필수입니다")
+        @Schema(description = "가입할 기업 ID (company_id)", example = "1", required = true)
+        private Long companyId;
+
         @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "연락처 형식이 올바르지 않습니다 (010-XXXX-XXXX)")
         @Schema(description = "연락처 (phone) - 010-XXXX-XXXX 형식", example = "010-1234-5678")
         private String phone;
@@ -70,6 +71,9 @@ public class UserDto {
 
         @Schema(description = "이메일 (email)", example = "user@example.com")
         private String email;
+
+        @Schema(description = "소속 기업 ID (company_id)", example = "1")
+        private Long companyId;
 
         @Schema(description = "사용자 권한 (role)", example = "USER")
         private UserRole role;
@@ -300,5 +304,40 @@ public class UserDto {
 
         @Schema(description = "성별 (gender)", example = "MALE")
         private Gender gender;
+    }
+
+    // ========== 계정 정보 Response ==========
+
+    /**
+     * 이메일로 가입한 계정 정보
+     */
+    @Getter
+    @Builder
+    @Schema(description = "이메일로 가입한 계정 정보")
+    public static class AccountInfo {
+
+        @Schema(description = "사용자 ID", example = "1")
+        private Long userId;
+
+        @Schema(description = "이메일", example = "user@example.com")
+        private String email;
+
+        @Schema(description = "이름", example = "홍길동")
+        private String name;
+
+        @Schema(description = "소속 기업 ID", example = "10")
+        private Long companyId;
+
+        @Schema(description = "소속 기업명", example = "ABC 회사")
+        private String companyName;
+
+        @Schema(description = "권한", example = "USER")
+        private UserRole role;
+
+        @Schema(description = "계정 상태", example = "ACTIVE")
+        private UserStatus status;
+
+        @Schema(description = "가입 일시", example = "2025-10-16T14:30:00")
+        private LocalDateTime createdAt;
     }
 }

@@ -66,11 +66,11 @@ public class Resources extends BaseEntity {
     private Integer row;
 
     /** 좌석 열 개수 */
-    private Integer column;
+    private Integer col;
 
     /** 리소스 상태 */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(length = 20, nullable = false)
     private ResourceStatus status;
 
     /** 리소스 그룹 */

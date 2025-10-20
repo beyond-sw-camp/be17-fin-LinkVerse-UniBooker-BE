@@ -50,6 +50,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
+                        
+                        // 일반 사용자용 기업 정보 조회 (추가)
+                        .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 
                         // 승인 상태 조회
                         .requestMatchers(HttpMethod.GET, "/api/users/admin/status").permitAll()
