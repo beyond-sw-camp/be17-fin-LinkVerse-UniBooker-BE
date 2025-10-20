@@ -96,6 +96,7 @@ public class SecurityConfig {
     /**
      * CORS 설정
      * - 프론트엔드(localhost:5173) 요청 허용
+     * - 쿠키 전송을 위한 credentials 허용
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -115,8 +116,11 @@ public class SecurityConfig {
         // 허용할 헤더
         configuration.setAllowedHeaders(Arrays.asList("*"));
 
-        // 인증 정보(쿠키 등) 허용
+        // 인증 정보(쿠키 등) 허용 - 쿠키 기반 인증에 필수!
         configuration.setAllowCredentials(true);
+
+        // 클라이언트에 노출할 헤더 (선택)
+        configuration.setExposedHeaders(Arrays.asList("Set-Cookie"));
 
         // preflight 요청 캐시 시간 (초)
         configuration.setMaxAge(3600L);

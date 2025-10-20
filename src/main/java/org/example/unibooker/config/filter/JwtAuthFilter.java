@@ -2,6 +2,7 @@ package org.example.unibooker.config.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.List;
 
 /**
  * JWT 인증 필터
- * - Authorization 헤더에서 토큰 추출
+ * - 쿠키에서 accessToken 추출
  * - 토큰 유효성 검증
  * - SecurityContext에 인증 정보 저장
  * - companyId 검증 (기업별 리소스 접근 제어)
@@ -36,15 +37,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. Authorization 헤더에서 토큰 추출
-        String authorizationHeader = request.getHeader("Authorization");
+        // 1. 쿠키에서 accessToken 추출
+        String token = extractTokenFromCookie(request);
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        // 토큰이 없으면 다음 필터로
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = authorizationHeader.substring(7); // "Bearer " 제거
 
         try {
             // 2. 토큰 검증
@@ -58,8 +58,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // 4. URL에서 companySlug 추출 및 검증
                 String requestUri = request.getRequestURI();
 
-                // 기업별 리소스 접근 검증 (/api/{companySlug}/... 패턴)
-                if (requestUri.matches("^/api/[a-z0-9-]+/.*")) {
+                // 기업별 리소스 접근 검증 (/api/c/{companySlug}/... 패턴)
+                if (requestUri.matches("^/api/c/[a-z0-9-]+/.*")) {
                     // companySlug가 URL에 포함된 경우
                     if (tokenCompanyId == null) {
                         log.warn("기업별 리소스 접근 시도하나 토큰에 companyId 없음 - userId: {}", userId);
@@ -100,5 +100,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 쿠키에서 accessToken 추출
+     */
+    private String extractTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if ("accessToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 }

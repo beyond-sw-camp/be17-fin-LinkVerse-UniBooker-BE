@@ -27,6 +27,21 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     boolean existsByEmail(String email);
 
+    // ========== 역할별 이메일 중복 확인 (추가) ==========
+
+    /**
+     * ADMIN과 MANAGER 통합 중복 체크
+     * - ADMIN 회원가입 시: ADMIN, MANAGER와 중복 방지
+     * - MANAGER 생성 시: ADMIN, MANAGER와 중복 방지
+     */
+    boolean existsByEmailAndRoleIn(String email, List<UserRole> roles);
+
+    /**
+     * USER 중복 체크 (같은 Company + USER role)
+     * - 같은 회사 내에서만 USER 이메일 고유성 보장
+     */
+    boolean existsByEmailAndCompanyIdAndRole(String email, Long companyId, UserRole role);
+
     // ========== 기업별 이메일 중복 확인 ==========
 
     /**

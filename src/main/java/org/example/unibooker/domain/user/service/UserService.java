@@ -81,10 +81,11 @@ public class UserService {
     }
 
     /**
-     * 특정 기업 내에서 이메일 중복 확인
+     * 특정 기업 내에서 USER 이메일 중복 확인
+     * - 같은 Company + USER role 조합으로만 중복 체크
      */
     private void validateDuplicateEmailInCompany(String email, Long companyId) {
-        if (userRepository.existsByEmailAndCompanyId(email, companyId)) {
+        if (userRepository.existsByEmailAndCompanyIdAndRole(email, companyId, UserRole.USER)) {
             throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL_IN_COMPANY);
         }
     }
@@ -94,6 +95,15 @@ public class UserService {
      */
     public boolean existsByEmailAndCompany(String email, Long companyId) {
         return userRepository.existsByEmailAndCompanyId(email, companyId);
+    }
+
+    /**
+     * ADMIN/MANAGER 이메일 중복 확인
+     * - ADMIN 회원가입 시 사용
+     * - ADMIN, MANAGER와만 중복 체크 (USER 제외)
+     */
+    public boolean existsByEmailForAdmin(String email) {
+        return userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER));
     }
 
     /**

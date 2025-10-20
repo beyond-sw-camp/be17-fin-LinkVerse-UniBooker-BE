@@ -155,7 +155,7 @@ public class AdminController {
 
     /**
      * 이메일 중복 확인
-     * - UserService의 공통 이메일 중복 확인 로직 사용
+     * - ADMIN/MANAGER 이메일과만 중복 체크
      */
     @Operation(summary = "이메일 중복 확인",
             description = "이메일이 이미 사용 중인지 확인합니다. true: 사용 중, false: 사용 가능")
@@ -163,7 +163,7 @@ public class AdminController {
     public BaseResponse<Boolean> checkEmail(
             @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다") String email) {
 
-        boolean exists = userService.existsByEmail(email);
+        boolean exists = userService.existsByEmailForAdmin(email);
         return BaseResponse.success(exists);
     }
 
