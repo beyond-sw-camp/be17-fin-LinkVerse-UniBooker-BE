@@ -27,6 +27,11 @@ public class ResourceGroups extends BaseEntity {
     private Boolean isAlwaysAvailable; // 상시모집 여부
     private Boolean isActive; // 활성화 여부
 
+    // 낙관적 락 버전 관리 필드
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     // 리소스
     @OneToMany(mappedBy = "resourceGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resources> resources = new ArrayList<>();
@@ -59,5 +64,13 @@ public class ResourceGroups extends BaseEntity {
         if (category != null) this.category = ServiceCategory.valueOf(category);
         if (isAlwaysAvailable != null) this.isAlwaysAvailable = isAlwaysAvailable;
         this.updatedBy = updatedBy;
+    }
+
+    public void setUpdatedBy(Users user) {
+        this.updatedBy = user;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
