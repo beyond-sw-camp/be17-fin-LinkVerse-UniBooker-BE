@@ -25,21 +25,12 @@ public class ReservationService {
      * 예약하기
      */
     public ReservationDto.Response reserve(ReservationDto.Request dto, Long resourceId, Long userId) {
-
-        // TODO : 존재하지 않는 리소스, 정원초과, 중복예약 예외처리
-        // 리소스 존재 여부 확인
+        // 리소스 존재 여부 체크
         Resources resource = resourceRepository.findById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
 
-        // TODO : 예약 정원 초과 확인
-//        if() {
-//            throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
-//        }
-
-        // TODO : 중복 예약 확인
-
-
-        // 예약 성공
+        // entity로 변환 시 예약 중복, 정원 초콰, 기간 내 예약 가능한 리소스인지 등 체크
         Reservations result = reservationRepository.save(dto.toEntity(userId, resource));
+
         return ReservationDto.Response.from(result);
     }
 
@@ -47,7 +38,7 @@ public class ReservationService {
      * 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자
      * */
     public void getAdminReservations(Long companyId, Long resourceId) {
-        // TODO : 예약 목록 조회 서비스 구현
+        // TODO : 예약 목록 조회 서비스 구현 - 예약과 리소스 테이블 조인
         companyRepository.findById(companyId).orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
         resourceRepository.findById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
     }
