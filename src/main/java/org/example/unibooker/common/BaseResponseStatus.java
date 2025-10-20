@@ -54,8 +54,6 @@ public enum BaseResponseStatus {
     ACCOUNT_SUSPENDED(50007, "정지된 계정입니다."),
     ACCOUNT_DELETED(50008, "탈퇴한 계정입니다."),
     UNAUTHORIZED_ACTION(50009, "해당 작업을 수행할 권한이 없습니다."),
-    UNAUTHORIZED_COMPANY_ACCESS(50010, "해당 기업의 리소스에 접근 권한이 없습니다."),
-
 
     // ========== 60000: File 관련 ==========
     INVALID_FILE_TYPE(60000, "지원하지 않는 파일 형식입니다. (jpg, jpeg, png만 가능)"),
@@ -68,10 +66,14 @@ public enum BaseResponseStatus {
     // ========== 80000: Resource 관련 ==========
     RESOURCE_NOT_FOUND(80000, "리소스 정보를 찾을 수 없습니다."),
     RESOURCE_OVER_CAPACITY(80001, "정원이 초과되어 예약 불가합니다."),
+    RESOURCE_NOT_ACTIVE(80002, "활성화 되지 않은 리소스입니다."),
+
 
     // ========== 90000: Reservation 관련 ==========
     RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
     RESERVATION_CANCEL_FAILED(90001, "예약 취소 실패했습니다."),
+    RESERVATION_DATE_RANGE_OVER(90002, "예약할 수 있는 날짜의 범위를 벗어났습니다."),
+    RESERVATION_DUPLICATED(90003, "중복된 예약이 있습니다."),
 
     // ========== 100000: Refresh Token 관련 ==========
     REFRESH_TOKEN_EXPIRED(100000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
