@@ -49,6 +49,8 @@ public enum BaseResponseStatus {
     ACCOUNT_SUSPENDED(50007, "정지된 계정입니다."),
     ACCOUNT_DELETED(50008, "탈퇴한 계정입니다."),
     UNAUTHORIZED_ACTION(50009, "해당 작업을 수행할 권한이 없습니다."),
+    UNAUTHORIZED_COMPANY_ACCESS(50010, "해당 기업의 리소스에 접근 권한이 없습니다."),
+
 
     // ========== 60000: File 관련 ==========
     INVALID_FILE_TYPE(60000, "지원하지 않는 파일 형식입니다. (jpg, jpeg, png만 가능)"),
