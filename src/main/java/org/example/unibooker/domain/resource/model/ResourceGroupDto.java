@@ -72,6 +72,16 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
+
+        public static ResourceGroupUpdateRes fromEntity(ResourceGroups group) {
+            return ResourceGroupUpdateRes.builder()
+                    .name(group.getName())
+                    .description(group.getDescription())
+                    .thumbnail(group.getThumbnail())
+                    .category(group.getCategory().name())
+                    .isAlwaysAvailable(group.getIsAlwaysAvailable())
+                    .build();
+        }
     }
 
 
@@ -118,6 +128,9 @@ public class ResourceGroupDto {
     @Schema(description = "서비스 그룹 수정 요청 DTO")
     public static class ResourceGroupUpdateReq {
 
+        // TODO : 로그인 기능 개발되면 삭제
+        private Long userId;
+
         @Schema(description = "리소스 그룹 이름", example = "동아리")
         private String name;
 
@@ -148,5 +161,13 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
+
+        public static ServiceRegisterFieldRes fromEntity(ResourceGroups entity) {
+            return ServiceRegisterFieldRes.builder()
+                    .name(entity.getName())
+                    .category(entity.getCategory())
+                    .isAlwaysAvailable(entity.getIsAlwaysAvailable())
+                    .build();
+        }
     }
 }

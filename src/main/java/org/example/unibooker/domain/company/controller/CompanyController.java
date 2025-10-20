@@ -1,6 +1,7 @@
 package org.example.unibooker.domain.company.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -80,6 +81,19 @@ public class CompanyController {
             @RequestBody @Valid CompanyDto.ApprovalRequest request) {
 
         CompanyDto.ApprovalResponse response = adminService.rejectCompany(companyId, request.getRejectionReason());
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * Company Slug로 기업 정보 조회 (일반 사용자용)
+     */
+    @Operation(summary = "Company Slug로 기업 정보 조회",
+            description = "Company Slug를 통해 기업 정보를 조회합니다. (일반 사용자 회원가입용)")
+    @GetMapping("/slug/{companySlug}")
+    public BaseResponse<CompanyDto.PublicInfoResponse> getCompanyBySlug(
+            @PathVariable @Schema(description = "Company Slug", example = "company-a") String companySlug) {
+
+        CompanyDto.PublicInfoResponse response = companyService.getCompanyBySlug(companySlug);
         return BaseResponse.success(response);
     }
 }
