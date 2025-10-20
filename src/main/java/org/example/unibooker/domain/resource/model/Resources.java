@@ -93,6 +93,10 @@ public class Resources extends BaseEntity {
     @JoinColumn(name = "updated_by")
     private Users updatedBy;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
 
     public void setTimeInterval(int minutes) {
         this.timeInterval = TimeIntervalType.fromMinutes(minutes).getMinutes();
@@ -140,5 +144,9 @@ public class Resources extends BaseEntity {
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
