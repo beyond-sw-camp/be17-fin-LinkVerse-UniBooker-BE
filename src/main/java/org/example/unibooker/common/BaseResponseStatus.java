@@ -65,10 +65,18 @@ public enum BaseResponseStatus {
     // ========== 70000: Email 관련 ==========
     EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다."),
 
-    // ========== 80000: Refresh Token 관련 ==========
-    REFRESH_TOKEN_EXPIRED(80000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
-    REFRESH_TOKEN_NOT_FOUND(80001, "Refresh Token을 찾을 수 없습니다."),
-    INVALID_REFRESH_TOKEN(80002, "유효하지 않은 Refresh Token입니다.");
+    // ========== 80000: Resource 관련 ==========
+    RESOURCE_NOT_FOUND(80000, "리소스 정보를 찾을 수 없습니다."),
+    RESOURCE_OVER_CAPACITY(80001, "정원이 초과되어 예약 불가합니다."),
+
+    // ========== 90000: Reservation 관련 ==========
+    RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
+    RESERVATION_CANCEL_FAILED(90001, "예약 취소 실패했습니다."),
+
+    // ========== 100000: Refresh Token 관련 ==========
+    REFRESH_TOKEN_EXPIRED(100000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
+    REFRESH_TOKEN_NOT_FOUND(100001, "Refresh Token을 찾을 수 없습니다."),
+    INVALID_REFRESH_TOKEN(100002, "유효하지 않은 Refresh Token입니다.");
 
     private final int code;
     private final String message;

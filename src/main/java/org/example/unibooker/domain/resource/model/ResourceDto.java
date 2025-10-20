@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Schema(description = "서비스 관련 DTO 클래스들")
@@ -42,7 +43,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private Integer timeInterval;
+        private TimeIntervalType timeInterval; // private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -55,6 +56,12 @@ public class ResourceDto {
 
         @Schema(description = "커스텀 필드 값 목록 (RESOURCE 타입)", nullable = true)
         private List<CustomFieldDto.CustomFieldValue> customFieldValues;
+
+        @Schema(description = "타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
 
         // 입력값 검증 함수
         public void validate() {
@@ -70,10 +77,12 @@ public class ResourceDto {
             if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
                 throw new IllegalArgumentException("종료시간은 시작시간보다 늦어야 합니다.");
             }
+            /*
             // 시간 간격 체크
             if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
                 throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
             }
+            */
         }
 
         public Resources toEntity(ResourceGroups group) {
@@ -136,7 +145,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval;
+        private TimeIntervalType timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -146,6 +155,13 @@ public class ResourceDto {
 
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
+
+        @Schema(description = "운영 시간 목록")
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 시간 목록 (휴무일 등)")
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+
 
         public static ResourceUpdateRes fromEntity(Resources resource) {
             return new ResourceUpdateRes(
@@ -163,7 +179,17 @@ public class ResourceDto {
                     resource.getTimeInterval(),
                     resource.getCapacity(),
                     resource.getRow(),
-                    resource.getCol()
+                    resource.getCol(),
+                    Optional.ofNullable(resource.getTimeSlots())
+                            .orElse(List.of())
+                            .stream()
+                            .map(TimeSlotDto.TimeSlotResponse::from)
+                            .collect(Collectors.toList()),
+                    Optional.ofNullable(resource.getTimeSlotExceptions())
+                            .orElse(List.of())
+                            .stream()
+                            .map(TimeSlotDto.TimeSlotExceptionResponse::from)
+                            .collect(Collectors.toList())
             );
         }
     }
@@ -246,7 +272,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private Integer timeInterval;
+        private TimeIntervalType timeInterval; // private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -257,11 +283,19 @@ public class ResourceDto {
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
 
+        @Schema(description = "타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+
         // 입력값 검증 함수
         public void validate() {
+            /*
             if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
                 throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
             }
+            */
 
             // 필요하다면 다른 필드 검증도 여기에 넣기
         }

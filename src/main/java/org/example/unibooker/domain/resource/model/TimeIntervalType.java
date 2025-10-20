@@ -1,5 +1,8 @@
 package org.example.unibooker.domain.resource.model;
 
+import lombok.Getter;
+
+@Getter
 public enum TimeIntervalType {
     THIRTY(30),
     SIXTY(60);
@@ -8,10 +11,6 @@ public enum TimeIntervalType {
 
     TimeIntervalType(int minutes) {
         this.minutes = minutes;
-    }
-
-    public int getMinutes() {
-        return minutes;
     }
 
     // 숫자로 enum 찾기
