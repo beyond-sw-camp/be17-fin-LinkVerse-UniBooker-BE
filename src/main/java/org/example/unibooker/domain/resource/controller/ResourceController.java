@@ -3,7 +3,10 @@ package org.example.unibooker.domain.resource.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.domain.resource.model.ResourceDto;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
+import org.example.unibooker.domain.resource.service.ResourceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,12 +16,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/resource")
 public class ResourceController {
+    private final ResourceService resourceService;
 
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 생성", description = "예약/신청 서비스를 생성합니다.")
     @PostMapping
-    public void register() {
-        // TODO: 서비스 생성 컨트롤러 구현
+    public BaseResponse register(@RequestBody ResourceDto.ResourceRegisterReq dto) {
+        resourceService.register(dto);
+        return BaseResponse.success("서비스가 생성되었습니다.");
     }
 
 
