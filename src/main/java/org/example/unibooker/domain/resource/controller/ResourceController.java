@@ -31,8 +31,9 @@ public class ResourceController {
     // ---------------- 목록 조회 ----------------
     @Operation(summary = "서비스 목록 조회", description = "서비스 목록을 조회합니다.")
     @GetMapping("/group/{serviceGroupId}")
-    public void getAllResources() {
-        // TODO: 서비스 그룹 수정 컨트롤러 구현
+    public BaseResponse<ResourceDto.ResourceListRes> getAllResources(@PathVariable Long serviceGroupId) {
+        ResourceDto.ResourceListRes response = resourceService.getAllResourcesByGroupId(serviceGroupId);
+        return BaseResponse.success(response);
     }
 
 
