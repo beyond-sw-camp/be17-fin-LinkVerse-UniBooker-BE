@@ -68,16 +68,26 @@ public class ResourceController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 삭제", description = "기존의 예약/신청 서비스를 삭제합니다.")
     @DeleteMapping("/{resourceId}")
-    public void delete() {
-        // TODO: 서비스 그룹 삭제 컨트롤러 구현
+    public BaseResponse delete(@PathVariable Long resourceId) {
+        resourceService.deleteResource(resourceId);
+        return BaseResponse.success("서비스가 삭제되었습니다.");
     }
 
 
-    // ---------------- 서비스 활성화 상태 변경 ----------------
-    @Operation(summary = "서비스의 활성화 상태를 변경", description = "서비스의 활성화 상태를 변경합니다.")
-    @GetMapping("active/{resourceId}")
-    public void ServiceActivationToggle(@PathVariable Long resourceId,
-                                        @RequestParam Boolean isActive) {
-        // TODO
+    // ---------------- 서비스 활성화 ----------------
+    @Operation(summary = "서비스 활성화", description = "비활성화된 서비스를 활성화합니다.")
+    @GetMapping("/active/{resourceId}")
+    public BaseResponse activateResource(@PathVariable Long resourceId) {
+        resourceService.activate(resourceId);
+        return BaseResponse.success("서비스가 활성화되었습니다.");
+    }
+
+
+    // ---------------- 서비스 비활성화 ----------------
+    @Operation(summary = "서비스 비활성화", description = "활성화된 서비스를 비활성화합니다.")
+    @GetMapping("/inactive/{resourceId}")
+    public BaseResponse deactivateResource(@PathVariable Long resourceId) {
+        resourceService.deactivate(resourceId);
+        return BaseResponse.success("서비스가 비활성화되었습니다.");
     }
 }
