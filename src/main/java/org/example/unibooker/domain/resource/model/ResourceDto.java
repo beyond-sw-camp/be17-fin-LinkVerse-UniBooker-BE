@@ -41,7 +41,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval;
+        private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -52,21 +52,28 @@ public class ResourceDto {
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
 
+        // 입력값 검증 함수
+        public void validate() {
+            // 종료일 체크
+            if (endDate != null && endDate.isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("종료일이 오늘 이전인 리소스는 생성할 수 없습니다.");
+            }
+            // 시작일/종료일 체크
+            if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+                throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
+            }
+            // 시작시간/종료시간 체크
+            if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
+                throw new IllegalArgumentException("종료시간은 시작시간보다 늦어야 합니다.");
+            }
+            // 시간 간격 체크
+            if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
+                throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
+            }
+        }
+
         public Resources toEntity(ResourceGroups group) {
             LocalDate today = LocalDate.now();
-
-            // 날짜 유효성 체크
-            if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-                throw new IllegalArgumentException("시작일은 종료일보다 늦을 수 없습니다.");
-            }
-            if (endDate != null && endDate.isBefore(today)) {
-                throw new IllegalArgumentException("지난 예약 서비스는 생성할 수 없습니다.");
-            }
-            if (startDate != null && endDate != null && startDate.equals(endDate)) {
-                if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
-                    throw new IllegalArgumentException("종료 시간은 시작 시간보다 늦어야 합니다.");
-                }
-            }
 
             // status 결정
             ResourceStatus status;
@@ -161,6 +168,55 @@ public class ResourceDto {
 
         @Schema(description = "리소스 목록")
         private List<ResourceListInfo> resources;
+    }
+
+
+    @Getter
+    @Builder
+    @Schema(description = "리소스 수정 요청 DTO")
+    public static class ResourceUpdateReq {
+
+        @Schema(description = "서비스 이름", example = "회의실 101")
+        private String name;
+
+        @Schema(description = "서비스 설명", example = "회의실 101 예약용")
+        private String description;
+
+        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\"]")
+        private List<String> resourceImageUrls;
+
+        @Schema(description = "시작 날짜", example = "2025-10-16", nullable = true)
+        private LocalDate startDate;
+
+        @Schema(description = "종료 날짜", example = "2025-10-18", nullable = true)
+        private LocalDate endDate;
+
+        @Schema(description = "시작 시간", example = "12:00", nullable = true)
+        private LocalTime startTime;
+
+        @Schema(description = "종료 시간", example = "19:00", nullable = true)
+        private LocalTime endTime;
+
+        @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
+        private Integer timeInterval;
+
+        @Schema(description = "인원수", example = "4", nullable = true)
+        private Integer capacity;
+
+        @Schema(description = "행", example = "4", nullable = true)
+        private Integer row;
+
+        @Schema(description = "열", example = "4", nullable = true)
+        private Integer col;
+
+        // 입력값 검증 함수
+        public void validate() {
+            if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
+                throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
+            }
+
+            // 필요하다면 다른 필드 검증도 여기에 넣기
+        }
     }
 
 
