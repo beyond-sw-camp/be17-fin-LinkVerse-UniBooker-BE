@@ -37,6 +37,12 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     boolean existsByEmailAndRoleIn(String email, List<UserRole> roles);
 
     /**
+     * 이메일과 권한 목록으로 사용자 조회
+     * - ADMIN 회원가입 상태 조회 시 사용
+     */
+    List<Users> findByEmailAndRoleIn(String email, List<UserRole> roles);
+
+    /**
      * USER 중복 체크 (같은 Company + USER role)
      * - 같은 회사 내에서만 USER 이메일 고유성 보장
      */

@@ -120,9 +120,13 @@ public class AdminService {
 
         /**
          * 회원가입 신청 상태 조회
+         * - ADMIN 또는 MANAGER role만 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            Users user = userRepository.findByEmail(email)
+            // ADMIN 또는 MANAGER 계정 조회
+            Users user = userRepository.findByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))
+                    .stream()
+                    .findFirst()
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             Companies company = companyRepository.findById(user.getCompanyId())
