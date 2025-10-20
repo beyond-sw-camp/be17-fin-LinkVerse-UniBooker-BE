@@ -55,7 +55,15 @@ public enum BaseResponseStatus {
     FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다."),
 
     // ========== 70000: Email 관련 ==========
-    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다.");
+    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다."),
+
+    // ========== 80000: Resource 관련 ==========
+    RESOURCE_NOT_FOUND(80000, "리소스 정보를 찾을 수 없습니다."),
+    RESOURCE_OVER_CAPACITY(80001, "정원이 초과되어 예약 불가합니다."),
+
+    // ========== 90000: Reservation 관련 ==========
+    RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
+    RESERVATION_CANCEL_FAILED(90001, "예약 취소 실패했습니다.");
 
     private final int code;
     private final String message;

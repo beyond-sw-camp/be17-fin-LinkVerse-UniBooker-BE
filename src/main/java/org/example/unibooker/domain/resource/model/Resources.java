@@ -56,7 +56,7 @@ public class Resources extends BaseEntity {
 
     /** 시간 간격 */
     @Column(nullable = true)
-    private int timeInterval;
+    private TimeIntervalType timeInterval;
 
     /** 수용 인원 */
     @Column(nullable = false)
@@ -92,15 +92,4 @@ public class Resources extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     private Users updatedBy;
-
-
-    public void setTimeInterval(TimeIntervalType type) {
-        if (type != null) {
-            this.timeInterval = type.getMinutes();
-        }
-    }
-
-    public TimeIntervalType getTimeIntervalEnum() {
-        return TimeIntervalType.fromMinutes(this.timeInterval);
-    }
 }
