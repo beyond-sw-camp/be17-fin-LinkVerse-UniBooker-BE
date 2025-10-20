@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Schema(description = "서비스 관련 DTO 클래스들")
 public class ResourceDto {
@@ -142,6 +143,26 @@ public class ResourceDto {
 
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
+
+        public static ResourceUpdateRes fromEntity(Resources resource) {
+            return new ResourceUpdateRes(
+                    resource.getName(),
+                    resource.getDescription(),
+                    resource.getResourceImages() != null
+                            ? resource.getResourceImages().stream()
+                            .map(img -> img.getResourceImage())
+                            .collect(Collectors.toList())
+                            : null,
+                    resource.getStartDate(),
+                    resource.getEndDate(),
+                    resource.getStartTime(),
+                    resource.getEndTime(),
+                    resource.getTimeInterval(),
+                    resource.getCapacity(),
+                    resource.getRow(),
+                    resource.getCol()
+            );
+        }
     }
 
 
@@ -149,6 +170,9 @@ public class ResourceDto {
     @Builder
     @Schema(description = "리소스 목록 조회 정보 DTO")
     public static class ResourceListInfo {
+
+        @Schema(description = "서비스 아이디", example = "회의실 101")
+        private Long id;
 
         @Schema(description = "서비스 이름", example = "회의실 101")
         private String name;
@@ -158,6 +182,17 @@ public class ResourceDto {
 
         @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
         private String resourceImage;
+
+        public static ResourceListInfo fromEntity(Resources resource) {
+            return new ResourceListInfo(
+                    resource.getId(),
+                    resource.getName(),
+                    resource.getDescription(),
+                    resource.getResourceImages() != null && !resource.getResourceImages().isEmpty()
+                            ? resource.getResourceImages().get(0).getResourceImage()
+                            : null
+            );
+        }
     }
 
 
