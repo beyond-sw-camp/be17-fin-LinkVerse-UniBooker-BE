@@ -159,6 +159,9 @@ public class UserDto {
 
         @Schema(description = "소속 기업 ID (company_id)", example = "10")
         private Long companyId;
+
+        @Schema(description = "소속 기업 URL Slug (company_slug)", example = "abc-company")
+        private String companySlug;
     }
 
     // ========== 로그아웃 Request (신규) ==========

@@ -73,9 +73,9 @@ public class AdminController {
             description = "관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
-            @RequestBody @Valid UserDto.LoginRequest request) {
+            @RequestBody @Valid AdminDto.AdminLoginRequest request) {
 
-        UserDto.LoginResponse response = userService.login(request);
+        UserDto.LoginResponse response = adminService.adminLogin(request);;
         return BaseResponse.success(response);
     }
 

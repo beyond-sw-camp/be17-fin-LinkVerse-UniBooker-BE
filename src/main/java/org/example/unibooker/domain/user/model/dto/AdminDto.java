@@ -19,6 +19,27 @@ import java.util.List;
 
 public class AdminDto {
 
+    // ========== 관리자 로그인 Request ==========
+
+    /**
+     * 관리자/매니저 로그인 요청 DTO
+     * - companyId 없이 이메일로만 조회
+     */
+    @Getter
+    @NoArgsConstructor
+    @Schema(description = "관리자/매니저 로그인 요청")
+    public static class AdminLoginRequest {
+
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "올바른 이메일 형식이 아닙니다")
+        @Schema(description = "이메일", example = "admin@abc.com", required = true)
+        private String email;
+
+        @NotBlank(message = "비밀번호는 필수입니다")
+        @Schema(description = "비밀번호", required = true)
+        private String password;
+    }
+
     // ========== 관리자 회원가입 신청 Request ==========
 
     @Getter

@@ -42,40 +42,36 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // 회원가입 관련
+                        // ===== 회원가입 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()  // ← 관리자 회원가입
-
-                        // ===== 관리자 회원가입 및 로그인 (추가) =====
                         .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()
 
-                        // 중복 확인 관련 (추가)
+                        // ===== 로그인 =====
+                        .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/super/login").permitAll()
+
+                        // ===== 로그아웃 =====
+                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/super/logout").permitAll()
+
+                        // ===== 상태 조회 =====
+                        .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
+
+                        // ===== 중복 확인 =====
                         .requestMatchers(HttpMethod.GET, "/api/users/check-email").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()  // ← 추가!
+                        .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
 
-                        // 일반 사용자용 기업 정보 조회
+                        // ===== 기업 정보 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 
-                        // 승인 상태 조회
-                        .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()  // ← 관리자 상태 조회
-
-                        // 로그인
-                        .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/login").permitAll()  // ← 관리자 로그인
-
-                        // 로그아웃
-                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()  // ← 관리자 로그아웃
-
-                        // 정적 리소스
+                        // ===== 정적 리소스 =====
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // Swagger
+                        // ===== Swagger =====
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -83,10 +79,13 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // 슈퍼 관리자 전용 경로
-                        .requestMatchers("/api/companies/**").hasRole("SUPER")
+                        // ===== 슈퍼 관리자 전용 경로 (인증 필요) =====
+                        .requestMatchers("/api/companies/pending").hasRole("SUPER")
+                        .requestMatchers("/api/companies/{companyId}").hasRole("SUPER")
+                        .requestMatchers("/api/companies/{companyId}/approve").hasRole("SUPER")
+                        .requestMatchers("/api/companies/{companyId}/reject").hasRole("SUPER")
 
-                        // 그 외 모든 요청은 인증 필요
+                        // ===== 그 외 모든 요청은 인증 필요 =====
                         .anyRequest().authenticated()
                 )
 
