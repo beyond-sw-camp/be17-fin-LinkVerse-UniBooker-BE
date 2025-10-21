@@ -10,6 +10,7 @@ import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.*;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
+import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.example.unibooker.infrastructure.email.EmailService;
@@ -42,6 +43,7 @@ public class AdminService {
     private final SignUp signUpService;
     private final Approval approvalService;
     private final ManagerManagement managerManagement;
+    private final AuthService authService;
 
     /**
      * AdminService 생성자 (DI)
@@ -51,10 +53,12 @@ public class AdminService {
                         PasswordEncoder passwordEncoder,
                         FileUploadUtil fileUploadUtil,
                         EmailService emailService,
+                        AuthService authService,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
         this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder, emailService, baseUrl);
         this.managerManagement = new ManagerManagement(userRepository, companyRepository, passwordEncoder, emailService);
+        this.authService = authService;
     }
 
     // ========== 회원가입 관련 ==========
@@ -97,7 +101,7 @@ public class AdminService {
         public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
             validateDuplicateBusinessNumber(request.getBusinessNumber());
             validateCompanySlug(request.getCompanySlug());
-            validateDuplicateAdminEmail(request.getEmail());
+            validateDuplicateEmail(request.getEmail());
 
             Companies company = createCompany(request, logoFile);
             Companies savedCompany = companyRepository.save(company);
@@ -120,13 +124,9 @@ public class AdminService {
 
         /**
          * 회원가입 신청 상태 조회
-         * - ADMIN 또는 MANAGER role만 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            // ADMIN 또는 MANAGER 계정 조회
-            Users user = userRepository.findByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))
-                    .stream()
-                    .findFirst()
+            Users user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             Companies company = companyRepository.findById(user.getCompanyId())
@@ -235,10 +235,10 @@ public class AdminService {
         }
 
         /**
-         * ADMIN 이메일 중복 검증 (ADMIN, MANAGER와 중복 방지)
+         * 이메일 중복 검증
          */
-        private void validateDuplicateAdminEmail(String email) {
-            if (userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))) {
+        private void validateDuplicateEmail(String email) {
+            if (userRepository.findByEmail(email).isPresent()) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
@@ -312,28 +312,44 @@ public class AdminService {
 
         /**
          * 기업 승인 처리
+         * - Company 상태를 APPROVED로 변경
+         * - Admin User 상태를 INACTIVE → ACTIVE로 변경
+         * - 새로운 임시 비밀번호 생성 및 이메일 발송
          */
         @Transactional
         public CompanyDto.ApprovalResponse approveCompany(Long companyId, Long approvedBy) {
+            // 1. Company 조회
             Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
+            // 2. 중복 승인 방지
             if (company.getStatus() == CompanyStatus.APPROVED) {
                 throw new BaseException(BaseResponseStatus.ALREADY_APPROVED);
             }
 
+            // 3. Admin User 조회
             Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
+            // 4. 새로운 임시 비밀번호 생성
             String newTempPassword = generateTemporaryPassword();
             String encodedPassword = passwordEncoder.encode(newTempPassword);
 
+            // 5. 비밀번호 및 상태 업데이트 (중요: 반드시 activate() 호출)
             admin.updatePassword(encodedPassword);
-            company.approve(approvedBy);
-            admin.activate();
+            admin.activate();  // INACTIVE -> ACTIVE 변경
 
+            // 6. Company 승인 처리
+            company.approve(approvedBy);
+
+            // 7. 명시적 저장 (JPA 더티 체킹 보장)
+            userRepository.save(admin);
+            companyRepository.save(company);
+
+            // 8. 서비스 URL 생성
             String serviceUrl = company.getServiceUrl(baseUrl);
 
+            // 9. 승인 이메일 발송
             try {
                 emailService.sendAdminApprovalEmail(
                         admin.getEmail(),
@@ -343,9 +359,12 @@ public class AdminService {
                         serviceUrl
                 );
             } catch (Exception e) {
+                // 이메일 발송 실패 시에도 승인은 완료되어야 함
+                // 로깅 후 예외를 던지면 트랜잭션이 롤백되므로 주의 필요
                 throw new BaseException(BaseResponseStatus.EMAIL_SEND_FAILED);
             }
 
+            // 10. 응답 생성
             return CompanyDto.ApprovalResponse.builder()
                     .message("기업 승인이 완료되었습니다. 승인 이메일이 발송되었습니다.")
                     .companyId(company.getId())
@@ -640,10 +659,10 @@ public class AdminService {
         }
 
         /**
-         * MANAGER 이메일 중복 검증 (ADMIN, MANAGER와 중복 방지)
+         * 이메일 중복 검증
          */
         private void validateEmailDuplicate(String email) {
-            if (userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))) {
+            if (userRepository.existsByEmail(email)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
@@ -835,6 +854,18 @@ public class AdminService {
 
     public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
         return managerManagement.createManager(request, currentUserId);
+    }
+
+    /**
+     * 관리자/매니저 로그인
+     * - AuthService에 위임
+     */
+    public UserDto.LoginResponse adminLogin(AdminDto.AdminLoginRequest request) {
+        return authService.loginWithRoles(
+                request.getEmail(),
+                request.getPassword(),
+                List.of(UserRole.ADMIN, UserRole.MANAGER)
+        );
     }
 
     /**
