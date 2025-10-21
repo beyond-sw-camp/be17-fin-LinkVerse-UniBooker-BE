@@ -3,8 +3,10 @@ package org.example.unibooker.domain.resource.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.CustomFieldDto;
-import org.example.unibooker.domain.resource.model.CustomeTargetType;
+import org.example.unibooker.domain.resource.model.CustomTargetType;
+import org.example.unibooker.domain.resource.service.CustomFieldService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,29 +16,31 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/custom-field")
 public class CustomFieldController {
+    private final CustomFieldService customFieldService;
 
     // ---------------- 필드 정의 --------------------
 
     // ---------------- 필드 생성 ----------------
     @Operation(summary = "커스텀 필드 생성", description = "서비스 또는 사용자 커스텀 필드를 생성합니다.")
     @PostMapping("/{resourceGroupId}")
-    public void registerCustomField(
+    public BaseResponse registerCustomField(
             @PathVariable Long resourceGroupId,
             @RequestBody CustomFieldDto.CustomFieldReq dto
     ) {
-        // TODO: 서비스 레이어에서 CustomFieldType 보고 저장
+        customFieldService.create(resourceGroupId, dto);
+        return BaseResponse.success("커스텀 필드가 생성되었습니다.");
     }
 
 
     // ---------------- 필드 조회 ----------------
     @Operation(summary = "커스텀 필드 조회", description = "서비스 그룹의 커스텀 필드 목록을 조회합니다.")
     @GetMapping("/{resourceGroupId}")
-    public List<CustomFieldDto.CustomFieldRes> getCustomFields(
+    public BaseResponse<List<CustomFieldDto.CustomFieldRes>> getCustomFields(
             @PathVariable Long resourceGroupId,
-            @RequestParam(required = false) CustomeTargetType type // SERVICE / USER
+            @RequestParam(required = false) CustomTargetType type // SERVICE / USER / null(전체)
     ) {
-        // TODO: 서비스 레이어에서 type 필터링
-        return List.of();
+        List<CustomFieldDto.CustomFieldRes> fields = customFieldService.getCustomFields(resourceGroupId, type);
+        return BaseResponse.success(fields);
     }
 
 

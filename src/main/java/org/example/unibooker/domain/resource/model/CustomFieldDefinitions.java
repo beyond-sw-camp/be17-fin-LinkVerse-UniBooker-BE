@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.unibooker.common.BaseEntity;
+import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +16,13 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "deleted_at IS NULL")
 public class CustomFieldDefinitions extends BaseEntity {
-    private CustomeTargetType targetType;
+    @Enumerated(EnumType.STRING)
+    private CustomTargetType targetType;
     private String fieldName;
     private String description;
+    @Enumerated(EnumType.STRING)
     private CustomDataType dataType;
     private Boolean isRequired;
 
@@ -34,4 +38,9 @@ public class CustomFieldDefinitions extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_group_id")
     private ResourceGroups resourceGroup;
+
+
+    public void setResourceGroup(ResourceGroups group) {
+        resourceGroup = group;
+    }
 }

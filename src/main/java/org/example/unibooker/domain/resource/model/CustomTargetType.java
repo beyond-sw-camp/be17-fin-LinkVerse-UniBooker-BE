@@ -1,6 +1,6 @@
 package org.example.unibooker.domain.resource.model;
 
-public enum CustomeTargetType {
+public enum CustomTargetType {
     USER,
     RESOURCE
 }
