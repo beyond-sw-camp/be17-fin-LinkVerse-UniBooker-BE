@@ -43,4 +43,12 @@ public class CustomFieldDefinitions extends BaseEntity {
     public void setResourceGroup(ResourceGroups group) {
         resourceGroup = group;
     }
+
+    public void update(CustomFieldDto.CustomFieldReq dto) {
+        this.fieldName = dto.getFieldName();
+        this.description = dto.getDescription();
+        this.dataType = dto.getDataType();
+        this.targetType = dto.getTargetType();
+        this.isRequired = dto.getRequired();
+    }
 }

@@ -53,4 +53,13 @@ public class CustomFieldService {
                 .map(CustomFieldDto.CustomFieldRes::fromEntity)
                 .toList();
     }
+
+
+    // -------------------- 커스텀 필드 수정 --------------------
+    public void update(Long customFieldId, CustomFieldDto.CustomFieldReq dto) {
+        CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(customFieldId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 삭제된 커스텀 필드입니다."));
+
+        field.update(dto);
+    }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CustomFieldDefinitionRepository extends JpaRepository<CustomFieldDefinitions, Long> {
@@ -19,4 +20,7 @@ public interface CustomFieldDefinitionRepository extends JpaRepository<CustomFie
             ResourceGroups resourceGroup,
             CustomTargetType targetType
     );
+
+    // 삭제되지 않은 필드 조회
+    Optional<CustomFieldDefinitions> findByIdAndDeletedAtIsNull(Long id);
 }

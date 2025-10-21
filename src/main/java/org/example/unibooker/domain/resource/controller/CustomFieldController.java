@@ -47,11 +47,12 @@ public class CustomFieldController {
     // ---------------- 필드 수정 ----------------
     @Operation(summary = "커스텀 필드 수정", description = "기존 커스텀 필드를 수정합니다.")
     @PutMapping("/{customFieldId}")
-    public void updateCustomField(
+    public BaseResponse updateCustomField(
             @PathVariable Long customFieldId,
             @RequestBody CustomFieldDto.CustomFieldReq dto
     ) {
-        // TODO
+        customFieldService.update(customFieldId, dto);
+        return BaseResponse.success("커스텀 필드가 수정되었습니다.");
     }
 
 
