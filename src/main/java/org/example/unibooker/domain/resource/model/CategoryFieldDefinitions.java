@@ -1,6 +1,9 @@
 package org.example.unibooker.domain.resource.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +18,12 @@ import org.example.unibooker.common.BaseEntity;
 public class CategoryFieldDefinitions extends BaseEntity {
     private String fieldName;
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CustomDataType dataType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ServiceCategory category;
 }
