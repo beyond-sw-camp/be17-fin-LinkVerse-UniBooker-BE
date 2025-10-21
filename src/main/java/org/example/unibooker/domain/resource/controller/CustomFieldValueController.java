@@ -49,4 +49,15 @@ public class CustomFieldValueController {
         customFieldValueService.update(dtoList);
         return BaseResponse.success("커스텀 필드 값이 수정되었습니다.");
     }
+
+
+    // ---------------- 커스텀 필드 값 삭제 --------------------
+    @Operation(summary = "커스텀 필드 값 삭제", description = "커스텀 필드 값을 삭제합니다.")
+    @DeleteMapping("/value")
+    public BaseResponse deleteCustomFieldValues(
+            @RequestBody List<Long> customFieldValueIds
+    ) {
+        customFieldValueService.delete(customFieldValueIds);
+        return BaseResponse.success("커스텀 필드 값이 삭제되었습니다.");
+    }
 }
