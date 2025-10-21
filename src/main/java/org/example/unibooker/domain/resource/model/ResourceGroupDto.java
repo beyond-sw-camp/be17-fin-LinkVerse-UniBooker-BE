@@ -37,6 +37,9 @@ public class ResourceGroupDto {
         @Schema(description = "기업 ID", example = "1")
         private Long companyId;
 
+        @Schema(description = "커스텀 필드 목록")
+        private List<CustomFieldDto.CustomFieldReq> customFields;
+
         public ResourceGroups toEntity(Users authUser, Companies company) {
            return ResourceGroups.builder()
                     .name(name)
