@@ -40,5 +40,6 @@ public class Reservations extends BaseEntity {
 
     public void cancel() {
         this.status = ReservationStatus.CANCELLED;
+        softDelete();
     }
 }

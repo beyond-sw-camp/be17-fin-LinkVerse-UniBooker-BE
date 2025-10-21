@@ -41,21 +41,29 @@ public class ReservationController {
 
 
     // ===================
-    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자
+    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스 그룹"의 목록
     // ===================
-    @Operation(summary = "예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 서비스마다 예약/신청에 대한 목록 조회를 합니다.")
-    @GetMapping("/list/{companyId}/{resourceId}")
-    public ResponseEntity<BaseResponse<List<ReservationDto.Response>>> getAdminReservations(@PathVariable Long companyId, @PathVariable Long resourceId) {
-        // TODO : 예약 목록 조회 로직 구현
-        reservationService.getAdminReservations(companyId, resourceId);
-        return null;
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 리소스 그룹마다 예약/신청에 대한 목록 조회를 합니다.")
+    @GetMapping("/list/group/{resourceGroupId}")
+    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceGroupReservations(@PathVariable Long resourceGroupId) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceGroupReservations(resourceGroupId)));
     }
 
 
     // ===================
-    // 예약 목록 조회 - 일반 사용자
+    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스"의 목록
     // ===================
-    @Operation(summary = "예약 목록 조회", description = "일반 사용자가 특정 기업의 예약/신청에 대한 목록 조회를 합니다.")
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 서비스마다 예약/신청에 대한 목록 조회를 합니다.")
+    @GetMapping("/list/resource/{resourceId}")
+    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceReservations(@PathVariable Long resourceId) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceReservations(resourceId)));
+    }
+
+
+    // ===================
+    // 예약 목록 조회- 일반 사용자
+    // ===================
+    @Operation(summary = "일반 사용자 예약 목록 조회", description = "일반 사용자가 예약/신청에 대한 목록 조회를 합니다.")
     @GetMapping("/list")
     public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getUserReservations(Long userId) {
         /**
