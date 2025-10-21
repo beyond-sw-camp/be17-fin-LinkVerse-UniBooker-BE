@@ -25,6 +25,15 @@ public class CategoryFieldDto {
 
         @Schema(description = "필드 적용할 카테고리", example = "RESERVATION")
         private ServiceCategory category;
+
+        public CategoryFieldDefinitions toEntity() {
+            return CategoryFieldDefinitions.builder()
+                    .fieldName(fieldName)
+                    .description(description)
+                    .dataType(dataType)
+                    .category(category)
+                    .build();
+        }
     }
 
 
