@@ -28,14 +28,14 @@ public class CategoryFieldService {
 
     // -------------------- 전체 목록 조회 --------------------
     public CategoryFieldDto.CategoryFieldListRes getAll() {
-        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findAll();
+        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findByDeletedAtIsNull();
         return CategoryFieldDto.CategoryFieldListRes.fromEntityList(fields);
     }
 
 
     // -------------------- 단일 조회 --------------------
     public CategoryFieldDto.CategoryFieldDetailRes getDetail(Long id) {
-        CategoryFieldDefinitions field = categoryFieldRepository.findById(id)
+        CategoryFieldDefinitions field = categoryFieldRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new EntityNotFoundException("해당 필드를 찾을 수 없습니다."));
 
         return CategoryFieldDto.CategoryFieldDetailRes.fromEntity(field);
@@ -45,7 +45,7 @@ public class CategoryFieldService {
     // -------------------- 카테고리 별 목록 조회 --------------------
     public CategoryFieldDto.CategoryFieldListRes getByCategory(String categoryName) {
         ServiceCategory category = ServiceCategory.valueOf(categoryName.toUpperCase());
-        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findByCategory(category);
+        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findByCategoryAndDeletedAtIsNull(category);
         return CategoryFieldDto.CategoryFieldListRes.fromEntityList(fields);
     }
 
@@ -53,9 +53,19 @@ public class CategoryFieldService {
     // ---------------- 수정 ----------------
     @Transactional
     public void update(Long categoryFieldId, CategoryFieldDto.CategoryFieldReq dto) {
-        CategoryFieldDefinitions field = categoryFieldRepository.findById(categoryFieldId)
+        CategoryFieldDefinitions field = categoryFieldRepository.findByIdAndDeletedAtIsNull(categoryFieldId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 필드를 찾을 수 없습니다. ID: " + categoryFieldId));
 
         field.update(dto);
+    }
+
+
+    // ---------------- 삭제 ----------------
+    @Transactional
+    public void delete(Long categoryFieldId) {
+        CategoryFieldDefinitions field = categoryFieldRepository.findByIdAndDeletedAtIsNull(categoryFieldId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 필드를 찾을 수 없습니다. ID: " + categoryFieldId));
+
+        field.softDelete();
     }
 }

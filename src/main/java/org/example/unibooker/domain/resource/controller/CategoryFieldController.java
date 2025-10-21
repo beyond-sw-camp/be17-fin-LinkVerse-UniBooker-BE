@@ -65,7 +65,8 @@ public class CategoryFieldController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "필드 삭제", description = "필수 입력 필드를 삭제합니다.")
     @DeleteMapping("/{categoryFieldId}")
-    public void delete(@PathVariable Long categoryFieldId) {
-        // TODO
+    public BaseResponse delete(@PathVariable Long categoryFieldId) {
+        categoryFieldService.delete(categoryFieldId);
+        return BaseResponse.success("필드가 삭제되었습니다.");
     }
 }
