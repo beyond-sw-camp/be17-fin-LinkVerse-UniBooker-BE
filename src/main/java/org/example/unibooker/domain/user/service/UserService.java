@@ -33,6 +33,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final CompanyRepository companyRepository;
     private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
     /**
      * 일반 사용자 회원가입 (기업별)
@@ -140,39 +141,16 @@ public class UserService {
     }
 
     /**
-     * 로그인
+     * 일반 사용자 로그인
+     * - AuthService에 위임
      */
     @Transactional(readOnly = true)
     public UserDto.LoginResponse login(UserDto.LoginRequest request) {
-        // 1. 이메일 + companyId로 사용자 조회
-        Users user = userRepository.findByEmailAndCompanyId(
+        return authService.loginWithCompany(
                 request.getEmail(),
+                request.getPassword(),
                 request.getCompanyId()
-        ).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
-
-        // 2. 비밀번호 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BaseException(BaseResponseStatus.INVALID_PASSWORD);
-        }
-
-        // 3. 계정 상태 확인
-        validateUserStatus(user);
-
-        // 4. JWT 토큰 생성
-        String accessToken = jwtUtil.createAccessToken(user);
-        String refreshToken = jwtUtil.createRefreshToken(user);
-
-        // 5. 응답 생성
-        return UserDto.LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .userId(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .passwordChangeRequired(user.getIsFirstLogin())
-                .companyId(user.getCompanyId())
-                .build();
+        );
     }
 
     /**
