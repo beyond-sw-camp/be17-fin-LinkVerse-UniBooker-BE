@@ -59,8 +59,9 @@ public class CustomFieldController {
     // ---------------- 필드 삭제 ----------------
     @Operation(summary = "커스텀 필드 삭제", description = "커스텀 필드를 삭제합니다.")
     @DeleteMapping("/{customFieldId}")
-    public void deleteCustomField(@PathVariable Long customFieldId) {
-        // TODO
+    public BaseResponse deleteCustomField(@PathVariable Long customFieldId) {
+        customFieldService.delete(customFieldId);
+        return BaseResponse.success("커스텀 필드가 삭제되었습니다.");
     }
 
 

@@ -62,4 +62,14 @@ public class CustomFieldService {
 
         field.update(dto);
     }
+
+
+    // -------------------- 커스텀 필드 삭제 --------------------
+    public void delete(Long customFieldId) {
+        // 삭제할 엔티티 조회 (이미 삭제된 건 제외)
+        CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(customFieldId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 이미 삭제된 커스텀 필드입니다."));
+
+        field.softDelete();
+    }
 }
