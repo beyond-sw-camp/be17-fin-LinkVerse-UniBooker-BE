@@ -64,6 +64,7 @@ public class ReservationService {
      */
     public void cancel(Long reservationId) {
         // TODO : 예약이 수정(수정은 취소로 간주)된 적 있는지도 확인 필요, 리소스도 마감된 것을 풀어줘야 함
+        //예약 내역 존재 여부 체크
         Reservations reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
 
         // 예약한 내역이 있으면 예약 상태 수정
