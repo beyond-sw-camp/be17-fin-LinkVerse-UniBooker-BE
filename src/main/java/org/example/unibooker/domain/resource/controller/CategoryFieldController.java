@@ -26,24 +26,29 @@ public class CategoryFieldController {
 
 
     // ---------------- 목록 조회 ----------------
-    @Operation(summary = "필드 목록 조회", description = "필수 입력 필드들을 조회합니다.")
+    @Operation(summary = "필드 목록 조회", description = "모든 필수 입력 필드들을 조회합니다.")
     @GetMapping
-    public CategoryFieldDto.CategoryFieldListRes getCategoryFields() {
-        // TODO: service 호출 후 List<CategoryFieldDto.CategoryFieldDetailRes> 생성
-        // 예:
-        // List<CategoryFieldDto.CategoryFieldDetailRes> fields = categoryFieldService.getAll();
-        // return CategoryFieldDto.CategoryFieldListRes.builder().categoryFields(fields).build();
-        return null;
+    public BaseResponse<CategoryFieldDto.CategoryFieldListRes> getCategoryFields() {
+        CategoryFieldDto.CategoryFieldListRes response = categoryFieldService.getAll();
+        return BaseResponse.success(response);
     }
 
 
     // ---------------- 단일 조회 ----------------
     @Operation(summary = "필드 단일 조회", description = "특정 필드를 단일 조회합니다.")
     @GetMapping("/{categoryFieldId}")
-    public CategoryFieldDto.CategoryFieldDetailRes getCategoryField(@PathVariable Long categoryFieldId) {
-        // TODO: service 호출 후 단일 DTO 반환
-        // 예: return categoryFieldService.getDetail(categoryFieldId);
-        return null;
+    public BaseResponse<CategoryFieldDto.CategoryFieldDetailRes> getCategoryField(@PathVariable Long categoryFieldId) {
+        CategoryFieldDto.CategoryFieldDetailRes response = categoryFieldService.getDetail(categoryFieldId);
+        return BaseResponse.success(response);
+    }
+
+
+    // ---------------- 카테고리 별 필드 목록 조회 ----------------
+    @Operation(summary = "카테고리별 필드 목록 조회", description = "특정 카테고리에 속한 필드 목록을 조회합니다.")
+    @GetMapping("/category/{category}")
+    public BaseResponse<CategoryFieldDto.CategoryFieldListRes> getCategoryFieldsByCategory(@PathVariable String category) {
+        CategoryFieldDto.CategoryFieldListRes response = categoryFieldService.getByCategory(category);
+        return BaseResponse.success(response);
     }
 
 

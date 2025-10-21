@@ -1,11 +1,16 @@
 package org.example.unibooker.domain.resource.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.domain.resource.model.CategoryFieldDefinitions;
 import org.example.unibooker.domain.resource.model.CategoryFieldDto;
+import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.example.unibooker.domain.resource.repository.CategoryFieldDefinitionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,5 +23,29 @@ public class CategoryFieldService {
     public void create(CategoryFieldDto.CategoryFieldReq dto) {
         CategoryFieldDefinitions field = dto.toEntity();
         categoryFieldRepository.save(field);
+    }
+
+
+    // -------------------- 전체 목록 조회 --------------------
+    public CategoryFieldDto.CategoryFieldListRes getAll() {
+        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findAll();
+        return CategoryFieldDto.CategoryFieldListRes.fromEntityList(fields);
+    }
+
+
+    // -------------------- 단일 조회 --------------------
+    public CategoryFieldDto.CategoryFieldDetailRes getDetail(Long id) {
+        CategoryFieldDefinitions field = categoryFieldRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("해당 필드를 찾을 수 없습니다."));
+
+        return CategoryFieldDto.CategoryFieldDetailRes.fromEntity(field);
+    }
+
+
+    // -------------------- 카테고리 별 목록 조회 --------------------
+    public CategoryFieldDto.CategoryFieldListRes getByCategory(String categoryName) {
+        ServiceCategory category = ServiceCategory.valueOf(categoryName.toUpperCase());
+        List<CategoryFieldDefinitions> fields = categoryFieldRepository.findByCategory(category);
+        return CategoryFieldDto.CategoryFieldListRes.fromEntityList(fields);
     }
 }
