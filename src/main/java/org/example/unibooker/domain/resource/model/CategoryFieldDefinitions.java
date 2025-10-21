@@ -26,4 +26,11 @@ public class CategoryFieldDefinitions extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ServiceCategory category;
+
+    public void update(CategoryFieldDto.CategoryFieldReq dto) {
+        this.fieldName = dto.getFieldName();
+        this.description = dto.getDescription();
+        this.dataType = dto.getDataType();
+        this.category = dto.getCategory();
+    }
 }

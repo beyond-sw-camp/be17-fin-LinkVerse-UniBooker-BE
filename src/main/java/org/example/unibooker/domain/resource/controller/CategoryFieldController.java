@@ -55,9 +55,10 @@ public class CategoryFieldController {
     // ---------------- 수정 ----------------
     @Operation(summary = "필드 수정", description = "기존 필드를 수정합니다.")
     @PutMapping("/{categoryFieldId}")
-    public void update(@PathVariable Long categoryFieldId,
+    public BaseResponse update(@PathVariable Long categoryFieldId,
                        @RequestBody CategoryFieldDto.CategoryFieldReq dto) {
-        // TODO
+        categoryFieldService.update(categoryFieldId, dto);
+        return BaseResponse.success("필드가 수정되었습니다.");
     }
 
 

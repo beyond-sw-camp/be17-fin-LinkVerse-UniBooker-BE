@@ -48,4 +48,14 @@ public class CategoryFieldService {
         List<CategoryFieldDefinitions> fields = categoryFieldRepository.findByCategory(category);
         return CategoryFieldDto.CategoryFieldListRes.fromEntityList(fields);
     }
+
+
+    // ---------------- 수정 ----------------
+    @Transactional
+    public void update(Long categoryFieldId, CategoryFieldDto.CategoryFieldReq dto) {
+        CategoryFieldDefinitions field = categoryFieldRepository.findById(categoryFieldId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 필드를 찾을 수 없습니다. ID: " + categoryFieldId));
+
+        field.update(dto);
+    }
 }
