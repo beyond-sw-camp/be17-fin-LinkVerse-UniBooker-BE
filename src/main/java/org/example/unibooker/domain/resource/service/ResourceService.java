@@ -37,7 +37,7 @@ public class ResourceService {
 
         Resources resource = dto.toEntity(group);
 
-        resource.setTimeInterval(dto.getTimeInterval());
+        // resource.setTimeInterval(dto.getTimeInterval());
 
         resourceRepository.save(resource);
     }

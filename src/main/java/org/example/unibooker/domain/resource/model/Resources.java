@@ -56,7 +56,7 @@ public class Resources extends BaseEntity {
 
     /** 시간 간격 */
     @Column(nullable = true)
-    private TimeIntervalType timeInterval;
+    private TimeIntervalType timeInterval; // private int timeInterval;
 
     /** 수용 인원 */
     @Column(nullable = false)
@@ -97,7 +97,7 @@ public class Resources extends BaseEntity {
     @Column(nullable = false)
     private Long version = 0L;
 
-
+    /*
     public void setTimeInterval(int minutes) {
         this.timeInterval = TimeIntervalType.fromMinutes(minutes).getMinutes();
     }
@@ -105,6 +105,7 @@ public class Resources extends BaseEntity {
     public TimeIntervalType getTimeIntervalEnum() {
         return TimeIntervalType.fromMinutes(this.timeInterval);
     }
+    */
 
     // 서비스 수정 함수
     public void update(ResourceDto.ResourceUpdateReq dto) {
@@ -140,7 +141,7 @@ public class Resources extends BaseEntity {
         if (dto.getEndDate() != null) this.endDate = dto.getEndDate();
         if (dto.getStartTime() != null) this.startTime = dto.getStartTime();
         if (dto.getEndTime() != null) this.endTime = dto.getEndTime();
-        if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval();
+        if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval(); // if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval();
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();

@@ -52,7 +52,7 @@ public class ReservationDto {
                 throw new BaseException(BaseResponseStatus.RESOURCE_NOT_ACTIVE);
             }
 
-            // TODO : 상시 모집인지 체크 (요일 별 시간대 다르게 적용될 때 고려해야함)
+            // 상시 모집인지 체크
             LocalDateTime startDate = resource.getResourceGroup().getIsAlwaysAvailable() ? LocalDateTime.now() : date.atTime(time);
             LocalDateTime endDate = resource.getResourceGroup().getIsAlwaysAvailable() ? LocalDateTime.now() : startDate.plusMinutes(resource.getTimeInterval().getMinutes());
 

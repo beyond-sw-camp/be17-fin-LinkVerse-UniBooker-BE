@@ -42,7 +42,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private Integer timeInterval;
+        private TimeIntervalType timeInterval; // private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -67,10 +67,12 @@ public class ResourceDto {
             if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
                 throw new IllegalArgumentException("종료시간은 시작시간보다 늦어야 합니다.");
             }
+            /*
             // 시간 간격 체크
             if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
                 throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
             }
+            */
         }
 
         public Resources toEntity(ResourceGroups group) {
@@ -133,7 +135,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval;
+        private TimeIntervalType timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -243,7 +245,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private Integer timeInterval;
+        private TimeIntervalType timeInterval; // private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -256,9 +258,11 @@ public class ResourceDto {
 
         // 입력값 검증 함수
         public void validate() {
+            /*
             if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
                 throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
             }
+            */
 
             // 필요하다면 다른 필드 검증도 여기에 넣기
         }
