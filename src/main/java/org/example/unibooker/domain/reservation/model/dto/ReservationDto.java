@@ -13,7 +13,6 @@ import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Request - 예약 요청
@@ -47,14 +46,9 @@ public class ReservationDto {
         public Reservations toEntity(Long userId, Resources resource) {
             Users user = Users.builder().id(userId).build();
 
-            // 활성화 된 리소스인지 체크
-            if(!resource.getIsActive()) {
-                throw new BaseException(BaseResponseStatus.RESOURCE_NOT_ACTIVE);
-            }
-
-            // 상시 모집인지 체크
-            LocalDateTime startDate = resource.getResourceGroup().getIsAlwaysAvailable() ? LocalDateTime.now() : date.atTime(time);
-            LocalDateTime endDate = resource.getResourceGroup().getIsAlwaysAvailable() ? LocalDateTime.now() : startDate.plusMinutes(resource.getTimeInterval().getMinutes());
+            // TODO : 신청인지 아닌지 체크
+            LocalDateTime startDate = resource.getResourceGroup().getIsAlwaysAvailable() ? date.atStartOfDay() : date.atTime(time);
+            LocalDateTime endDate = resource.getResourceGroup().getIsAlwaysAvailable() ? date.atStartOfDay() : startDate.plusMinutes(resource.getTimeInterval().getMinutes());
 
             // 예약 정원 초과 체크
             if(resource.getResourceGroup().getCategory() == ServiceCategory.SEAT) { // 요일 별 설정 수용인원 만큼 수용 가능

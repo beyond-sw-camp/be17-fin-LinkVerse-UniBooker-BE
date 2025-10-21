@@ -65,12 +65,15 @@ public enum BaseResponseStatus {
     RESOURCE_OVER_CAPACITY(80001, "정원이 초과되어 예약 불가합니다."),
     RESOURCE_NOT_ACTIVE(80002, "활성화 되지 않은 리소스입니다."),
 
-
     // ========== 90000: Reservation 관련 ==========
     RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
     RESERVATION_CANCEL_FAILED(90001, "예약 취소 실패했습니다."),
     RESERVATION_DATE_RANGE_OVER(90002, "예약할 수 있는 날짜의 범위를 벗어났습니다."),
-    RESERVATION_DUPLICATED(90003, "중복된 예약이 있습니다.");
+    RESERVATION_DUPLICATED(90003, "중복된 예약이 있습니다."),
+    RESERVATION_ALREADY_CANCELED(90004, "이미 취소된 예약입니다."),
+
+    // ========== 100000: ResourceGroup 관련 ==========
+    RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다.");
 
     private final int code;
     private final String message;

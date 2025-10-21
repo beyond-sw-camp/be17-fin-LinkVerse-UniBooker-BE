@@ -150,4 +150,8 @@ public class Resources extends BaseEntity {
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
     }
+
+    public void setUpdateStatus(ResourceStatus resourceStatus) {
+        this.status = resourceStatus;
+    }
 }
