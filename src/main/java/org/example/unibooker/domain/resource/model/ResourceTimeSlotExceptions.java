@@ -19,18 +19,23 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
     @JoinColumn(name = "resource_id")
     private Resources resources;
 
+    // 날짜
     @Column(nullable = false)
-    private LocalDate date; // 날짜
+    private LocalDate date;
 
+    // 시작 시간
     @Column(nullable = false)
-    private LocalTime startTime; // 시작 시간
+    private LocalTime startTime;
 
+    // 종료 시간
     @Column(nullable = false)
-    private LocalTime endTime; // 종료 시간
+    private LocalTime endTime;
 
+    // 휴무 여부
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isClosed = true; // 휴무 여부
+    private Boolean isClosed = true;
 
-    private Character note; // 비고
+    // 비고
+    private Character note;
 }

@@ -19,20 +19,25 @@ public class ResourceTimeSlots extends BaseEntity {
     @JoinColumn(name = "resource_id")
     private Resources resources;
 
+    // 시작 시간
     @Column(nullable = false)
-    private LocalTime startTime; // 시작 시간
+    private LocalTime startTime;
 
+    // 종료 시간
     @Column(nullable = false)
-    private LocalTime endTime; // 종료 시간
+    private LocalTime endTime;
 
+    // 요일
     @Enumerated(EnumType.STRING)
-    private DayOfWeek dayOfWeek; // 요일
+    private DayOfWeek dayOfWeek;
 
+    // 운영 여부
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isActive = true; // 운영 여부
+    private Boolean isActive = true;
 
+    // 예약 여부
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isReserved = false; // 예약 여부
+    private Boolean isReserved = false;
 }
