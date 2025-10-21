@@ -107,6 +107,22 @@ public class JwtUtil {
     }
 
     /**
+     * 토큰에서 기업 ID 추출
+     */
+    public Long getCompanyId(String token) {
+        Claims claims = getClaims(token);
+        Object companyId = claims.get("companyId");
+        if (companyId == null) {
+            return null;
+        }
+        // Integer로 저장되었을 수 있으므로 Long으로 변환
+        if (companyId instanceof Integer) {
+            return ((Integer) companyId).longValue();
+        }
+        return (Long) companyId;
+    }
+
+    /**
      * 토큰 유효성 검증
      */
     public boolean validateToken(String token) {

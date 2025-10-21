@@ -49,10 +49,10 @@ public class UserController {
 
     /**
      * 로그인 처리
-     * - Refresh Token은 HttpOnly Cookie에 저장
+     * - Access Token과 Refresh Token을 모두 HttpOnly Cookie에 저장
      */
     @Operation(summary = "로그인",
-            description = "이메일과 비밀번호로 로그인합니다.")
+            description = "이메일과 비밀번호로 로그인합니다. 토큰은 HttpOnly 쿠키로 저장됩니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid UserDto.LoginRequest request,
@@ -60,12 +60,23 @@ public class UserController {
 
         UserDto.LoginResponse loginResponse = userService.login(request);
 
+        // Access Token을 HttpOnly Cookie에 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);    // JavaScript 접근 불가 (XSS 방어)
+        accessTokenCookie.setSecure(false);     // 개발: false, 운영: true (HTTPS)
+        accessTokenCookie.setPath("/");         // 모든 경로에서 사용
+        accessTokenCookie.setMaxAge(30 * 60);   // 30분 (초 단위)
+        // accessTokenCookie.setAttribute("SameSite", "Lax");  // CSRF 방어 (Spring Boot 2.6+)
+
+        response.addCookie(accessTokenCookie);
+
         // Refresh Token을 HttpOnly Cookie에 저장
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);   // JavaScript 접근 불가 (XSS 방어)
-        refreshTokenCookie.setSecure(true);     // HTTPS만 전송
+        refreshTokenCookie.setSecure(false);    // 개발: false, 운영: true (HTTPS)
         refreshTokenCookie.setPath("/");        // 모든 경로에서 사용
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일 (초 단위)
+        // refreshTokenCookie.setAttribute("SameSite", "Lax");  // CSRF 방어
 
         response.addCookie(refreshTokenCookie);
 
@@ -76,17 +87,39 @@ public class UserController {
 
     /**
      * 로그아웃 처리
-     * - Refresh Token 무효화
+     * - Access Token과 Refresh Token 쿠키 삭제
      */
     @Operation(summary = "로그아웃",
-            description = "현재 로그인 세션을 종료하고 Refresh Token을 무효화합니다.")
+            description = "현재 로그인 세션을 종료하고 쿠키를 삭제합니다.")
     @PostMapping("/logout")
     public BaseResponse<UserDto.LogoutResponse> logout(
-            @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal Long userId,
+            HttpServletResponse response) {
 
-        UserDto.LogoutResponse response = userService.logout(userId, request);
-        return BaseResponse.success(response);
+        // Access Token 쿠키 삭제
+        Cookie accessTokenCookie = new Cookie("accessToken", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);  // 즉시 삭제
+
+        response.addCookie(accessTokenCookie);
+
+        // Refresh Token 쿠키 삭제
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);  // 즉시 삭제
+
+        response.addCookie(refreshTokenCookie);
+
+        UserDto.LogoutResponse logoutResponse = UserDto.LogoutResponse.builder()
+                .message("로그아웃이 완료되었습니다.")
+                .logoutAt(java.time.LocalDateTime.now())
+                .build();
+
+        return BaseResponse.success(logoutResponse);
     }
 
     // ========== 비밀번호 변경 ==========

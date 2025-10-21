@@ -97,7 +97,7 @@ public class AdminService {
         public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
             validateDuplicateBusinessNumber(request.getBusinessNumber());
             validateCompanySlug(request.getCompanySlug());
-            validateDuplicateEmail(request.getEmail());
+            validateDuplicateAdminEmail(request.getEmail());
 
             Companies company = createCompany(request, logoFile);
             Companies savedCompany = companyRepository.save(company);
@@ -120,9 +120,13 @@ public class AdminService {
 
         /**
          * 회원가입 신청 상태 조회
+         * - ADMIN 또는 MANAGER role만 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            Users user = userRepository.findByEmail(email)
+            // ADMIN 또는 MANAGER 계정 조회
+            Users user = userRepository.findByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))
+                    .stream()
+                    .findFirst()
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             Companies company = companyRepository.findById(user.getCompanyId())
@@ -231,10 +235,10 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * ADMIN 이메일 중복 검증 (ADMIN, MANAGER와 중복 방지)
          */
-        private void validateDuplicateEmail(String email) {
-            if (userRepository.findByEmail(email).isPresent()) {
+        private void validateDuplicateAdminEmail(String email) {
+            if (userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
@@ -636,10 +640,10 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * MANAGER 이메일 중복 검증 (ADMIN, MANAGER와 중복 방지)
          */
         private void validateEmailDuplicate(String email) {
-            if (userRepository.existsByEmail(email)) {
+            if (userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }

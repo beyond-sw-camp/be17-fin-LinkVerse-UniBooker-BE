@@ -123,6 +123,10 @@ public class UserDto {
         @NotBlank(message = "비밀번호는 필수입니다")
         @Schema(description = "비밀번호 (password)", example = "Password123!", required = true)
         private String password;
+
+        @NotNull(message = "기업 ID는 필수입니다")
+        @Schema(description = "기업 ID (company_id)", example = "1", required = true)
+        private Long companyId;
     }
 
     // ========== 로그인 Response ==========
