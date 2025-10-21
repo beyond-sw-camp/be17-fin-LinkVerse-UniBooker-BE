@@ -66,15 +66,18 @@ public class CustomFieldValueService {
 
         List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
 
+        // targetType이 null일 경우 → USER + RESOURCE 모두 조회
         if (targetType == null) {
-            // 전체 조회 (USER + RESOURCE)
-            result.addAll(
-                    userFieldRepository.findByReservationIdAndDeletedAtIsNull(targetId)
-                            .stream()
-                            .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
-                            .toList()
-            );
+            // USER 필드값: 해당 리소스에 연결된 예약들의 값
+//            List<Long> reservationIds = reservationRepository.findIdsByResourceId(targetId);
+//            result.addAll(
+//                    userFieldRepository.findByReservationIdInAndDeletedAtIsNull(reservationIds)
+//                            .stream()
+//                            .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
+//                            .toList()
+//            );
 
+            // RESOURCE 필드값
             result.addAll(
                     resourceFieldRepository.findByResourceIdAndDeletedAtIsNull(targetId)
                             .stream()
@@ -82,19 +85,27 @@ public class CustomFieldValueService {
                             .toList()
             );
 
-        } else if (targetType == CustomTargetType.USER) {
-            result = userFieldRepository.findByReservationIdAndDeletedAtIsNull(targetId)
-                    .stream()
-                    .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
-                    .toList();
+            return result;
+        }
 
-        } else if (targetType == CustomTargetType.RESOURCE) {
-            result = resourceFieldRepository.findByResourceIdAndDeletedAtIsNull(targetId)
+        // USER 전용 조회
+//        if (targetType == CustomTargetType.USER) {
+//            List<Long> reservationIds = reservationRepository.findIdsByResourceId(targetId);
+//
+//            return userFieldRepository.findByReservationIdInAndDeletedAtIsNull(reservationIds)
+//                    .stream()
+//                    .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
+//                    .toList();
+//        }
+
+        // RESOURCE 전용 조회
+        if (targetType == CustomTargetType.RESOURCE) {
+            return resourceFieldRepository.findByResourceIdAndDeletedAtIsNull(targetId)
                     .stream()
                     .map(CustomFieldDto.CustomFieldValueListRes::fromResourceEntity)
                     .toList();
         }
 
-        return result;
+        throw new IllegalArgumentException("유효하지 않은 targetType입니다.");
     }
 }
