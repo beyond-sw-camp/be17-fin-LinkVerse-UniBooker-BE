@@ -7,7 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.domain.user.model.dto.SuperDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
+import org.example.unibooker.domain.user.service.SuperService;
 import org.example.unibooker.domain.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class SuperController {
 
+    private final SuperService superService;
     private final UserService userService;
 
     // ========== 슈퍼 관리자 로그인/로그아웃 ==========
@@ -35,18 +38,25 @@ public class SuperController {
             description = "슈퍼 관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
-            @RequestBody @Valid UserDto.LoginRequest request,
+            @RequestBody @Valid SuperDto.SuperLoginRequest request,
             HttpServletResponse response) {
 
-        UserDto.LoginResponse loginResponse = userService.login(request);
+        UserDto.LoginResponse loginResponse = superService.superLogin(request);
+
+        // Access Token을 HttpOnly Cookie에 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(30 * 60);  // 30분
+        response.addCookie(accessTokenCookie);
 
         // Refresh Token을 HttpOnly Cookie에 저장
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);   // JavaScript 접근 불가 (XSS 방어)
-        refreshTokenCookie.setSecure(true);     // HTTPS만 전송
-        refreshTokenCookie.setPath("/");        // 모든 경로에서 사용
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일 (초 단위)
-
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);  // 개발: false, 운영: true
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일
         response.addCookie(refreshTokenCookie);
 
         return BaseResponse.success(loginResponse);
