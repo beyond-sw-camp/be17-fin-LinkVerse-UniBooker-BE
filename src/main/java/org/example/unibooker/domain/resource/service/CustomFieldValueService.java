@@ -24,7 +24,7 @@ public class CustomFieldValueService {
 
 
     // -------------------- 커스텀 필드 값 저장 -------------------
-    public void register(List<CustomFieldDto.CustomFieldValue> dtos) {
+    public void register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
 
         for (CustomFieldDto.CustomFieldValue dto : dtos) {
             CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
@@ -32,10 +32,10 @@ public class CustomFieldValueService {
                             "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + dto.getCustomFieldId()));
 
             if (field.getTargetType() == CustomTargetType.USER) {
-                userFieldRepository.save(dto.toUserEntity(field));
+                userFieldRepository.save(dto.toUserEntity(field, targetId));
 
             } else if (field.getTargetType() == CustomTargetType.RESOURCE) {
-                resourceFieldRepository.save(dto.toResourceEntity(field));
+                resourceFieldRepository.save(dto.toResourceEntity(field, targetId));
 
             } else {
                 throw new IllegalArgumentException("알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId());
