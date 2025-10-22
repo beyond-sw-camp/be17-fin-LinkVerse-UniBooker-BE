@@ -108,4 +108,36 @@ public class CustomFieldValueService {
 
         throw new IllegalArgumentException("유효하지 않은 targetType입니다.");
     }
+
+
+    // ---------------- RESOURCE 필드 값 수정 --------------------
+    public void update(List<CustomFieldDto.CustomFieldValueUpdateReq> dtoList) {
+
+        for (CustomFieldDto.CustomFieldValueUpdateReq dto : dtoList) {
+
+            // 필드 정의 검증
+            var fieldDef = customFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + dto.getCustomFieldId()));
+
+            if (fieldDef.getTargetType() != CustomTargetType.RESOURCE) {
+                throw new IllegalArgumentException(
+                        "RESOURCE 타입의 커스텀 필드만 수정할 수 있습니다. fieldId=" + dto.getCustomFieldId());
+            }
+
+            // 필드 값 엔티티 조회
+            var entity = resourceFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldValueId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "존재하지 않거나 삭제된 커스텀 필드 값입니다. valueId=" + dto.getCustomFieldValueId()));
+
+            // 필드 일치 검증
+            if (!entity.getCustomFieldDefinition().getId().equals(dto.getCustomFieldId())) {
+                throw new IllegalArgumentException(
+                        "customFieldId가 일치하지 않습니다. valueId=" + dto.getCustomFieldValueId());
+            }
+
+            // 값 수정
+            entity.updateValue(dto.getValue());
+        }
+    }
 }

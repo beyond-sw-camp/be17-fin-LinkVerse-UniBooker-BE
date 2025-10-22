@@ -149,4 +149,20 @@ public class CustomFieldDto {
                     .build();
         }
     }
+
+
+    @Getter
+    @Builder
+    @Schema(description = "RESOURCE 커스텀 필드 값 수정 요청 DTO")
+    public static class CustomFieldValueUpdateReq {
+
+        @Schema(description = "수정할 필드의 ID", example = "1")
+        private Long customFieldId;
+
+        @Schema(description = "수정할 필드 값의 ID", example = "1")
+        private Long customFieldValueId;
+
+        @Schema(description = "수정할 값", example = "회의실 2")
+        private String value;
+    }
 }

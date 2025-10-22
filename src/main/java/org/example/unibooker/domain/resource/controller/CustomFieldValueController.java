@@ -43,12 +43,10 @@ public class CustomFieldValueController {
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------
-    @Operation(summary = "커스텀 필드 값 수정", description = "커스텀 필드 값을 수정합니다.")
-    @PutMapping("/value/{customFieldValueId}")
-    public void updateCustomFieldValue(
-            @PathVariable Long customFieldId,
-            @RequestBody CustomFieldDto.CustomFieldValue dto
-    ) {
-        // TODO
+    @Operation(summary = "커스텀 필드 값 수정", description = "커스텀 필드 값을 수정합니다. (RESOURCE 전용)")
+    @PutMapping("/value")
+    public BaseResponse updateCustomFieldValues(@RequestBody List<CustomFieldDto.CustomFieldValueUpdateReq> dtoList) {
+        customFieldValueService.update(dtoList);
+        return BaseResponse.success("커스텀 필드 값이 수정되었습니다.");
     }
 }
