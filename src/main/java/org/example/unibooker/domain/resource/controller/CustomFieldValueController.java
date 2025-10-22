@@ -29,17 +29,23 @@ public class CustomFieldValueController {
     }
 
 
-    // ---------------- 필드 값 조회 --------------------
+    // ---------------- 리소스 필드 값 조회 --------------------
     @Operation(summary = "특정 리소스의 커스텀 필드 값 조회",
-            description = "특정 리소스에 대한 커스텀 필드 값을 조회합니다. targetType이 없으면 전체 조회합니다.")
-    @GetMapping("/value/{targetId}")
-    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getCustomFieldValues(
-            @PathVariable Long targetId,
-            @RequestParam(required = false) CustomTargetType targetType // USER / RESOURCE / null
-    ) {
-        List<CustomFieldDto.CustomFieldValueListRes> response = customFieldValueService.getCustomFieldValues(targetId, targetType);
+            description = "특정 리소스에 대한 커스텀 필드 값을 조회합니다.")
+    @GetMapping("/value/resource/{resourceId}")
+    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getResourceFieldValues(@PathVariable Long resourceId) {
+        List<CustomFieldDto.CustomFieldValueListRes> response = customFieldValueService.getResourceFieldValues(resourceId);
         return BaseResponse.success(response);
     }
+
+
+    // -------------------- 특정 예약의 커스텀 필드 값 조회 -------------------
+//    @Operation(summary = "예약 기반 커스텀 필드 값 조회", description = "예약 ID에 해당하는 커스텀 필드 값을 조회합니다.")
+//    @GetMapping("/value/reservation/{reservationId}")
+//    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getUserFieldValuesByReservation(@PathVariable Long reservationId) {
+//        List<CustomFieldDto.CustomFieldValueListRes> result = customFieldValueService.getUserFieldValuesByReservation(reservationId);
+//        return BaseResponse.success(result);
+//    }
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------
