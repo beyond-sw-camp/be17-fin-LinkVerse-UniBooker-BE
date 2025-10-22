@@ -53,6 +53,9 @@ public class ResourceDto {
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
 
+        @Schema(description = "커스텀 필드 값 목록 (RESOURCE 타입)", nullable = true)
+        private List<CustomFieldDto.CustomFieldValue> customFieldValues;
+
         // 입력값 검증 함수
         public void validate() {
             // 종료일 체크
