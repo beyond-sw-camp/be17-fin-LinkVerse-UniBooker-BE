@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.CustomFieldDto;
+import org.example.unibooker.domain.resource.model.CustomTargetType;
 import org.example.unibooker.domain.resource.service.CustomFieldService;
 import org.example.unibooker.domain.resource.service.CustomFieldValueService;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,21 @@ public class CustomFieldValueController {
         return BaseResponse.success("커스텀 필드 값이 생성되었습니다.");
     }
 
-    @Operation(summary = "커스텀 필드 값 조회", description = "커스텀 필드에 대한 값을 조회합니다.")
-    @GetMapping("/value/{customFieldValueId}")
-    public CustomFieldDto.CustomFieldValueListRes getCustomFieldValue(@PathVariable Long customFieldValueId) {
-        // TODO
-        return null;
+
+    // ---------------- 필드 값 조회 --------------------
+    @Operation(summary = "특정 리소스의 커스텀 필드 값 조회",
+            description = "특정 리소스에 대한 커스텀 필드 값을 조회합니다. targetType이 없으면 전체 조회합니다.")
+    @GetMapping("/value/{targetId}")
+    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getCustomFieldValues(
+            @PathVariable Long targetId,
+            @RequestParam(required = false) CustomTargetType targetType // USER / RESOURCE / null
+    ) {
+        List<CustomFieldDto.CustomFieldValueListRes> response = customFieldValueService.getCustomFieldValues(targetId, targetType);
+        return BaseResponse.success(response);
     }
 
+
+    // ---------------- RESOURCE 필드 값 수정 --------------------
     @Operation(summary = "커스텀 필드 값 수정", description = "커스텀 필드 값을 수정합니다.")
     @PutMapping("/value/{customFieldValueId}")
     public void updateCustomFieldValue(
