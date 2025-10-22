@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.CustomFieldDto;
 import org.example.unibooker.domain.resource.model.CustomTargetType;
-import org.example.unibooker.domain.resource.service.CustomFieldService;
 import org.example.unibooker.domain.resource.service.CustomFieldValueService;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +21,10 @@ public class CustomFieldValueController {
 
     // ---------------- 필드 값 생성 --------------------
     @Operation(summary = "커스텀 필드 값 생성", description = "커스텀 필드에 대한 값을 생성합니다. 여러 값도 한 번에 저장 가능")
-    @PostMapping("/values")
-    public BaseResponse registerCustomFieldValues(@RequestBody List<CustomFieldDto.CustomFieldValue> dtos) {
-        customFieldValueService.register(dtos);
+    @PostMapping("/values/{targetId}")
+    public BaseResponse registerCustomFieldValues(@PathVariable Long targetId,
+                                                  @RequestBody List<CustomFieldDto.CustomFieldValue> dtos) {
+        customFieldValueService.register(targetId, dtos);
         return BaseResponse.success("커스텀 필드 값이 생성되었습니다.");
     }
 
