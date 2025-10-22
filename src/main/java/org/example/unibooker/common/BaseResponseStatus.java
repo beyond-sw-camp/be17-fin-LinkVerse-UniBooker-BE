@@ -26,6 +26,8 @@ public enum BaseResponseStatus {
     DELETED_USER(30007, "삭제된 계정입니다."),
     INACTIVE_USER(30008, "비활성화된 계정입니다."),
     SUSPENDED_USER(30009, "정지된 계정입니다."),
+    SAME_PASSWORD(30010, "새 비밀번호는 현재 비밀번호와 달라야 합니다."),
+    CURRENT_PASSWORD_INCORRECT(30011, "현재 비밀번호가 일치하지 않습니다."),
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),

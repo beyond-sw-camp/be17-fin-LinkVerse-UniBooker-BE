@@ -214,6 +214,50 @@ public class AdminDto {
         }
     }
 
+    // ========== 비밀번호 재설정 Request ==========
+
+    /**
+     * 비밀번호 재설정 요청 DTO
+     */
+    @Getter
+    @NoArgsConstructor
+    @Schema(description = "비밀번호 재설정 요청")
+    public static class PasswordResetRequest {
+
+        @NotBlank(message = "현재 비밀번호를 입력해주세요.")
+        @Schema(description = "현재 비밀번호 (임시 비밀번호)", example = "TempPass123!", required = true)
+        private String currentPassword;
+
+        @NotBlank(message = "새 비밀번호를 입력해주세요.")
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+                message = "비밀번호는 8자 이상, 영문 대소문자, 숫자, 특수문자를 포함해야 합니다."
+        )
+        @Schema(description = "새 비밀번호", example = "NewSecure123!@", required = true)
+        private String newPassword;
+
+        @NotBlank(message = "새 비밀번호 확인을 입력해주세요.")
+        @Schema(description = "새 비밀번호 확인", example = "NewSecure123!@", required = true)
+        private String confirmPassword;
+    }
+
+// ========== 비밀번호 재설정 Response ==========
+
+    /**
+     * 비밀번호 재설정 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "비밀번호 재설정 응답")
+    public static class PasswordResetResponse {
+
+        @Schema(description = "응답 메시지", example = "비밀번호가 성공적으로 변경되었습니다.")
+        private String message;
+
+        @Schema(description = "비밀번호 변경 필요 여부", example = "false")
+        private Boolean passwordChangeRequired;
+    }
+
     // ========== 관리자/매니저 상태 변경 Request (신규) ==========
 
     /**
