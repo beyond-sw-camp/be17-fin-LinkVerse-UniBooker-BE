@@ -44,6 +44,8 @@ public class AdminService {
     private final Approval approvalService;
     private final ManagerManagement managerManagement;
     private final AuthService authService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * AdminService 생성자 (DI)
@@ -55,6 +57,9 @@ public class AdminService {
                         EmailService emailService,
                         AuthService authService,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
+
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
         this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder, emailService, baseUrl);
         this.managerManagement = new ManagerManagement(userRepository, companyRepository, passwordEncoder, emailService);
@@ -431,6 +436,50 @@ public class AdminService {
                 characters[j] = temp;
             }
             return new String(characters);
+        }
+
+        /**
+         * 비밀번호 재설정
+         * - 임시 비밀번호 검증
+         * - 새 비밀번호 유효성 검증
+         * - 비밀번호 변경 및 isFirstLogin 플래그 해제
+         */
+        @Transactional
+        public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
+            // 1. 사용자 조회
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 2. 현재 비밀번호 검증 (임시 비밀번호 확인)
+            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                throw new BaseException(BaseResponseStatus.CURRENT_PASSWORD_INCORRECT); // 30011
+            }
+
+            // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                throw new BaseException(BaseResponseStatus.PASSWORD_MISMATCH); // ← 30003 사용!
+            }
+
+            // 4. 새 비밀번호가 현재 비밀번호와 동일한지 확인
+            if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+                throw new BaseException(BaseResponseStatus.SAME_PASSWORD); // 30010
+            }
+
+            // 5. 비밀번호 암호화
+            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+
+            // 6. 비밀번호 업데이트 + isFirstLogin 플래그 해제
+            user.updatePassword(encodedPassword);
+            user.completeFirstLogin();
+
+            // 7. 명시적 저장
+            userRepository.save(user);
+
+            // 8. 응답 생성
+            return AdminDto.PasswordResetResponse.builder()
+                    .message("비밀번호가 성공적으로 변경되었습니다.")
+                    .passwordChangeRequired(false)
+                    .build();
         }
 
         /**
@@ -891,5 +940,13 @@ public class AdminService {
      */
     public void updateAdminStatus(Long userId, AdminDto.AdminStatusUpdateRequest request) {
         managerManagement.updateAdminStatus(userId, request);
+    }
+
+    /**
+     * 비밀번호 재설정
+     * - Approval 클래스의 resetPassword 메서드에 위임
+     */
+    public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
+        return approvalService.resetPassword(userId, request);
     }
 }

@@ -2,6 +2,8 @@ package org.example.unibooker.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
@@ -68,15 +70,36 @@ public class AdminController {
     /**
      * 로그인
      * - UserService의 공통 로그인 로직 사용
+     * - JWT 토큰을 HTTP-Only 쿠키로 설정
      */
     @Operation(summary = "로그인",
             description = "관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
-            @RequestBody @Valid AdminDto.AdminLoginRequest request) {
+            @RequestBody @Valid AdminDto.AdminLoginRequest request,
+            HttpServletResponse response) {  // ← HttpServletResponse 추가
 
-        UserDto.LoginResponse response = adminService.adminLogin(request);;
-        return BaseResponse.success(response);
+        UserDto.LoginResponse loginResponse = adminService.adminLogin(request);
+
+        // ===== JWT 토큰을 HTTP-Only 쿠키로 설정 =====
+
+        // Access Token 쿠키 설정 (15분)
+        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);  // XSS 방어
+        accessTokenCookie.setSecure(false);   // HTTPS에서만 전송 (개발 환경: false, 프로덕션: true)
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(15 * 60);  // 15분
+        response.addCookie(accessTokenCookie);
+
+        // Refresh Token 쿠키 설정 (7일)
+        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);   // 개발 환경: false, 프로덕션: true
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일
+        response.addCookie(refreshTokenCookie);
+
+        return BaseResponse.success(loginResponse);
     }
 
     /**
@@ -95,18 +118,19 @@ public class AdminController {
     }
 
     /**
-     * 비밀번호 변경
-     * - UserService의 공통 비밀번호 변경 로직 사용
+     * 비밀번호 재설정 (첫 로그인 시 필수)
+     * - 임시 비밀번호 검증 후 새 비밀번호로 변경
+     * - isFirstLogin 플래그 해제
      */
-    @Operation(summary = "비밀번호 변경",
-            description = "관리자 비밀번호를 변경합니다. 첫 로그인 시 필수입니다.")
-    @PutMapping("/password")
-    public BaseResponse<String> changePassword(
-            @RequestBody @Valid UserDto.PasswordChangeRequest request,
+    @Operation(summary = "비밀번호 재설정",
+            description = "첫 로그인 시 임시 비밀번호를 새 비밀번호로 변경합니다.")
+    @PatchMapping("/password/reset")
+    public BaseResponse<AdminDto.PasswordResetResponse> resetPassword(
+            @RequestBody @Valid AdminDto.PasswordResetRequest request,
             @AuthenticationPrincipal Long userId) {
 
-        userService.changePassword(userId, request);
-        return BaseResponse.success("비밀번호가 성공적으로 변경되었습니다.");
+        AdminDto.PasswordResetResponse response = adminService.resetPassword(userId, request);
+        return BaseResponse.success(response);
     }
 
     /**

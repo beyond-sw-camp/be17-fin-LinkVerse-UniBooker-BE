@@ -23,13 +23,23 @@ public class CustomFieldDto {
         private String description;
 
         @Schema(description = "데이터 타입", example = "STRING / NUMBER / DATE")
-        private String dataType;
+        private CustomDataType dataType;
 
         @Schema(description = "필드 유형", example = "SERVICE / USER")
-        private String targetType;
+        private CustomTargetType targetType;
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        public CustomFieldDefinitions toEntity() {
+            return CustomFieldDefinitions.builder()
+                    .fieldName(fieldName)
+                    .description(description)
+                    .dataType(dataType)
+                    .targetType(targetType)
+                    .isRequired(required)
+                    .build();
+        }
     }
 
 
@@ -51,10 +61,21 @@ public class CustomFieldDto {
         private String dataType;
 
         @Schema(description = "필드 유형", example = "SERVICE / USER")
-        private String fieldType;
+        private String targetType;
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        public static CustomFieldRes fromEntity(CustomFieldDefinitions entity) {
+            return CustomFieldRes.builder()
+                    .id(entity.getId())
+                    .fieldName(entity.getFieldName())
+                    .dataType(entity.getDataType().name()) // ENUM → 문자열
+                    .targetType(entity.getTargetType().name()) // ENUM → 문자열
+                    .required(entity.getIsRequired())
+                    .description(entity.getDescription())
+                    .build();
+        }
     }
 
 
@@ -63,7 +84,7 @@ public class CustomFieldDto {
 
     @Getter
     @Builder
-    @Schema(description = "커스텀 필드 값 생성 & 수정 & 조회 요청 DTO")
+    @Schema(description = "커스텀 필드 값 생성 DTO")
     public static class CustomFieldValue {
 
         @Schema(description = "대상 리소스 ID 또는 사용자 ID", example = "101")
@@ -74,15 +95,74 @@ public class CustomFieldDto {
 
         @Schema(description = "입력 값", example = "회의실 101")
         private String value;
+
+        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field) {
+            return UserCustomFieldValues.builder()
+                    .reservationId(this.targetId)
+                    .fieldValue(this.value)
+                    .customFieldDefinition(field)
+                    .build();
+        }
+
+        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field) {
+            return ResourceCustomFieldValues.builder()
+                    .resourceId(this.targetId)
+                    .fieldValue(this.value)
+                    .customFieldDefinition(field)
+                    .build();
+        }
     }
 
 
     @Getter
     @Builder
-    @Schema(description = "커스텀 필드 값 목록 조회 응답 DTO")
-    public static class CustomFieldValueListRes  {
+    @Schema(description = "커스텀 필드 값 조회 응답 DTO")
+    public static class CustomFieldValueListRes {
 
-        @Schema(description = "커스텀 필드 값 목록")
-        private List<CustomFieldValue> customFieldValues;
+        @Schema(description = "필드 ID", example = "1")
+        private Long customFieldId;
+
+        @Schema(description = "필드 이름", example = "회의실 이름")
+        private String fieldName;
+
+        @Schema(description = "값", example = "101호 회의실")
+        private String value;
+
+        @Schema(description = "타겟 타입", example = "USER / RESOURCE")
+        private CustomTargetType targetType;
+
+        public static CustomFieldValueListRes fromUserEntity(UserCustomFieldValues entity) {
+            return CustomFieldValueListRes.builder()
+                    .customFieldId(entity.getCustomFieldDefinition().getId())
+                    .fieldName(entity.getCustomFieldDefinition().getFieldName())
+                    .value(entity.getFieldValue())
+                    .targetType(CustomTargetType.USER)
+                    .build();
+        }
+
+        public static CustomFieldValueListRes fromResourceEntity(ResourceCustomFieldValues entity) {
+            return CustomFieldValueListRes.builder()
+                    .customFieldId(entity.getCustomFieldDefinition().getId())
+                    .fieldName(entity.getCustomFieldDefinition().getFieldName())
+                    .value(entity.getFieldValue())
+                    .targetType(CustomTargetType.RESOURCE)
+                    .build();
+        }
+    }
+
+
+    @Getter
+    @Builder
+    @Schema(description = "RESOURCE 커스텀 필드 값 수정 요청 DTO")
+    public static class CustomFieldValueUpdateReq {
+
+        @Schema(description = "수정할 필드의 ID", example = "1")
+        private Long customFieldId;
+
+        @Schema(description = "수정할 필드 값의 ID", example = "1")
+        private Long customFieldValueId;
+
+        @Schema(description = "수정할 값", example = "회의실 2")
+        private String value;
     }
 }
