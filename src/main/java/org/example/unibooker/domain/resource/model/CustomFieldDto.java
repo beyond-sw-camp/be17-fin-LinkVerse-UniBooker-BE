@@ -23,13 +23,23 @@ public class CustomFieldDto {
         private String description;
 
         @Schema(description = "데이터 타입", example = "STRING / NUMBER / DATE")
-        private String dataType;
+        private CustomDataType dataType;
 
         @Schema(description = "필드 유형", example = "SERVICE / USER")
-        private String targetType;
+        private CustomTargetType targetType;
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        public CustomFieldDefinitions toEntity() {
+            return CustomFieldDefinitions.builder()
+                    .fieldName(fieldName)
+                    .description(description)
+                    .dataType(dataType)
+                    .targetType(targetType)
+                    .isRequired(required)
+                    .build();
+        }
     }
 
 
@@ -51,10 +61,21 @@ public class CustomFieldDto {
         private String dataType;
 
         @Schema(description = "필드 유형", example = "SERVICE / USER")
-        private String fieldType;
+        private String targetType;
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        public static CustomFieldRes fromEntity(CustomFieldDefinitions entity) {
+            return CustomFieldRes.builder()
+                    .id(entity.getId())
+                    .fieldName(entity.getFieldName())
+                    .dataType(entity.getDataType().name()) // ENUM → 문자열
+                    .targetType(entity.getTargetType().name()) // ENUM → 문자열
+                    .required(entity.getIsRequired())
+                    .description(entity.getDescription())
+                    .build();
+        }
     }
 
 
