@@ -87,26 +87,23 @@ public class CustomFieldDto {
     @Schema(description = "커스텀 필드 값 생성 DTO")
     public static class CustomFieldValue {
 
-        @Schema(description = "대상 리소스 ID 또는 사용자 ID", example = "101")
-        private Long targetId;
-
         @Schema(description = "필드 ID", example = "1")
         private Long customFieldId;
 
         @Schema(description = "입력 값", example = "회의실 101")
         private String value;
 
-        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field) {
+        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field, Long targetId) {
             return UserCustomFieldValues.builder()
-                    .reservationId(this.targetId)
+                    .reservationId(targetId)
                     .fieldValue(this.value)
                     .customFieldDefinition(field)
                     .build();
         }
 
-        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field) {
+        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field, Long targetId) {
             return ResourceCustomFieldValues.builder()
-                    .resourceId(this.targetId)
+                    .resourceId(targetId)
                     .fieldValue(this.value)
                     .customFieldDefinition(field)
                     .build();
