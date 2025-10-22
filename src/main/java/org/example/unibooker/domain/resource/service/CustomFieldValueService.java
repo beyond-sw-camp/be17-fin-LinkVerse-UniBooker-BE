@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
@@ -138,6 +139,33 @@ public class CustomFieldValueService {
 
             // 값 수정
             entity.updateValue(dto.getValue());
+        }
+    }
+
+
+    // ---------------- 커스텀 필드 값 삭제 --------------------
+    public void delete(List<Long> valueIds) {
+
+        for (Long valueId : valueIds) {
+
+            AtomicBoolean deleted = new AtomicBoolean(false);
+
+            // RESOURCE 타입 조회
+            resourceFieldRepository.findByIdAndDeletedAtIsNull(valueId).ifPresent(entity -> {
+                entity.softDelete();
+                deleted.set(true);
+            });
+
+            // USER 타입 조회
+            userFieldRepository.findByIdAndDeletedAtIsNull(valueId).ifPresent(entity -> {
+                entity.softDelete();
+                deleted.set(true);
+            });
+
+            if (!deleted.get()) {
+                throw new IllegalArgumentException(
+                        "존재하지 않거나 이미 삭제된 커스텀 필드 값입니다. valueId=" + valueId);
+            }
         }
     }
 }
