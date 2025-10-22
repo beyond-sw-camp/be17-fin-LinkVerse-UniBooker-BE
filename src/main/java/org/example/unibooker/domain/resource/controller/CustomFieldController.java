@@ -11,14 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "커스텀 필드 관리", description = "커스텀 필드 정의와 값들을 관리합니다.")
+@Tag(name = "커스텀 필드 관리", description = "커스텀 필드 정의를 관리합니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/custom-field")
 public class CustomFieldController {
     private final CustomFieldService customFieldService;
 
-    // ---------------- 필드 정의 --------------------
 
     // ---------------- 필드 생성 ----------------
     @Operation(summary = "커스텀 필드 생성", description = "서비스 또는 사용자 커스텀 필드를 생성합니다.")
@@ -62,36 +61,5 @@ public class CustomFieldController {
     public BaseResponse deleteCustomField(@PathVariable Long customFieldId) {
         customFieldService.delete(customFieldId);
         return BaseResponse.success("커스텀 필드가 삭제되었습니다.");
-    }
-
-
-
-
-    // ---------------- 필드 값 --------------------
-
-    // ---------------- 필드 값 생성 --------------------
-    @Operation(summary = "커스텀 필드 값 생성", description = "커스텀 필드에 대한 값을 생성합니다.")
-    @PostMapping("/value/{customFieldId}")
-    public void registerCustomFieldValue(
-            @PathVariable Long customFieldId,
-            @RequestBody CustomFieldDto.CustomFieldValue dto
-    ) {
-        // TODO: dto.getFieldType() 보고 ResourceCustomFieldValues 또는 UserCustomFieldValues 저장
-    }
-
-    @Operation(summary = "커스텀 필드 값 조회", description = "커스텀 필드에 대한 값을 조회합니다.")
-    @GetMapping("/value/{customFieldValueId}")
-    public CustomFieldDto.CustomFieldValueListRes getCustomFieldValue(@PathVariable Long customFieldValueId) {
-        // TODO
-        return null;
-    }
-
-    @Operation(summary = "커스텀 필드 값 수정", description = "커스텀 필드 값을 수정합니다.")
-    @PutMapping("/value/{customFieldValueId}")
-    public void updateCustomFieldValue(
-            @PathVariable Long customFieldId,
-            @RequestBody CustomFieldDto.CustomFieldValue dto
-    ) {
-        // TODO
     }
 }

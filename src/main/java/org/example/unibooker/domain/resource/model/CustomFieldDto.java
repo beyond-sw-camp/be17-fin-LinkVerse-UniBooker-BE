@@ -95,6 +95,22 @@ public class CustomFieldDto {
 
         @Schema(description = "입력 값", example = "회의실 101")
         private String value;
+
+        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field) {
+            return UserCustomFieldValues.builder()
+                    .reservationId(this.targetId)
+                    .fieldValue(this.value)
+                    .customFieldDefinition(field)
+                    .build();
+        }
+
+        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field) {
+            return ResourceCustomFieldValues.builder()
+                    .resourceId(this.targetId)
+                    .fieldValue(this.value)
+                    .customFieldDefinition(field)
+                    .build();
+        }
     }
 
 
