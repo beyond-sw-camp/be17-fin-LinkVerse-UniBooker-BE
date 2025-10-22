@@ -125,15 +125,11 @@ public class CustomFieldDto {
         @Schema(description = "값", example = "101호 회의실")
         private String value;
 
-        @Schema(description = "타겟 타입", example = "USER / RESOURCE")
-        private CustomTargetType targetType;
-
         public static CustomFieldValueListRes fromUserEntity(UserCustomFieldValues entity) {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
                     .value(entity.getFieldValue())
-                    .targetType(CustomTargetType.USER)
                     .build();
         }
 
@@ -142,7 +138,6 @@ public class CustomFieldDto {
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
                     .value(entity.getFieldValue())
-                    .targetType(CustomTargetType.RESOURCE)
                     .build();
         }
     }
