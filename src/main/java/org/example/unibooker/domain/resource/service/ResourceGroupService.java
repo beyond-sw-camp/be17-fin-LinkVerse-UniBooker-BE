@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.resource.model.CustomFieldDefinitions;
+import org.example.unibooker.domain.resource.model.CustomFieldDto;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
 import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
@@ -16,6 +17,7 @@ import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -117,6 +119,21 @@ public class ResourceGroupService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
+
+        // --- 커스텀 필드 처리 ---
+        List<CustomFieldDefinitions> newCustomFields = dto.getCustomFields() != null
+                ? dto.getCustomFields().stream()
+                .map(CustomFieldDto.CustomFieldReq::toEntity)
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        // 기존 컬렉션 유지, clear 후 새 객체 추가
+        resourceGroup.getCustomFieldDefinitions().clear();
+        for (CustomFieldDefinitions field : newCustomFields) {
+            field.setResourceGroup(resourceGroup); // 양방향 관계 설정
+            resourceGroup.getCustomFieldDefinitions().add(field);
+        }
+
         resourceGroup.update(
                 dto.getName(),
                 dto.getDescription(),
@@ -124,6 +141,7 @@ public class ResourceGroupService {
                 dto.getCategory(),
                 dto.getIsAlwaysAvailable(),
                 user
+
         );
     }
 
