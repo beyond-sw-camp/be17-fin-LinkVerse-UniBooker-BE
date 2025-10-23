@@ -52,9 +52,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/super/login").permitAll()
 
                         // ===== 로그아웃 =====
-                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/super/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/super/logout").authenticated()  // ← 인증 필요로 변경
 
                         // ===== 상태 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
@@ -68,6 +68,14 @@ public class SecurityConfig {
                         // ===== 기업 정보 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 
+                        // ===== 프로필 관리 (인증 필요) =====
+                        .requestMatchers(HttpMethod.GET, "/api/admins/me").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/admins/me").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/admins/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/profile").authenticated()
+
                         // ===== 정적 리소스 =====
                         .requestMatchers("/uploads/**").permitAll()
 
@@ -79,7 +87,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // ===== 슈퍼 관리자 전용 경로 (인증 필요) =====
+                        // ===== 슈퍼 관리자 전용 경로 =====
                         .requestMatchers("/api/companies/pending").hasRole("SUPER")
                         .requestMatchers("/api/companies/{companyId}").hasRole("SUPER")
                         .requestMatchers("/api/companies/{companyId}/approve").hasRole("SUPER")
@@ -87,7 +95,6 @@ public class SecurityConfig {
 
                         // ===== 리소스 관련 경로 =====
                         .requestMatchers("/api/resource-group/**").authenticated()
-
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====

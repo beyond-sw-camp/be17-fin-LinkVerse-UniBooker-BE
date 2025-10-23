@@ -164,10 +164,19 @@ public class AdminService {
 
         /**
          * 회원가입 신청 상태 조회
+         * - ADMIN/MANAGER 권한만 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            Users user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+            List<Users> users = userRepository.findByEmailAndRoleIn(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER)
+            );
+
+            if (users.isEmpty()) {
+                throw new BaseException(BaseResponseStatus.USER_NOT_FOUND);
+            }
+
+            Users user = users.get(0);
 
             Companies company = companyRepository.findById(user.getCompanyId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
@@ -275,10 +284,13 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증 (DELETED 제외)
+         * ADMIN/MANAGER 이메일 중복 검증 (DELETED 제외)
          */
         private void validateDuplicateEmail(String email) {
-            if (userRepository.existsByEmailAndStatusNot(email, UserStatus.DELETED)) {
+            if (userRepository.existsByEmailAndRoleInAndStatusNot(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER),
+                    UserStatus.DELETED)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
