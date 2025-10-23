@@ -85,8 +85,8 @@ cloud:
 # =================================================================
 jwt:
   secret: ${JWT_SECRET}
-  access-token-validity: 3600000
-  refresh-token-validity: 604800000
+  access-token-validity: 900000       # 15분 (15 * 60 * 1000)
+  refresh-token-validity: 604800000   # 7일 (7 * 24 * 60 * 60 * 1000)
 
 # =================================================================
 # 앱 설정
@@ -104,4 +104,16 @@ server:
     session:
       cookie:
         same-site: strict
-        secure: true
+        secure: false  # 개발: false, 운영: true (HTTPS 필수)
+        http-only: true
+
+# =================================================================
+# Redis 설정 (TODO: Redis 연동 시 활성화)
+# =================================================================
+# spring:
+#   data:
+#     redis:
+#       host: localhost
+#       port: 6379
+#       password: ${REDIS_PASSWORD}
+#       database: 0  # Refresh Token용

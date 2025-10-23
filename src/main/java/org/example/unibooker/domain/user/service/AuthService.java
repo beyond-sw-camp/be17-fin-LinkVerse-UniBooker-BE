@@ -1,13 +1,16 @@
 package org.example.unibooker.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.common.exception.RefreshTokenException;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
@@ -23,6 +26,7 @@ import java.util.List;
  * - 모든 역할의 로그인 로직을 통합 관리
  * - 비밀번호 검증, JWT 생성 등 공통 기능 제공
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,6 +36,7 @@ public class AuthService {
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenStorageService tokenStorageService;
 
     /**
      * 일반 사용자 로그인 (USER)
@@ -139,11 +144,22 @@ public class AuthService {
 
     /**
      * 로그인 응답 생성
+     * - Access Token 및 Refresh Token 발급
+     * - Refresh Token을 저장소에 저장
      */
     private UserDto.LoginResponse createLoginResponse(Users user, Companies company) {
         // JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(user);
         String refreshToken = jwtUtil.createRefreshToken(user);
+
+        // Refresh Token 저장 (7일 TTL)
+        tokenStorageService.saveRefreshToken(
+                user.getId(),
+                refreshToken,
+                604800000L  // 7일 (ms)
+        );
+
+        log.info("로그인 성공 - userId: {}, role: {}", user.getId(), user.getRole());
 
         return UserDto.LoginResponse.builder()
                 .accessToken(accessToken)
@@ -156,5 +172,80 @@ public class AuthService {
                 .companySlug(company != null ? company.getCompanySlug() : null)
                 .passwordChangeRequired(user.getIsFirstLogin())
                 .build();
+    }
+
+    /**
+     * Refresh Token으로 Access Token 갱신
+     * - Refresh Token 유효성 검증
+     * - 저장소에서 토큰 확인
+     * - 새로운 Access Token 발급
+     */
+    public AuthDto.RefreshTokenResponse refreshAccessToken(String refreshToken) {
+        // 1. Refresh Token 형식 검증
+        if (!jwtUtil.validateRefreshToken(refreshToken)) {
+            log.warn("유효하지 않은 Refresh Token 형식");
+            throw new RefreshTokenException.InvalidRefreshTokenException();
+        }
+
+        // 2. Refresh Token에서 userId 추출
+        Long userId = jwtUtil.getUserId(refreshToken);
+
+        // 3. 저장소에서 Refresh Token 확인
+        String storedToken = tokenStorageService.getRefreshToken(userId);
+
+        if (storedToken == null) {
+            log.warn("저장소에 Refresh Token 없음 - userId: {}", userId);
+            throw new RefreshTokenException.RefreshTokenNotFoundException();
+        }
+
+        if (!storedToken.equals(refreshToken)) {
+            log.warn("Refresh Token 불일치 - userId: {}", userId);
+            throw new RefreshTokenException.InvalidRefreshTokenException();
+        }
+
+        // 4. 사용자 조회
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 5. 계정 상태 검증
+        validateUserStatus(user);
+
+        // 6. 새로운 Access Token 생성
+        String newAccessToken = jwtUtil.createAccessToken(user);
+
+        // 7. (선택) Refresh Token Rotation - 새 Refresh Token 생성
+        // String newRefreshToken = jwtUtil.createRefreshToken(user);
+        // tokenStorageService.saveRefreshToken(userId, newRefreshToken, 604800000L);
+
+        log.info("Access Token 갱신 성공 - userId: {}", userId);
+
+        return AuthDto.RefreshTokenResponse.builder()
+                .accessToken(newAccessToken)
+                // .refreshToken(newRefreshToken)  // Rotation 적용 시
+                .userId(userId)
+                .build();
+    }
+
+    /**
+     * 로그아웃
+     * - Refresh Token 삭제
+     * - 저장소에서 토큰 제거
+     */
+    public AuthDto.LogoutResponse logout(Long userId) {
+        tokenStorageService.deleteRefreshToken(userId);
+        log.info("로그아웃 성공 - userId: {}", userId);
+
+        return AuthDto.LogoutResponse.builder()
+                .message("로그아웃되었습니다.")
+                .build();
+    }
+
+    /**
+     * 비밀번호 변경 시 모든 Refresh Token 삭제
+     * - 보안 강화: 비밀번호 변경 시 모든 기기에서 강제 로그아웃
+     */
+    public void invalidateAllTokens(Long userId) {
+        tokenStorageService.deleteAllRefreshTokens(userId);
+        log.info("모든 Refresh Token 삭제 - userId: {}", userId);
     }
 }
