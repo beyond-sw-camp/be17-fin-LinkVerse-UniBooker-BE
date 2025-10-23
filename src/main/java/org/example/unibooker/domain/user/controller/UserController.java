@@ -9,10 +9,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.common.exception.RefreshTokenException;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.service.CompanyService;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.service.UserService;
+import org.example.unibooker.domain.user.service.AuthService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +32,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     // ========== 회원가입 ==========
 
@@ -83,25 +87,29 @@ public class UserController {
         return BaseResponse.success(loginResponse);
     }
 
-    // ========== 로그아웃 (신규) ==========
+    // ========== 로그아웃 ==========
 
     /**
      * 로그아웃 처리
+     * - Refresh Token 삭제
      * - Access Token과 Refresh Token 쿠키 삭제
      */
     @Operation(summary = "로그아웃",
-            description = "현재 로그인 세션을 종료하고 쿠키를 삭제합니다.")
+            description = "현재 로그인 세션을 종료하고 토큰을 삭제합니다.")
     @PostMapping("/logout")
-    public BaseResponse<UserDto.LogoutResponse> logout(
+    public BaseResponse<AuthDto.LogoutResponse> logout(
             @AuthenticationPrincipal Long userId,
             HttpServletResponse response) {
+
+        // Refresh Token 삭제
+        AuthDto.LogoutResponse logoutResponse = authService.logout(userId);
 
         // Access Token 쿠키 삭제
         Cookie accessTokenCookie = new Cookie("accessToken", null);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);  // 즉시 삭제
+        accessTokenCookie.setMaxAge(0);  // 즉시 만료
 
         response.addCookie(accessTokenCookie);
 
@@ -110,17 +118,57 @@ public class UserController {
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);  // 즉시 삭제
+        refreshTokenCookie.setMaxAge(0);  // 즉시 만료
 
         response.addCookie(refreshTokenCookie);
 
-        UserDto.LogoutResponse logoutResponse = UserDto.LogoutResponse.builder()
-                .message("로그아웃이 완료되었습니다.")
-                .logoutAt(java.time.LocalDateTime.now())
-                .build();
-
         return BaseResponse.success(logoutResponse);
     }
+
+    // ========== Refresh Token 갱신 ==========
+
+    /**
+     * Access Token 갱신
+     * - Refresh Token을 사용하여 새로운 Access Token 발급
+     */
+    @Operation(summary = "Access Token 갱신",
+            description = "Refresh Token을 사용하여 만료된 Access Token을 갱신합니다.")
+    @PostMapping("/refresh")
+    public BaseResponse<AuthDto.RefreshTokenResponse> refreshToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response) {
+
+        // Cookie에서 Refresh Token 없으면 에러
+        if (refreshToken == null) {
+            throw new RefreshTokenException.RefreshTokenNotFoundException();
+        }
+
+        // Access Token 갱신
+        AuthDto.RefreshTokenResponse tokenResponse = authService.refreshAccessToken(refreshToken);
+
+        // 새로운 Access Token을 HttpOnly Cookie에 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenResponse.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(15 * 60);  // 15분
+
+        response.addCookie(accessTokenCookie);
+
+        // (선택) Refresh Token Rotation 적용 시
+        // if (tokenResponse.getRefreshToken() != null) {
+        //     Cookie refreshTokenCookie = new Cookie("refreshToken", tokenResponse.getRefreshToken());
+        //     refreshTokenCookie.setHttpOnly(true);
+        //     refreshTokenCookie.setSecure(false);
+        //     refreshTokenCookie.setPath("/");
+        //     refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+        //     response.addCookie(refreshTokenCookie);
+        // }
+
+        return BaseResponse.success(tokenResponse);
+    }
+
+
 
     // ========== 비밀번호 변경 ==========
 
