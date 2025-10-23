@@ -12,8 +12,10 @@ import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,10 +43,10 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 등록 --------------------
     @Transactional
-    public void register(ResourceGroupDto.ResourceGroupRegisterReq dto, Long userId) {
+    public void register(ResourceGroupDto.ResourceGroupRegisterReq dto, Long userId, Long companyId) {
 
         // 기업 엔티티 조회
-        Companies company = companyRepository.findById(dto.getCompanyId())
+        Companies company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 기업 ID입니다."));
 
         // 사용자 엔티티 조회
@@ -112,7 +114,8 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 수정 --------------------
     @Transactional
-    public void updateResourceGroup(Long resourceGroupId, ResourceGroupDto.ResourceGroupUpdateReq dto, Long userId) {
+    public void updateResourceGroup(Long userId,
+            Long resourceGroupId, ResourceGroupDto.ResourceGroupUpdateReq dto) {
         ResourceGroups resourceGroup = resourceGroupRepository.findById(resourceGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
@@ -148,7 +151,7 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 삭제 --------------------
     @Transactional
-    public void deleteResourceGroup(Long resourceGroupId) {
+    public void deleteResourceGroup(Long userId, Long resourceGroupId) {
         try {
             ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
@@ -157,10 +160,12 @@ public class ResourceGroupService {
                 throw new IllegalArgumentException("이미 비활성화 또는 삭제된 리소스 그룹입니다.");
             }
 
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
             resourceGroup.setIsActive(false);
             resourceGroup.softDelete();
-
-            // TODO : 수정자 기록
+            resourceGroup.setUpdatedBy(user);
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 잠시 후 다시 시도해주세요.", e);
         }
