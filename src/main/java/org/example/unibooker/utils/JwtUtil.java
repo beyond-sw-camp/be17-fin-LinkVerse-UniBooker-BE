@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class JwtUtil {
 
@@ -48,6 +50,9 @@ public class JwtUtil {
 
     /**
      * Refresh Token 생성
+     * - 7일 유효기간
+     * - userId만 포함 (최소 정보 원칙)
+     * - Access Token 재발급에 사용
      */
     public String createRefreshToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
@@ -143,6 +148,29 @@ public class JwtUtil {
             return expiration.before(new Date());
         } catch (Exception e) {
             return true;
+        }
+    }
+
+    /**
+     * Refresh Token 유효성 검증
+     * - 토큰 형식 검증
+     * - 만료 여부 확인
+     */
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            Claims claims = getClaims(refreshToken);
+
+            // userId가 포함되어 있는지 확인
+            if (claims.get("userId") == null) {
+                return false;
+            }
+
+            // 만료 여부 확인
+            return !isTokenExpired(refreshToken);
+
+        } catch (Exception e) {
+            log.error("Refresh Token 검증 실패: {}", e.getMessage());
+            return false;
         }
     }
 }

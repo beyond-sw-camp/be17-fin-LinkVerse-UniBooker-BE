@@ -63,7 +63,12 @@ public enum BaseResponseStatus {
     FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다."),
 
     // ========== 70000: Email 관련 ==========
-    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다.");
+    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다."),
+
+    // ========== 80000: Refresh Token 관련 ==========
+    REFRESH_TOKEN_EXPIRED(80000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
+    REFRESH_TOKEN_NOT_FOUND(80001, "Refresh Token을 찾을 수 없습니다."),
+    INVALID_REFRESH_TOKEN(80002, "유효하지 않은 Refresh Token입니다.");
 
     private final int code;
     private final String message;
