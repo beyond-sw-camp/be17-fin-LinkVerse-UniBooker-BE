@@ -78,7 +78,7 @@ cloud:
     s3:
       bucket: ${MY_BUCKET}
     region:
-      static: ${MY_REGION}
+      static: ${AWS_REGION}
 
 # =================================================================
 # JWT 토큰 설정

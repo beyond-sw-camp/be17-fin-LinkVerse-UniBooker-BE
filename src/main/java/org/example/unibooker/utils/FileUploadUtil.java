@@ -44,16 +44,11 @@ public class FileUploadUtil {
      * 파일 업로드 경로 생성
      */
 
-    public static String makeUploadPath() {
+    public static String makeUploadPath(String folder) {
 
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        File dir = new File(date);
-        if (!dir.exists()) {
-            if (dir.mkdirs()) {
-                return date + "/"+ UUID.randomUUID() + "_";
-            }
-        }
-        return date + "/"+UUID.randomUUID() + "_";
+        // 폴더 + 날짜 + UUID 형태
+        return folder + "/" + date + "/" + UUID.randomUUID();
     }
 
     /**

@@ -27,7 +27,7 @@ public class ImageUploadService {
     @Value("${MY_BUCKET}")
     private String bucketName;
 
-    @Value("${MY_REGION}")
+    @Value("${AWS_REGION}")
     private String region;
 
     private S3Presigner s3Presigner;
@@ -35,6 +35,7 @@ public class ImageUploadService {
     // 초기화
     @PostConstruct
     public void init() {
+        System.out.println("AWS Region: " + region);
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         s3Presigner = S3Presigner.builder()
                 .region(Region.of(region))
@@ -42,8 +43,13 @@ public class ImageUploadService {
                 .build();
     }
 
-    public String upload(MultipartFile file) throws IOException {
-        String dirPath = FileUploadUtil.makeUploadPath();
+    public String getPresignedUrl(MultipartFile file, String imageType) throws IOException {
+        String dirPath = switch (imageType) {
+            case "companyLogo" -> FileUploadUtil.makeUploadPath("company-logo");
+            case "serviceGroup" -> FileUploadUtil.makeUploadPath("resource-group-thumbnail");
+            case "service" -> FileUploadUtil.makeUploadPath("resource-thumbnail");
+            default -> throw new IllegalArgumentException("알 수 없는 imageType: " + imageType);
+        };
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)

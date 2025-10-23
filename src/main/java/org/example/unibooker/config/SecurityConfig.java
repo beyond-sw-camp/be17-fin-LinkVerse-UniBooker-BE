@@ -87,7 +87,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // ===== 슈퍼 관리자 전용 경로 =====
+                        // ===== 슈퍼 관리자 전용 경로 (인증 필요) =====
                         .requestMatchers("/api/companies/pending").hasRole("SUPER")
                         .requestMatchers("/api/companies/{companyId}").hasRole("SUPER")
                         .requestMatchers("/api/companies/{companyId}/approve").hasRole("SUPER")
@@ -95,6 +95,10 @@ public class SecurityConfig {
 
                         // ===== 리소스 관련 경로 =====
                         .requestMatchers("/api/resource-group/**").authenticated()
+
+
+                        // ===== 이미지 업로드 관련 경로 =====
+                        .requestMatchers("/api/image-upload").authenticated()
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
