@@ -65,10 +65,10 @@ public enum BaseResponseStatus {
     // ========== 70000: Email 관련 ==========
     EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다."),
 
-    // ========== 80000: Resource 관련 ==========
-    RESOURCE_NOT_FOUND(80000, "리소스 정보를 찾을 수 없습니다."),
-    RESOURCE_OVER_CAPACITY(80001, "정원이 초과되어 예약 불가합니다."),
-    RESOURCE_NOT_ACTIVE(80002, "활성화 되지 않은 리소스입니다."),
+    // ========== 80000: Refresh Token 관련 ==========
+    REFRESH_TOKEN_EXPIRED(80000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
+    REFRESH_TOKEN_NOT_FOUND(80001, "Refresh Token을 찾을 수 없습니다."),
+    INVALID_REFRESH_TOKEN(80002, "유효하지 않은 Refresh Token입니다."),
 
     // ========== 90000: Reservation 관련 ==========
     RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
@@ -79,7 +79,13 @@ public enum BaseResponseStatus {
 
     // ========== 100000: ResourceGroup 관련 ==========
     RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다."),
-    INVALID_SERVICE_CATEGORY(100002, "유효하지 않는 카테고리입니다.");
+    INVALID_SERVICE_CATEGORY(100002, "유효하지 않는 카테고리입니다."),
+
+    // ========== 200000: Resource 관련 ==========
+    RESOURCE_NOT_FOUND(200000, "리소스 정보를 찾을 수 없습니다."),
+    RESOURCE_OVER_CAPACITY(200001, "정원이 초과되어 예약 불가합니다."),
+    RESOURCE_NOT_ACTIVE(200002, "활성화 되지 않은 리소스입니다.");
+
 
     private final int code;
     private final String message;

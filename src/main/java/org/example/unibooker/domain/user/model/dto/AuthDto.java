@@ -1,6 +1,7 @@
 package org.example.unibooker.domain.user.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
@@ -495,5 +496,48 @@ public class AuthDto {
             // 일반 관리자는 자신의 기업 리소스만
             return belongsToCompany(resourceCompanyId);
         }
+    }
+
+    // ========== Refresh Token 관련 DTO ==========
+
+    /**
+     * Refresh Token 요청 DTO
+     */
+    @Getter
+    @Schema(description = "Refresh Token 갱신 요청")
+    public static class RefreshTokenRequest {
+
+        @Schema(description = "Refresh Token", example = "eyJhbGciOiJIUzI1NiJ9...")
+        private String refreshToken;
+    }
+
+    /**
+     * Refresh Token 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "Refresh Token 갱신 응답")
+    public static class RefreshTokenResponse {
+
+        @Schema(description = "새로운 Access Token", example = "eyJhbGciOiJIUzI1NiJ9...")
+        private String accessToken;
+
+        @Schema(description = "새로운 Refresh Token (Rotation 적용 시)", example = "eyJhbGciOiJIUzI1NiJ9...")
+        private String refreshToken;
+
+        @Schema(description = "사용자 ID", example = "123")
+        private Long userId;
+    }
+
+    /**
+     * 로그아웃 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "로그아웃 응답")
+    public static class LogoutResponse {
+
+        @Schema(description = "성공 메시지", example = "로그아웃되었습니다.")
+        private String message;
     }
 }

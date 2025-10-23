@@ -225,6 +225,9 @@ public class UserService {
         if (user.getIsFirstLogin()) {
             user.completeFirstLogin();
         }
+
+        // 비밀번호 변경 시 모든 Refresh Token 삭제 (보안 강화)
+        authService.invalidateAllTokens(userId);
     }
 
     /**
@@ -238,11 +241,13 @@ public class UserService {
 
         // 2. 기업명 조회 (ADMIN 또는 MANAGER인 경우)
         String companyName = null;
+        String businessNumber = null;
         if (user.getCompanyId() != null) {
             Companies company = companyRepository.findById(user.getCompanyId())
                     .orElse(null);
             if (company != null) {
                 companyName = company.getCompanyName();
+                businessNumber = company.getBusinessNumber();
             }
         }
 
@@ -258,6 +263,7 @@ public class UserService {
                 .status(user.getStatus())
                 .companyId(user.getCompanyId())
                 .companyName(companyName)
+                .businessNumber(businessNumber)
                 .isFirstLogin(user.getIsFirstLogin())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

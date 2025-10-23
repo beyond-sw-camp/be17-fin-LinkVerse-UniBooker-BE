@@ -3,15 +3,13 @@ package org.example.unibooker.domain.resource.service;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.unibooker.domain.resource.model.ResourceDto;
-import org.example.unibooker.domain.resource.model.ResourceGroups;
-import org.example.unibooker.domain.resource.model.ResourceStatus;
-import org.example.unibooker.domain.resource.model.Resources;
+import org.example.unibooker.domain.resource.model.*;
+import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
+import org.example.unibooker.domain.resource.repository.ResourceCustomFieldValueRepository;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -24,6 +22,8 @@ import java.util.stream.Collectors;
 public class ResourceService {
     private final ResourceRepository resourceRepository;
     private final ResourceGroupRepository resourceGroupRepository;
+    private final CustomFieldDefinitionRepository customFieldDefinitionRepository;
+    private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
 
 
     // -------------------- 리소스 등록 --------------------
@@ -36,10 +36,23 @@ public class ResourceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         Resources resource = dto.toEntity(group);
-
-        // resource.setTimeInterval(dto.getTimeInterval());
-
+        resource.setTimeInterval(dto.getTimeInterval());
         resourceRepository.save(resource);
+
+        // RESOURCE 커스텀 필드 값 저장
+        if (dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
+            for (CustomFieldDto.CustomFieldValue customValueDto : dto.getCustomFieldValues()) {
+                CustomFieldDefinitions field = customFieldDefinitionRepository.findByIdAndDeletedAtIsNull(customValueDto.getCustomFieldId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + customValueDto.getCustomFieldId()));
+
+                // RESOURCE 타입만 저장
+                if (field.getTargetType() == CustomTargetType.RESOURCE) {
+                    ResourceCustomFieldValues value = customValueDto.toResourceEntity(field, resource.getId());
+                    resourceCustomFieldValueRepository.save(value);
+                }
+            }
+        }
     }
 
 
