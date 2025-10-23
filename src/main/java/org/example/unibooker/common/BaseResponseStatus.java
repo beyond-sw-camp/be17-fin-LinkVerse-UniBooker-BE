@@ -78,7 +78,8 @@ public enum BaseResponseStatus {
     RESERVATION_ALREADY_CANCELED(90004, "이미 취소된 예약입니다."),
 
     // ========== 100000: ResourceGroup 관련 ==========
-    RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다.");
+    RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다."),
+    INVALID_SERVICE_CATEGORY(100002, "유효하지 않는 카테고리입니다.");
 
     private final int code;
     private final String message;
