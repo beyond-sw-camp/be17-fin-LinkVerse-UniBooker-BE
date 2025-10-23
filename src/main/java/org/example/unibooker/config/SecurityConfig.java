@@ -86,7 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/companies/{companyId}/reject").hasRole("SUPER")
 
                         // ===== 리소스 관련 경로 =====
-                        .requestMatchers("/api/resource-group/**").permitAll()
+                        .requestMatchers("/api/resource-group/**").authenticated()
+
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
