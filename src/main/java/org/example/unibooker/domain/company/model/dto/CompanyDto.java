@@ -55,6 +55,7 @@ public class CompanyDto {
     public static class DetailResponse {
         // Company 정보
         private Long companyId;
+        private String businessNumber;
         private String companyName;
         private String companySlug;
         private String logoUrl;

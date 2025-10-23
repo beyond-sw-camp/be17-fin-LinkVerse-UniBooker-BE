@@ -555,6 +555,7 @@ public class AdminService {
         private CompanyDto.DetailResponse convertToDetailResponse(Companies company, Users admin) {
             return CompanyDto.DetailResponse.builder()
                     .companyId(company.getId())
+                    .businessNumber(company.getBusinessNumber())
                     .companyName(company.getCompanyName())
                     .companySlug(company.getCompanySlug())
                     .logoUrl(company.getLogoUrl())
