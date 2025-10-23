@@ -52,9 +52,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/super/login").permitAll()
 
                         // ===== 로그아웃 =====
-                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/super/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/super/logout").authenticated()  // ← 인증 필요로 변경
 
                         // ===== 상태 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
