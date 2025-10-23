@@ -94,4 +94,29 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * 권한 목록으로 사용자 페이징 조회
      */
     Page<Users> findByRoleIn(List<UserRole> roles, Pageable pageable);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일 존재 여부 확인
+     */
+    boolean existsByEmailAndStatusNot(String email, UserStatus status);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일과 기업 ID, 권한으로 존재 여부 확인
+     */
+    boolean existsByEmailAndCompanyIdAndRoleAndStatusNot(String email, Long companyId, UserRole role, UserStatus status);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일과 권한 목록으로 존재 여부 확인
+     */
+    boolean existsByEmailAndRoleInAndStatusNot(String email, List<UserRole> roles, UserStatus status);
+
+    /**
+     * 이메일과 상태로 사용자 조회 (재가입 시 탈퇴 계정 찾기용)
+     */
+    Optional<Users> findByEmailAndStatus(String email, UserStatus status);
+
+    /**
+     * 이메일, 기업 ID, 권한, 상태로 사용자 조회 (재가입 시 탈퇴 계정 찾기용)
+     */
+    Optional<Users> findByEmailAndCompanyIdAndRoleAndStatus(String email, Long companyId, UserRole role, UserStatus status);
 }

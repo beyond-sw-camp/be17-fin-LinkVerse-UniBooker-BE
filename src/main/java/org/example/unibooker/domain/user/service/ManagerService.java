@@ -258,10 +258,13 @@ public class ManagerService {
     }
 
     /**
-     * MANAGER 이메일 중복 검증 (ADMIN, MANAGER와 중복 방지)
+     * MANAGER 이메일 중복 검증 (DELETED 제외)
      */
     private void validateEmailDuplicate(String email) {
-        if (userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER))) {
+        if (userRepository.existsByEmailAndRoleInAndStatusNot(
+                email,
+                List.of(UserRole.ADMIN, UserRole.MANAGER),
+                UserStatus.DELETED)) {
             throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
         }
     }

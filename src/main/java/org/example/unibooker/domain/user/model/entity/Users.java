@@ -124,6 +124,13 @@ public class Users extends BaseEntity {
     }
 
     /**
+     * 기업 ID 변경
+     */
+    public void updateCompanyId(Long newCompanyId) {
+        this.companyId = newCompanyId;
+    }
+
+    /**
      * 권한 변경
      */
     public void updateRole(UserRole newRole) {
