@@ -276,6 +276,9 @@ public class UserDto {
         @Schema(description = "소속 기업명 (companies.name)", example = "ABC 회사")
         private String companyName;
 
+        @Schema(description = "사업자등록번호 (companies.number)", example = "123-45-67890")
+        private String businessNumber;
+
         @Schema(description = "첫 로그인 여부 (is_first_login)", example = "false")
         private Boolean isFirstLogin;
 
