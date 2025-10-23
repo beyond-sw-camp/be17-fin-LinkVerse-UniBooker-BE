@@ -12,7 +12,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservations, Long> {
+    // 사용자의 모든 예약 조회
     List<Reservations> findAllByUsersId(Long userId);
+
+    // 삭제되지 않은 예약 조회
+    Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
 
     // 사용자의 중복 예약 존재 여부
     @Query("""

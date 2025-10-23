@@ -8,15 +8,17 @@ import org.example.unibooker.domain.reservation.model.dto.ReservationDto;
 import org.example.unibooker.domain.reservation.model.entity.ReservationStatus;
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
 import org.example.unibooker.domain.reservation.repository.ReservationRepository;
+import org.example.unibooker.domain.resource.model.CustomFieldDto;
 import org.example.unibooker.domain.resource.model.ResourceStatus;
 import org.example.unibooker.domain.resource.model.Resources;
+import org.example.unibooker.domain.resource.model.UserCustomFieldValues;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
 import org.example.unibooker.domain.resource.service.CustomFieldValueService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,13 +42,14 @@ public class ReservationService {
         Reservations reservation = reservationRepository.save(dto.toReservationEntity(userId, resource));
 
         // 사용자 커스텀 필드 값 저장
-        List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues());
+        List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
+        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValuesResult = userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList());
 
         // 카테고리 별 알맞은 형식으로 응답
         return switch (resource.getResourceGroup().getCategory()) {
-            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValues);
-            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValues);
-            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValues);
+            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValuesResult);
+            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValuesResult);
+            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValuesResult);
             default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
         };
     }
@@ -93,8 +96,8 @@ public class ReservationService {
     public ReservationDto.Response getReservationDetail(Long reservationId) {
         Reservations reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
 
-        // TODO : 한 예약에 대한 사용자 압력 커스텀 필드 값 리스트 필요
-        List<Object> userCustomFieldValues = new ArrayList<>();
+        // 하나의 예약에 대한 사용자 압력 커스텀 필드 값 리스트
+        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues = customFieldValueService.getResourceFieldValues(reservationId);
 
         // 카테고리 별 알맞은 형식으로 응답
         return switch (reservation.getResources().getResourceGroup().getCategory()) {
