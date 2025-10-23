@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.reservation.model.dto.ReservationDto;
 import org.example.unibooker.domain.reservation.service.ReservationService;
+import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,10 +41,21 @@ public class ReservationController {
     }
 
 
+    /*
     // ===================
     // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스 그룹"의 목록
     // ===================
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 리소스 그룹마다 예약/신청에 대한 목록 조회를 합니다.")
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 리소스 그룹에 예약된 리소스 목록 및 예약/신청된 목록 조회를 합니다.")
+    @GetMapping("/list/all/{resourceGroupId}")
+    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminReservations(@PathVariable Long resourceGroupId) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));
+    }
+
+
+    // ===================
+    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자
+    // ===================
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "")
     @GetMapping("/list/group/{resourceGroupId}")
     public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceGroupReservations(@PathVariable Long resourceGroupId) {
         return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceGroupReservations(resourceGroupId)));
@@ -53,10 +65,17 @@ public class ReservationController {
     // ===================
     // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스"의 목록
     // ===================
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 서비스마다 예약/신청에 대한 목록 조회를 합니다.")
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 서비스마다 예약/신청 목록 조회를 합니다.")
     @GetMapping("/list/resource/{resourceId}")
     public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceReservations(@PathVariable Long resourceId) {
         return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceReservations(resourceId)));
+    }
+     */
+
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "")
+    @GetMapping("/list/all/{resourceGroupId}")
+    public ResponseEntity getAdminReservations(@PathVariable Long resourceGroupId) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));
     }
 
 
@@ -65,7 +84,7 @@ public class ReservationController {
     // ===================
     @Operation(summary = "일반 사용자 예약 목록 조회", description = "일반 사용자가 예약/신청에 대한 목록 조회를 합니다.")
     @GetMapping("/list")
-    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getUserReservations(Long userId) {
+    public ResponseEntity<BaseResponse<ReservationDto.UserResponseList>> getUserReservations(Long userId) {
         /**
          * TODO : 로그인 로직 구현 되면 param으로 id 받은거 지우고, 인증 유저로 변경
          * @AuthenticationPrincipal AuthDto.AuthUser authUser
