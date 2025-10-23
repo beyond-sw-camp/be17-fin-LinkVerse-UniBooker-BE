@@ -19,9 +19,6 @@ public class ResourceGroupDto {
     @Schema(description = "서비스 그룹 생성 요청 DTO")
     public static class ResourceGroupRegisterReq {
 
-        // TODO : 로그인 기능 개발되면 삭제
-        private Long userId;
-
         @Schema(description = "서비스 그룹 이름", example = "회의실")
         private String name;
 
@@ -36,9 +33,6 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
-
-        @Schema(description = "기업 ID", example = "1")
-        private Long companyId;
 
         @Schema(description = "커스텀 필드 목록")
         private List<CustomFieldDto.CustomFieldReq> customFields;
@@ -166,9 +160,6 @@ public class ResourceGroupDto {
     @Builder
     @Schema(description = "서비스 그룹 수정 요청 DTO")
     public static class ResourceGroupUpdateReq {
-
-        // TODO : 로그인 기능 개발되면 삭제
-        private Long userId;
 
         @Schema(description = "리소스 그룹 이름", example = "동아리")
         private String name;
