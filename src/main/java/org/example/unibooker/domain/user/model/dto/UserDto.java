@@ -279,6 +279,10 @@ public class UserDto {
         @Schema(description = "사업자등록번호 (companies.number)", example = "123-45-67890")
         private String businessNumber;
 
+        @Schema(description = "기업 로고 URL (companies.logo_url)",
+                example = "https://example.com/logos/company-logo.png")
+        private String logoUrl;
+
         @Schema(description = "첫 로그인 여부 (is_first_login)", example = "false")
         private Boolean isFirstLogin;
 
