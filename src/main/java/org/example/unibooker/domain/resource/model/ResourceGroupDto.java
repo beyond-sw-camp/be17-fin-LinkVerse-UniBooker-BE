@@ -6,7 +6,10 @@ import lombok.Getter;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.user.model.entity.Users;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Schema(description = "서비스 그룹 관련 DTO 클래스들")
 public class ResourceGroupDto {
@@ -76,13 +79,22 @@ public class ResourceGroupDto {
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
+        @Schema(description = "커스텀 필드 목록")
+        private List<CustomFieldDto.CustomFieldRes> customFields;
+
         public static ResourceGroupUpdateRes fromEntity(ResourceGroups group) {
+            List<CustomFieldDto.CustomFieldRes> customFields = group.getCustomFieldDefinitions()
+                    .stream()
+                    .map(CustomFieldDto.CustomFieldRes::fromEntity) // 엔티티 → DTO 변환
+                    .collect(Collectors.toList());
+
             return ResourceGroupUpdateRes.builder()
                     .name(group.getName())
                     .description(group.getDescription())
                     .thumbnail(group.getThumbnail())
                     .category(group.getCategory().name())
                     .isAlwaysAvailable(group.getIsAlwaysAvailable())
+                    .customFields(customFields)
                     .build();
         }
     }
@@ -102,15 +114,39 @@ public class ResourceGroupDto {
         @Schema(description = "서비스 그룹 설명", example = "회의실 관련 예약/신청 서비스 모음")
         private String description;
 
+        @Schema(description = "서비스 그룹 생성일", example = "2025.10.13")
+        private LocalDateTime createdAt;
+
+        @Schema(description = "서비스 그룹 생성자", example = "유현경")
+        private String administrator;
+
+        @Schema(description = "서비스 개수", example = "5")
+        private int serviceCount;
+
+        @Schema(description = "진행중인 서비스 개수", example = "3")
+        private int activeServiceCount;
+
+        @Schema(description = "서비스 그룹의 상태", example = "true")
+        private boolean isActive;
+
         @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
         private String thumbnail;
 
         public static ResourceGroupDetailRes fromEntity(ResourceGroups entity) {
+            int activeServiceCount = (int) entity.getResources().stream()
+                    .filter(Resources::getIsActive)
+                    .count();
+
             return ResourceGroupDetailRes.builder()
                     .id(entity.getId())
                     .name(entity.getName())
                     .description(entity.getDescription())
                     .thumbnail(entity.getThumbnail())
+                    .createdAt(entity.getCreatedAt())
+                    .administrator(entity.getCreatedBy().getName())
+                    .serviceCount(entity.getResources().size())
+                    .activeServiceCount(activeServiceCount)
+                    .isActive(entity.getIsActive())
                     .build();
         }
     }
@@ -148,6 +184,17 @@ public class ResourceGroupDto {
 
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
+
+        @Schema(description = "커스텀 필드 목록")
+        private List<CustomFieldDto.CustomFieldReq> customFields;
+
+        public List<CustomFieldDefinitions> toCustomFieldEntities() {
+            if (customFields == null) return new ArrayList<>();
+            return customFields.stream()
+                    .map(CustomFieldDto.CustomFieldReq::toEntity)
+                    .collect(Collectors.toList());
+        }
+
     }
 
 
