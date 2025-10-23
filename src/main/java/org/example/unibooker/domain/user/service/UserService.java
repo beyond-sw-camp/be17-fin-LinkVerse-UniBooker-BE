@@ -225,6 +225,9 @@ public class UserService {
         if (user.getIsFirstLogin()) {
             user.completeFirstLogin();
         }
+
+        // 비밀번호 변경 시 모든 Refresh Token 삭제 (보안 강화)
+        authService.invalidateAllTokens(userId);
     }
 
     /**
