@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -99,29 +100,63 @@ public class AdminService {
 
         /**
          * 관리자 회원가입 처리
-         * - 사업자등록번호, Slug, 이메일 중복 검증
-         * - Company 및 Admin User 생성 (PENDING/INACTIVE 상태)
+         * - 탈퇴 계정 재가입 허용
          */
         @Transactional
         public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
+            // 1. 사업자등록번호, Slug 중복 검증
             validateDuplicateBusinessNumber(request.getBusinessNumber());
             validateCompanySlug(request.getCompanySlug());
-            validateDuplicateEmail(request.getEmail());
 
-            Companies company = createCompany(request, logoFile);
-            Companies savedCompany = companyRepository.save(company);
+            // 2. 탈퇴한 ADMIN 계정이 있는지 확인
+            Optional<Users> deletedAdmin = userRepository.findByEmailAndStatus(
+                    request.getEmail(),
+                    UserStatus.DELETED
+            );
 
-            String temporaryPassword = generateTemporaryPassword();
-            String encodedPassword = passwordEncoder.encode(temporaryPassword);
+            Companies company;
+            Users admin;
 
-            Users admin = createAdmin(request, savedCompany, encodedPassword);
+            if (deletedAdmin.isPresent() && deletedAdmin.get().isAdmin()) {
+                // 2-1. 탈퇴 ADMIN 계정 복구
+                admin = deletedAdmin.get();
+                admin.restore(); // DELETED → INACTIVE 변경
+
+                // 2-2. 신규 Company 생성
+                company = createCompany(request, logoFile);
+                company = companyRepository.save(company);
+
+                // 2-3. 임시 비밀번호 생성 및 정보 업데이트
+                String temporaryPassword = generateTemporaryPassword();
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+                admin.updatePassword(encodedPassword);
+                admin.updateName(request.getName());
+                admin.updatePhone(request.getPhone());
+                admin.updateCompanyId(company.getId()); // 새 Company로 연결
+                admin.deactivate(); // INACTIVE 상태로 설정 (승인 대기)
+
+            } else {
+                // 2-4. DELETED 아닌 상태에서 이메일 중복 확인
+                validateDuplicateEmail(request.getEmail());
+
+                // 2-5. 신규 Company 및 Admin 생성
+                company = createCompany(request, logoFile);
+                company = companyRepository.save(company);
+
+                String temporaryPassword = generateTemporaryPassword();
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+                admin = createAdmin(request, company, encodedPassword);
+            }
+
             userRepository.save(admin);
 
             return AdminDto.SignUpResponse.builder()
                     .message("관리자 회원가입 신청이 완료되었습니다. 승인까지 최대 " + ESTIMATED_APPROVAL_DAYS + "일이 소요될 수 있습니다.")
                     .email(request.getEmail())
-                    .companyName(savedCompany.getCompanyName())
-                    .companySlug(savedCompany.getCompanySlug())
+                    .companyName(company.getCompanyName())
+                    .companySlug(company.getCompanySlug())
                     .serviceUrl(null)
                     .estimatedDays(ESTIMATED_APPROVAL_DAYS)
                     .build();
@@ -240,10 +275,10 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * 이메일 중복 검증 (DELETED 제외)
          */
         private void validateDuplicateEmail(String email) {
-            if (userRepository.findByEmail(email).isPresent()) {
+            if (userRepository.existsByEmailAndStatusNot(email, UserStatus.DELETED)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
@@ -708,10 +743,10 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * 이메일 중복 검증 (DELETED 제외)
          */
         private void validateEmailDuplicate(String email) {
-            if (userRepository.existsByEmail(email)) {
+            if (userRepository.existsByEmailAndStatusNot(email, UserStatus.DELETED)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }

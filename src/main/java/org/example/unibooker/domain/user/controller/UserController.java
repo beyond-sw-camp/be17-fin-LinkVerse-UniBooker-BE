@@ -109,7 +109,7 @@ public class UserController {
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);  // 즉시 만료
+        accessTokenCookie.setMaxAge(0);
 
         response.addCookie(accessTokenCookie);
 
@@ -118,7 +118,7 @@ public class UserController {
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);  // 즉시 만료
+        refreshTokenCookie.setMaxAge(0);
 
         response.addCookie(refreshTokenCookie);
 
