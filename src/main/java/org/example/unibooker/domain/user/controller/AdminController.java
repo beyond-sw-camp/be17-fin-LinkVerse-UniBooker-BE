@@ -3,16 +3,19 @@ package org.example.unibooker.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.service.AdminService;
@@ -28,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
  * - 매니저 관리 (생성, 조회, 삭제) - ADMIN 권한
  * - 관리자 관리 (목록 조회, 상태 변경) - SUPER_ADMIN 권한
  */
+@Slf4j
 @Tag(name = "Admin API", description = "관리자 및 매니저 관리 API")
 @RestController
 @RequestMapping("/api/admins")
@@ -119,31 +123,46 @@ public class AdminController {
 
     /**
      * 비밀번호 재설정 (첫 로그인 시 필수)
-     * - 임시 비밀번호 검증 후 새 비밀번호로 변경
-     * - isFirstLogin 플래그 해제
      */
-    @Operation(summary = "비밀번호 재설정",
-            description = "첫 로그인 시 임시 비밀번호를 새 비밀번호로 변경합니다.")
     @PatchMapping("/password/reset")
     public BaseResponse<AdminDto.PasswordResetResponse> resetPassword(
             @RequestBody @Valid AdminDto.PasswordResetRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        AdminDto.PasswordResetResponse response = adminService.resetPassword(userId, request);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        AdminDto.PasswordResetResponse response = adminService.resetPassword(authAdmin.getId(), request);
         return BaseResponse.success(response);
     }
 
     /**
      * 내 프로필 조회
-     * - UserService의 공통 프로필 조회 로직 사용
      */
-    @Operation(summary = "내 프로필 조회",
-            description = "현재 로그인한 관리자의 프로필 정보를 조회합니다.")
     @GetMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> getMyProfile(
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,
+            HttpServletRequest request) {  // ← 임시 추가
 
-        UserDto.ProfileResponse response = userService.getMyProfile(userId);
+        // ===== 디버깅 로그 =====
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                log.debug("Cookie: {} = {}", cookie.getName(), cookie.getValue());
+            }
+        } else {
+            log.warn("쿠키가 전달되지 않음");
+        }
+
+        log.debug("authAdmin: {}", authAdmin);
+        // =======================
+
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.ProfileResponse response = userService.getMyProfile(authAdmin.getId());
         return BaseResponse.success(response);
     }
 
@@ -156,9 +175,13 @@ public class AdminController {
     @PatchMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> updateMyProfile(
             @RequestBody @Valid UserDto.ProfileUpdateRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        UserDto.ProfileResponse response = userService.updateMyProfile(userId, request);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.ProfileResponse response = userService.updateMyProfile(authAdmin.getId(), request);
         return BaseResponse.success(response);
     }
 
@@ -171,9 +194,13 @@ public class AdminController {
     @DeleteMapping("/me")
     public BaseResponse<UserDto.WithdrawResponse> withdraw(
             @RequestBody @Valid UserDto.WithdrawRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        UserDto.WithdrawResponse response = userService.withdraw(userId, request);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.WithdrawResponse response = userService.withdraw(authAdmin.getId(), request);
         return BaseResponse.success(response);
     }
 
@@ -204,9 +231,13 @@ public class AdminController {
     public BaseResponse<ManagerDto.ManagerListResponse> getManagers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.ManagerListResponse response = adminService.getManagers(userId, page, size);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.ManagerListResponse response = adminService.getManagers(authAdmin.getId(), page, size);
         return BaseResponse.success(response);
     }
 
@@ -220,9 +251,13 @@ public class AdminController {
     @PostMapping("/managers")
     public BaseResponse<ManagerDto.CreateResponse> createManager(
             @RequestBody @Valid ManagerDto.CreateRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.CreateResponse response = adminService.createManager(request, userId);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.CreateResponse response = adminService.createManager(request, authAdmin.getId());
         return BaseResponse.success(response);
     }
 
@@ -236,9 +271,13 @@ public class AdminController {
     @DeleteMapping("/managers/{managerId}")
     public BaseResponse<ManagerDto.ManagerDeleteResponse> deleteManager(
             @PathVariable Long managerId,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.ManagerDeleteResponse response = adminService.deleteManager(managerId, userId);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.ManagerDeleteResponse response = adminService.deleteManager(managerId, authAdmin.getId());
         return BaseResponse.success(response);
     }
 

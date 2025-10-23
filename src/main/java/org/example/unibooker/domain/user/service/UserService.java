@@ -119,11 +119,14 @@ public class UserService {
 
     /**
      * ADMIN/MANAGER 이메일 중복 확인
-     * - ADMIN 회원가입 시 사용
      * - ADMIN, MANAGER와만 중복 체크 (USER 제외)
+     * - 한 이메일로 USER + ADMIN 계정 각각 생성 가능
      */
     public boolean existsByEmailForAdmin(String email) {
-        return userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER));
+        return userRepository.existsByEmailAndRoleIn(
+                email,
+                List.of(UserRole.ADMIN, UserRole.MANAGER)
+        );
     }
 
     /**
@@ -258,15 +261,18 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        // 2. 기업명 조회 (ADMIN 또는 MANAGER인 경우)
+        // 2. 기업명 및 로고 조회
         String companyName = null;
         String businessNumber = null;
+        String logoUrl = null;  // ← 추가
+
         if (user.getCompanyId() != null) {
             Companies company = companyRepository.findById(user.getCompanyId())
                     .orElse(null);
             if (company != null) {
                 companyName = company.getCompanyName();
                 businessNumber = company.getBusinessNumber();
+                logoUrl = company.getLogoUrl();  // ← 추가
             }
         }
 
@@ -283,6 +289,7 @@ public class UserService {
                 .companyId(user.getCompanyId())
                 .companyName(companyName)
                 .businessNumber(businessNumber)
+                .logoUrl(logoUrl)  // ← 추가
                 .isFirstLogin(user.getIsFirstLogin())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
