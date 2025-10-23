@@ -7,6 +7,7 @@ import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.service.ResourceGroupService;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,18 +24,26 @@ public class ResourceGroupController {
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 그룹 생성", description = "예약/신청 서비스 그룹을 생성합니다.")
     @PostMapping
-    public BaseResponse register(@RequestBody ResourceGroupDto.ResourceGroupRegisterReq dto) {
+    public BaseResponse register(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                 @RequestBody ResourceGroupDto.ResourceGroupRegisterReq dto) {
         // TODO : 로그인 기능이 개발되면 userId 받아오는 거 수정
-        resourceGroupService.register(dto, dto.getUserId());
+        resourceGroupService.register(dto, authUser.getId(), authUser.getCompanyId());
         return BaseResponse.success("서비스 그룹이 생성되었습니다.");
     }
 
-
-    // ---------------- 목록 조회 ----------------
+    // ---------------- 목록 조회(SUPER) ----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
-    @GetMapping("company/{companyId}")
+    @GetMapping("/company/{companyId}")
     public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@PathVariable Long companyId) {
         ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(companyId);
+        return BaseResponse.success(response);
+    }
+
+    // ---------------- 목록 조회(USER, MANANGER, ADMIN) ----------------
+    @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
+    @GetMapping("/company")
+    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser ) {
+        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getCompanyId());
         return BaseResponse.success(response);
     }
 
@@ -60,9 +69,10 @@ public class ResourceGroupController {
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 그룹 수정", description = "기존의 예약/신청 서비스 그룹을 수정합니다.")
     @PutMapping("/{resourceGroupId}")
-    public BaseResponse update(@PathVariable Long resourceGroupId,
+    public BaseResponse update(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+            @PathVariable Long resourceGroupId,
                        @RequestBody ResourceGroupDto.ResourceGroupUpdateReq dto) {
-        resourceGroupService.updateResourceGroup(resourceGroupId, dto, dto.getUserId());
+        resourceGroupService.updateResourceGroup(authUser.getId(), resourceGroupId, dto);
         return BaseResponse.success("서비스 그룹이 수정되었습니다.");
     }
 
@@ -70,8 +80,9 @@ public class ResourceGroupController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 그룹 삭제", description = "기존의 예약/신청 서비스 그룹을 삭제합니다.")
     @DeleteMapping("/{resourceGroupId}")
-    public BaseResponse delete(@PathVariable Long resourceGroupId) {
-        resourceGroupService.deleteResourceGroup(resourceGroupId);
+    public BaseResponse delete(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                               @PathVariable Long resourceGroupId) {
+        resourceGroupService.deleteResourceGroup(authUser.getId(), resourceGroupId);
         return BaseResponse.success("서비스 그룹이 삭제되었습니다.");
     }
 
