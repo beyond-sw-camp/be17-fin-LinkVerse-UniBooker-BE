@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -35,6 +38,23 @@ public class FileUploadUtil {
             "image/jpg",
             "image/png"
     );
+
+
+    /**
+     * 파일 업로드 경로 생성
+     */
+
+    public static String makeUploadPath() {
+
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        File dir = new File(date);
+        if (!dir.exists()) {
+            if (dir.mkdirs()) {
+                return date + "/"+ UUID.randomUUID() + "_";
+            }
+        }
+        return date + "/"+UUID.randomUUID() + "_";
+    }
 
     /**
      * 기업 로고 업로드
