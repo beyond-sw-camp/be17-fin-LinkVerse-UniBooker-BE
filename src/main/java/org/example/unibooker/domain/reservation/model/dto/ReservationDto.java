@@ -11,12 +11,10 @@ import org.example.unibooker.domain.reservation.repository.ReservationRepository
 import org.example.unibooker.domain.resource.model.CustomFieldDto;
 import org.example.unibooker.domain.resource.model.Resources;
 import org.example.unibooker.domain.resource.model.ServiceCategory;
-import org.example.unibooker.domain.resource.model.UserCustomFieldValues;
 import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ReservationDto {
 
@@ -188,7 +186,7 @@ public class ReservationDto {
         private Integer headCount;
 
         /** entity -> dto 로 변환 */
-        public static ReservationResponse from(Reservations entity, List<Object> userCustomFieldValues) { // UserCustomFieldValues = entity
+        public static ReservationResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
             return ReservationResponse.builder()
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
@@ -198,7 +196,7 @@ public class ReservationDto {
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList()))
+                    .customFieldValues(userCustomFieldValues)
                     // 아래부터는 예약형 정보
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
@@ -226,7 +224,7 @@ public class ReservationDto {
         @Schema(description = "좌석 열")
         private Integer seatCol;
 
-        public static SeatResponse from(Reservations entity, List<Object> userCustomFieldValues) {
+        public static SeatResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
             return SeatResponse.builder()
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
@@ -236,7 +234,7 @@ public class ReservationDto {
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList()))
+                    .customFieldValues(userCustomFieldValues)
                     // 아래부터는 좌석형 정보
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
@@ -251,7 +249,7 @@ public class ReservationDto {
     @SuperBuilder
     @Schema(description = "예약 상세 조회 [신청형] 응답 정보")
     public static class EventResponse extends Response{
-        public static EventResponse from(Reservations entity, List<Object> userCustomFieldValues) {
+        public static EventResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
             return EventResponse.builder()
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
@@ -261,7 +259,7 @@ public class ReservationDto {
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList()))
+                    .customFieldValues(userCustomFieldValues)
                     .build();
         }
     }
