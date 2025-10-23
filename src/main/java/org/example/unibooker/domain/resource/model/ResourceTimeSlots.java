@@ -35,9 +35,4 @@ public class ResourceTimeSlots extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
-    // 예약 여부
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean isReserved = false;
 }

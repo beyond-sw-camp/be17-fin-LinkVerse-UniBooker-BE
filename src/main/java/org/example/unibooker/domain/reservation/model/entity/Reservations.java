@@ -37,6 +37,8 @@ public class Reservations extends BaseEntity {
     private Integer attendeeCount; // 참석 인원
     private LocalDateTime startDate; // 시작 일시
     private LocalDateTime endDate; // 종료 일시
+    private Integer row; // 좌석 행
+    private Integer col; // 좌석 열
 
     public void cancel() {
         this.status = ReservationStatus.CANCELLED;

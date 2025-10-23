@@ -14,7 +14,6 @@ import java.util.Optional;
 public interface ReservationRepository extends JpaRepository<Reservations, Long> {
     List<Reservations> findAllByUsersId(Long userId);
 
-    // TODO : 삭제되지 않고, 리소스 상태가 CLOSED가 아닌 예약
     // 사용자의 중복 예약 존재 여부
     @Query("""
         SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
@@ -23,7 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     """)
     Boolean existsByUserIdAndResourceIdAndStartDateBetween(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 예약 카테고리 - 해당 시간대 예약 존재 여부
+    // 예약 카테고리 - 해당 기간 예약 존재 여부
     @Query("""
         SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
         FROM Reservations r
@@ -38,6 +37,9 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
         WHERE r.resources.id = :resourceId AND DATE(r.startDate) = :date
     """)
     Integer countByResourceIdAndDate(Long resourceId, LocalDate date);
+
+    // 신청 카테고리 - 예약 수 카운트
+    Integer countByResourcesId(Long resourceId);
 
     // 리소스의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r LEFT JOIN r.resources rs WHERE rs.id = :resourceId")

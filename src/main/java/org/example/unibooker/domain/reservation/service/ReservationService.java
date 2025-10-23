@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
-import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.reservation.model.dto.ReservationDto;
 import org.example.unibooker.domain.reservation.model.entity.ReservationStatus;
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
@@ -13,14 +12,18 @@ import org.example.unibooker.domain.resource.model.ResourceStatus;
 import org.example.unibooker.domain.resource.model.Resources;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
+import org.example.unibooker.domain.resource.service.CustomFieldValueService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
+
+    private final CustomFieldValueService customFieldValueService;
 
     private final ReservationRepository reservationRepository;
     private final ResourceGroupRepository resourceGroupRepository;
@@ -33,11 +36,21 @@ public class ReservationService {
         // 리소스 존재 여부 체크
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
 
-        // entity로 변환 시 예약 중복, 정원 초과, 기간 내 예약 가능한 리소스인지 등 체크
-        Reservations result = reservationRepository.save(dto.toEntity(userId, resource));
+        // 예약 생성 및 저장
+        Reservations reservation = reservationRepository.save(dto.toReservationEntity(userId, resource));
 
-        return ReservationDto.Response.from(result);
+        // 사용자 커스텀 필드 값 저장
+        List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues());
+
+        // 카테고리 별 알맞은 형식으로 응답
+        return switch (resource.getResourceGroup().getCategory()) {
+            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValues);
+            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValues);
+            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValues);
+            default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
+        };
     }
+
 
     /**
      * 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스 그룹"의 목록
@@ -73,13 +86,25 @@ public class ReservationService {
         return ReservationDto.ResponseList.from(result);
     }
 
+
     /**
      * 예약 상세 조회
      */
     public ReservationDto.Response getReservationDetail(Long reservationId) {
-        Reservations result = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
-        return ReservationDto.Response.from(result);
+        Reservations reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
+
+        // TODO : 한 예약에 대한 사용자 압력 커스텀 필드 값 리스트 필요
+        List<Object> userCustomFieldValues = new ArrayList<>();
+
+        // 카테고리 별 알맞은 형식으로 응답
+        return switch (reservation.getResources().getResourceGroup().getCategory()) {
+            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValues);
+            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValues);
+            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValues);
+            default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
+        };
     }
+
 
     /**
      * 예약 취소
