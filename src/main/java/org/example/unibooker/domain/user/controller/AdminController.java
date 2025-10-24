@@ -115,10 +115,29 @@ public class AdminController {
     @PostMapping("/logout")
     public BaseResponse<UserDto.LogoutResponse> logout(
             @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal Long userId, HttpServletResponse response) {
 
-        UserDto.LogoutResponse response = userService.logout(userId, request);
-        return BaseResponse.success(response);
+        UserDto.LogoutResponse logoutResponse = userService.logout(userId, request);
+
+        // ===== 쿠키 삭제 로직 추가 =====
+
+        // Access Token 쿠키 삭제
+        Cookie accessTokenCookie = new Cookie("accessToken", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);
+        response.addCookie(accessTokenCookie);
+
+        // Refresh Token 쿠키 삭제
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+        response.addCookie(refreshTokenCookie);
+
+        return BaseResponse.success(logoutResponse);
     }
 
     /**

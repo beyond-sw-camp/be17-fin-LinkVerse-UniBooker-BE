@@ -197,6 +197,34 @@ public class AuthDto {
         public boolean isFirstLogin() {
             return this.isFirstLogin != null && this.isFirstLogin;
         }
+
+        // ========== 공통 검증 메서드 추가 ==========
+
+        /**
+         * 기본 활동 가능 여부 (활성 상태 + 삭제되지 않음)
+         */
+        protected boolean canPerformAction() {
+            return isActive() && !isDeleted();
+        }
+
+        /**
+         * 특정 기업 데이터 접근 가능 여부
+         */
+        protected boolean canAccessCompanyData(Long companyId) {
+            return canPerformAction() && belongsToCompany(companyId);
+        }
+
+        // ========== 추상 메서드로 권한별 차이 구현 ==========
+
+        /**
+         * 리소스 관리 권한 (하위 클래스에서 구현)
+         */
+        public abstract boolean canManageResource(Long resourceCompanyId);
+
+        /**
+         * 분석 데이터 조회 권한 (하위 클래스에서 구현)
+         */
+        public abstract boolean canViewAnalytics(Long companyId);
     }
 
     // ========== 일반 사용자 ==========
@@ -239,11 +267,31 @@ public class AuthDto {
             );
         }
 
+        // ========== 추상 메서드 구현 ==========
+
+        /**
+         * 일반 사용자는 리소스 관리 불가
+         */
+        @Override
+        public boolean canManageResource(Long resourceCompanyId) {
+            return false;
+        }
+
+        /**
+         * 일반 사용자는 분석 데이터 조회 불가
+         */
+        @Override
+        public boolean canViewAnalytics(Long companyId) {
+            return false;
+        }
+
+        // ========== USER 전용 메서드 (기존 유지) ==========
+
         /**
          * 예약 가능 여부
          */
         public boolean canReserve() {
-            return isActive() && !isDeleted();
+            return canPerformAction();
         }
 
         /**
@@ -305,6 +353,26 @@ public class AuthDto {
             );
         }
 
+        // ========== 추상 메서드 구현 ==========
+
+        /**
+         * 자신의 기업 리소스만 관리 가능
+         */
+        @Override
+        public boolean canManageResource(Long resourceCompanyId) {
+            return canAccessCompanyData(resourceCompanyId);
+        }
+
+        /**
+         * 자신의 기업 분석 데이터만 조회 가능
+         */
+        @Override
+        public boolean canViewAnalytics(Long companyId) {
+            return canAccessCompanyData(companyId);
+        }
+
+        // ========== MANAGER 전용 메서드 (기존 유지) ==========
+
         /**
          * 관리 중인 기업 ID (명확성을 위한 별칭)
          */
@@ -313,38 +381,31 @@ public class AuthDto {
         }
 
         /**
-         * 특정 리소스 관리 권한 확인
-         */
-        public boolean canManageResource(Long resourceCompanyId) {
-            return isActive() && !isDeleted() && belongsToCompany(resourceCompanyId);
-        }
-
-        /**
          * 특정 예약 관리 권한 확인
          */
         public boolean canManageReservation(Long reservationCompanyId) {
-            return isActive() && !isDeleted() && belongsToCompany(reservationCompanyId);
+            return canAccessCompanyData(reservationCompanyId);
         }
 
         /**
          * 기업 데이터 조회 권한
          */
         public boolean canViewCompanyData() {
-            return isActive() && !isDeleted() && this.getCompanyId() != null;
+            return canPerformAction() && this.getCompanyId() != null;
         }
 
         /**
          * 기업 예약 현황 조회 권한
          */
         public boolean canViewCompanyReservations() {
-            return isActive() && !isDeleted() && this.getCompanyId() != null;
+            return canPerformAction() && this.getCompanyId() != null;
         }
 
         /**
-         * 기업 통계 조회 권한
+         * 기업 통계 조회 권한 (새로운 메서드명으로 별칭 제공)
          */
         public boolean canViewCompanyAnalytics() {
-            return isActive() && !isDeleted() && this.getCompanyId() != null;
+            return canViewAnalytics(this.getCompanyId());
         }
     }
 
@@ -392,11 +453,41 @@ public class AuthDto {
             );
         }
 
+        // ========== 추상 메서드 구현 ==========
+
+        /**
+         * 리소스 관리 권한
+         * - SUPER: 모든 리소스 관리 가능
+         * - ADMIN: 자신의 기업 리소스만
+         */
+        @Override
+        public boolean canManageResource(Long resourceCompanyId) {
+            if (!canPerformAction()) {
+                return false;
+            }
+            return isSuper || belongsToCompany(resourceCompanyId);
+        }
+
+        /**
+         * 분석 데이터 조회 권한
+         * - SUPER: 모든 기업 데이터 조회 가능
+         * - ADMIN: 자신의 기업 데이터만
+         */
+        @Override
+        public boolean canViewAnalytics(Long companyId) {
+            if (!canPerformAction()) {
+                return false;
+            }
+            return isSuper || belongsToCompany(companyId);
+        }
+
+        // ========== ADMIN 전용 메서드 (기존 유지) ==========
+
         /**
          * 모든 리소스 관리 권한 (SUPER만)
          */
         public boolean canManageAllResources() {
-            return isActive() && !isDeleted() && isSuper;
+            return canPerformAction() && isSuper;
         }
 
         /**
@@ -405,15 +496,14 @@ public class AuthDto {
          * - SUPER: 모든 기업
          */
         public boolean canManageCompany(Long companyId) {
-            if (!isActive() || isDeleted()) {
+            if (!canPerformAction()) {
                 return false;
             }
 
             if (isSuper) {
-                return true; // 슈퍼관리자는 모든 기업 관리 가능
+                return true;
             }
 
-            // 일반 관리자는 자신의 기업만
             return belongsToCompany(companyId);
         }
 
@@ -421,7 +511,7 @@ public class AuthDto {
          * 기업 승인 권한 (SUPER만)
          */
         public boolean canApproveCompany() {
-            return isActive() && !isDeleted() && isSuper;
+            return canPerformAction() && isSuper;
         }
 
         /**
@@ -430,22 +520,21 @@ public class AuthDto {
          * - SUPER: 모든 사용자
          */
         public boolean canManageUsers() {
-            return isActive() && !isDeleted() && (isAdmin() || isSuper);
+            return canPerformAction() && (isAdmin() || isSuper);
         }
 
         /**
          * 특정 기업의 사용자 관리 권한
          */
         public boolean canManageCompanyUsers(Long companyId) {
-            if (!isActive() || isDeleted()) {
+            if (!canPerformAction()) {
                 return false;
             }
 
             if (isSuper) {
-                return true; // 슈퍼관리자는 모든 기업의 사용자 관리 가능
+                return true;
             }
 
-            // 일반 관리자는 자신의 기업 사용자만
             return belongsToCompany(companyId);
         }
 
@@ -453,48 +542,14 @@ public class AuthDto {
          * 매니저 생성 권한
          */
         public boolean canCreateManager() {
-            return isActive() && !isDeleted() && (isAdmin() || isSuper);
+            return canPerformAction() && (isAdmin() || isSuper);
         }
 
         /**
-         * 분석 데이터 조회 권한
-         */
-        public boolean canViewAnalytics() {
-            return isActive() && !isDeleted();
-        }
-
-        /**
-         * 특정 기업의 분석 데이터 조회 권한
+         * 특정 기업의 분석 데이터 조회 권한 (별칭 메서드)
          */
         public boolean canViewCompanyAnalytics(Long companyId) {
-            if (!isActive() || isDeleted()) {
-                return false;
-            }
-
-            if (isSuper) {
-                return true; // 슈퍼관리자는 모든 기업 데이터 조회 가능
-            }
-
-            // 일반 관리자는 자신의 기업 데이터만
-            return belongsToCompany(companyId);
-        }
-
-        /**
-         * 리소스 관리 권한
-         * - ADMIN: 자신의 기업 리소스만
-         * - SUPER: 모든 리소스
-         */
-        public boolean canManageResource(Long resourceCompanyId) {
-            if (!isActive() || isDeleted()) {
-                return false;
-            }
-
-            if (isSuper) {
-                return true; // 슈퍼관리자는 모든 리소스 관리 가능
-            }
-
-            // 일반 관리자는 자신의 기업 리소스만
-            return belongsToCompany(resourceCompanyId);
+            return canViewAnalytics(companyId);
         }
     }
 

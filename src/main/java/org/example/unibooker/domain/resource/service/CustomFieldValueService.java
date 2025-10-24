@@ -1,6 +1,7 @@
 package org.example.unibooker.domain.resource.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.domain.reservation.repository.ReservationRepository;
 import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
 import org.example.unibooker.domain.resource.repository.ResourceCustomFieldValueRepository;
@@ -21,6 +22,7 @@ public class CustomFieldValueService {
     private final UserCustomFieldValueRepository userFieldRepository;
     private final ResourceCustomFieldValueRepository resourceFieldRepository;
     private final ResourceRepository resourceRepository;
+    private final ReservationRepository reservationRepository;
 
 
     // -------------------- 커스텀 필드 값 저장 -------------------
@@ -64,18 +66,18 @@ public class CustomFieldValueService {
 
 
     // -------------------- 예약의 사용자 커스텀 필드 값 조회 --------------------
-//    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
-//
-//        // 예약 존재 여부 검증
-//        var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
-//
-//        // USER 필드 값 조회
-//        return userFieldRepository.findByReservationIdAndDeletedAtIsNull(reservation.getId())
-//                .stream()
-//                .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
-//                .toList();
-//    }
+    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
+
+        // 예약 존재 여부 검증
+        var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+
+        // USER 필드 값 조회
+        return userFieldRepository.findByReservationIdAndDeletedAtIsNull(reservation.getId())
+                .stream()
+                .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
+                .toList();
+    }
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------
