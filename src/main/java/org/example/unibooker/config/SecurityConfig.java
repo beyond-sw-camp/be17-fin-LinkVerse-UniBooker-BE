@@ -52,9 +52,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/super/login").permitAll()
 
                         // ===== 로그아웃 =====
-                        .requestMatchers(HttpMethod.POST, "/api/users/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/super/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/admins/logout").authenticated()  // ← 인증 필요로 변경
+                        .requestMatchers(HttpMethod.POST, "/api/super/logout").authenticated()  // ← 인증 필요로 변경
 
                         // ===== 상태 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
@@ -86,7 +86,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/companies/{companyId}/reject").hasRole("SUPER")
 
                         // ===== 리소스 관련 경로 =====
-                        .requestMatchers("/api/resource-group/**").permitAll()
+                        .requestMatchers("/api/resource-group/**").authenticated()
+
+
+                        // ===== 이미지 업로드 관련 경로 =====
+                        .requestMatchers("/api/image-upload").authenticated()
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====

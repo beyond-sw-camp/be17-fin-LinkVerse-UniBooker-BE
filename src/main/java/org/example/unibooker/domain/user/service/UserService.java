@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 사용자 비즈니스 로직 처리 서비스
@@ -37,6 +38,7 @@ public class UserService {
 
     /**
      * 일반 사용자 회원가입 (기업별)
+     * - 탈퇴 계정 재가입 허용
      */
     @Transactional
     public UserDto.SignUpResponse signUpUser(UserDto.SignUpRequest request) {
@@ -49,24 +51,41 @@ public class UserService {
             throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
         }
 
-        // 3. 해당 기업 내에서 이메일 중복 확인
-        validateDuplicateEmailInCompany(request.getEmail(), request.getCompanyId());
+        // 3. 탈퇴한 계정이 있는지 확인
+        Optional<Users> deletedUser = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
+                request.getEmail(),
+                request.getCompanyId(),
+                UserRole.USER,
+                UserStatus.DELETED
+        );
 
-        // 4. 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        Users user;
+        if (deletedUser.isPresent()) {
+            // 3-1. 탈퇴 계정이 있으면 복구 및 정보 업데이트
+            user = deletedUser.get();
+            user.restore(); // DELETED → ACTIVE 변경, deletedAt = null
+            user.updatePassword(passwordEncoder.encode(request.getPassword()));
+            user.updateName(request.getName());
+            user.updatePhone(request.getPhone());
+            user.updateBirthDate(request.getBirthDate());
+            user.updateGender(request.getGender());
+        } else {
+            // 3-2. DELETED 아닌 상태에서 중복 확인
+            validateDuplicateEmailInCompany(request.getEmail(), request.getCompanyId());
 
-        // 5. Users 엔티티 생성
-        Users user = Users.builder()
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .name(request.getName())
-                .phone(request.getPhone())
-                .birthDate(request.getBirthDate())
-                .gender(request.getGender())
-                .companyId(request.getCompanyId())  // ← 기업 ID 설정
-                .role(UserRole.USER)
-                .status(UserStatus.ACTIVE)
-                .build();
+            // 3-3. 신규 사용자 생성
+            user = Users.builder()
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .name(request.getName())
+                    .phone(request.getPhone())
+                    .birthDate(request.getBirthDate())
+                    .gender(request.getGender())
+                    .companyId(request.getCompanyId())
+                    .role(UserRole.USER)
+                    .status(UserStatus.ACTIVE)
+                    .build();
+        }
 
         Users savedUser = userRepository.save(user);
 
@@ -74,7 +93,7 @@ public class UserService {
                 .id(savedUser.getId())
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
-                .companyId(savedUser.getCompanyId())  // ← 추가
+                .companyId(savedUser.getCompanyId())
                 .role(savedUser.getRole())
                 .status(savedUser.getStatus())
                 .createdAt(savedUser.getCreatedAt())
@@ -82,11 +101,11 @@ public class UserService {
     }
 
     /**
-     * 특정 기업 내에서 USER 이메일 중복 확인
-     * - 같은 Company + USER role 조합으로만 중복 체크
+     * 특정 기업 내에서 USER 이메일 중복 확인 (DELETED 제외)
      */
     private void validateDuplicateEmailInCompany(String email, Long companyId) {
-        if (userRepository.existsByEmailAndCompanyIdAndRole(email, companyId, UserRole.USER)) {
+        if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                email, companyId, UserRole.USER, UserStatus.DELETED)) {
             throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL_IN_COMPANY);
         }
     }
@@ -100,11 +119,14 @@ public class UserService {
 
     /**
      * ADMIN/MANAGER 이메일 중복 확인
-     * - ADMIN 회원가입 시 사용
      * - ADMIN, MANAGER와만 중복 체크 (USER 제외)
+     * - 한 이메일로 USER + ADMIN 계정 각각 생성 가능
      */
     public boolean existsByEmailForAdmin(String email) {
-        return userRepository.existsByEmailAndRoleIn(email, List.of(UserRole.ADMIN, UserRole.MANAGER));
+        return userRepository.existsByEmailAndRoleIn(
+                email,
+                List.of(UserRole.ADMIN, UserRole.MANAGER)
+        );
     }
 
     /**
@@ -239,15 +261,18 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        // 2. 기업명 조회 (ADMIN 또는 MANAGER인 경우)
+        // 2. 기업명 및 로고 조회
         String companyName = null;
         String businessNumber = null;
+        String logoUrl = null;  // ← 추가
+
         if (user.getCompanyId() != null) {
             Companies company = companyRepository.findById(user.getCompanyId())
                     .orElse(null);
             if (company != null) {
                 companyName = company.getCompanyName();
                 businessNumber = company.getBusinessNumber();
+                logoUrl = company.getLogoUrl();  // ← 추가
             }
         }
 
@@ -264,6 +289,7 @@ public class UserService {
                 .companyId(user.getCompanyId())
                 .companyName(companyName)
                 .businessNumber(businessNumber)
+                .logoUrl(logoUrl)  // ← 추가
                 .isFirstLogin(user.getIsFirstLogin())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
