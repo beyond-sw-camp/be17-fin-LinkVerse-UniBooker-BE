@@ -36,7 +36,7 @@ public class ResourceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         Resources resource = dto.toEntity(group);
-        resource.setTimeInterval(dto.getTimeInterval());
+//        resource.setTimeInterval(dto.getTimeInterval());
         resourceRepository.save(resource);
 
         // RESOURCE 커스텀 필드 값 저장
