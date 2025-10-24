@@ -32,12 +32,8 @@ public class ReservationController {
     public ResponseEntity<BaseResponse<ReservationDto.Response>> createReservation(
             @Valid @RequestBody ReservationDto.Request dto,
             @PathVariable Long resourceId,
-            Long userId) {
-        /**
-         * TODO : 로그인 로직 구현 되면 param으로 id 받은거 지우고, 인증 유저로 변경
-         * @AuthenticationPrincipal AuthDto.AuthUser authUser
-         * */
-        return ResponseEntity.ok(BaseResponse.success(reservationService.reserve(dto, resourceId, userId)));
+            @AuthenticationPrincipal AuthDto.AuthUser authUser) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.reserve(dto, resourceId, authUser.getId())));
     }
 
 
@@ -56,12 +52,8 @@ public class ReservationController {
     // ===================
     @Operation(summary = "일반 사용자 예약 목록 조회", description = "일반 사용자가 예약/신청에 대한 목록 조회를 합니다.")
     @GetMapping("/list")
-    public ResponseEntity<BaseResponse<ReservationDto.UserResponseList>> getUserReservations(Long userId) {
-        /**
-         * TODO : 로그인 로직 구현 되면 param으로 id 받은거 지우고, 인증 유저로 변경
-         * @AuthenticationPrincipal AuthDto.AuthUser authUser
-         * */
-        return ResponseEntity.ok(BaseResponse.success(reservationService.getUserReservations(userId)));
+    public ResponseEntity<BaseResponse<ReservationDto.UserResponseList>> getUserReservations(@AuthenticationPrincipal AuthDto.AuthUser authUser) {
+        return ResponseEntity.ok(BaseResponse.success(reservationService.getUserReservations(authUser.getId())));
     }
 
 
