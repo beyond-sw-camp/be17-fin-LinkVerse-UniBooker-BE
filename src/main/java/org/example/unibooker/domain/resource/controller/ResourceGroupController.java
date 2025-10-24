@@ -31,22 +31,13 @@ public class ResourceGroupController {
         return BaseResponse.success("서비스 그룹이 생성되었습니다.");
     }
 
-    // ---------------- 목록 조회(SUPER) ----------------
-    @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
-    @GetMapping("/company/{companyId}")
-    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@PathVariable Long companyId) {
-        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(companyId);
-        return BaseResponse.success(response);
-    }
-
-    // ---------------- 목록 조회(USER, MANANGER, ADMIN) ----------------
+    // ---------------- 목록 조회 ----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("/company")
     public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser ) {
-        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getCompanyId());
+        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getRole(), authUser.getCompanyId());
         return BaseResponse.success(response);
     }
-
 
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회", description = "특정 서비스 그룹의 이름, 설명, 썸네일 이미지를 조회합니다.")

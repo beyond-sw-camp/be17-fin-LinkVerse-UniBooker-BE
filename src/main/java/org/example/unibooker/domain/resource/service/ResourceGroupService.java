@@ -75,10 +75,12 @@ public class ResourceGroupService {
 
 
     // -------------------- 리소스 그룹 목록 조회 --------------------
-    public ResourceGroupDto.ResourceGroupListRes getResourceGroupsByCompanyId(Long companyId) {
+    public ResourceGroupDto.ResourceGroupListRes getResourceGroupsByCompanyId(UserRole role, Long companyId) {
 
         // 특정 기업(companyId)에 속한 모든 리소스 그룹을 조회
-        List<ResourceGroups> groups = resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
+        List<ResourceGroups> groups = role == UserRole.USER ?
+                resourceGroupRepository.findAllByCompanyIdAndIsActive(companyId, true) // USER일 경우 활성화된 서비스만 조회
+                : resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId); //  ADMIN, MANAGER, SUPER일 경우 모두 조회
 
         // Entity -> DTO 변환
         List<ResourceGroupDto.ResourceGroupDetailRes> dtoList = groups.stream()

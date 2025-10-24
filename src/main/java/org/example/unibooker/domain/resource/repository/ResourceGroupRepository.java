@@ -18,4 +18,7 @@ public interface ResourceGroupRepository extends JpaRepository<ResourceGroups, L
 
     // 특정 기업의 리소스 그룹 조회 (삭제된 거 제외)
     Optional<ResourceGroups> findByIdAndDeletedAtIsNull(Long id);
+
+    // 특정 기업의 리소스 그룹 조회 (활성화 상태 확인)
+    List<ResourceGroups> findAllByCompanyIdAndIsActive(Long companyId, Boolean isActive);
 }
