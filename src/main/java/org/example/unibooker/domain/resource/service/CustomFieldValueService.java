@@ -1,6 +1,7 @@
 package org.example.unibooker.domain.resource.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.domain.reservation.repository.ReservationRepository;
 import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
 import org.example.unibooker.domain.resource.repository.ResourceCustomFieldValueRepository;
@@ -24,6 +25,7 @@ public class CustomFieldValueService {
     private final UserCustomFieldValueRepository userFieldRepository;
     private final ResourceCustomFieldValueRepository resourceFieldRepository;
     private final ResourceRepository resourceRepository;
+    private final ReservationRepository reservationRepository;
 
 
     // -------------------- 커스텀 필드 값 저장 -------------------
@@ -63,16 +65,16 @@ public class CustomFieldValueService {
     @Transactional(readOnly = true)
     public List<CustomFieldDto.CustomFieldValueListRes> getResourceFieldValues(Long resourceId) {
 
-        // 1️⃣ 리소스 존재 여부 검증
+        // 리소스 존재 여부 검증
         if (!resourceRepository.existsById(resourceId)) {
             throw new IllegalArgumentException("존재하지 않는 리소스입니다. id=" + resourceId);
         }
 
-        // 2️⃣ 모든 RESOURCE 커스텀 필드 값 조회
+        // 모든 RESOURCE 커스텀 필드 값 조회
         List<ResourceCustomFieldValues> fieldValues = resourceFieldRepository
                 .findByResourceIdAndDeletedAtIsNull(resourceId);
 
-        // 3️⃣ customFieldId 기준으로 그룹핑하여 values 리스트 생성
+        // customFieldId 기준으로 그룹핑하여 values 리스트 생성
         Map<Long, List<String>> groupedValues = fieldValues.stream()
                 .collect(Collectors.groupingBy(
                         fv -> fv.getCustomFieldDefinition().getId(),
@@ -80,7 +82,7 @@ public class CustomFieldValueService {
                         Collectors.mapping(ResourceCustomFieldValues::getFieldValue, Collectors.toList())
                 ));
 
-        // 4️⃣ DTO 생성
+        // DTO 생성
         List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
         for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
             CustomFieldDefinitions field = fieldValues.stream()
@@ -102,18 +104,44 @@ public class CustomFieldValueService {
 
 
     // -------------------- 예약의 사용자 커스텀 필드 값 조회 --------------------
-//    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
-//
-//        // 예약 존재 여부 검증
-//        var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
-//
-//        // USER 필드 값 조회
-//        return userFieldRepository.findByReservationIdAndDeletedAtIsNull(reservation.getId())
-//                .stream()
-//                .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
-//                .toList();
-//    }
+    @Transactional(readOnly = true)
+    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
+
+        // 예약 존재 여부 검증
+        var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
+
+        // USER 커스텀 필드 값 조회 (서비스 메서드 호출)
+        List<UserCustomFieldValues> fieldValues = userFieldRepository
+                .findByReservationIdAndDeletedAtIsNull(reservation.getId());
+
+        // customFieldId 기준으로 그룹핑하여 values 리스트 생성
+        Map<Long, List<String>> groupedValues = fieldValues.stream()
+                .collect(Collectors.groupingBy(
+                        fv -> fv.getCustomFieldDefinition().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(UserCustomFieldValues::getFieldValue, Collectors.toList())
+                ));
+
+        // DTO 생성
+        List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
+        for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
+            CustomFieldDefinitions field = fieldValues.stream()
+                    .filter(fv -> fv.getCustomFieldDefinition().getId().equals(entry.getKey()))
+                    .findFirst()
+                    .get()
+                    .getCustomFieldDefinition();
+
+            result.add(CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(field.getId())
+                    .fieldName(field.getFieldName())
+                    .values(entry.getValue())
+                    .build());
+        }
+
+        return result;
+    }
+
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------
