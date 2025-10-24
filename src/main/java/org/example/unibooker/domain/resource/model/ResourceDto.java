@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Schema(description = "서비스 관련 DTO 클래스들")
@@ -55,6 +56,12 @@ public class ResourceDto {
 
         @Schema(description = "커스텀 필드 값 목록 (RESOURCE 타입)", nullable = true)
         private List<CustomFieldDto.CustomFieldValue> customFieldValues;
+
+        @Schema(description = "타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
 
         // 입력값 검증 함수
         public void validate() {
@@ -149,6 +156,13 @@ public class ResourceDto {
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
 
+        @Schema(description = "운영 시간 목록")
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 시간 목록 (휴무일 등)")
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+
+
         public static ResourceUpdateRes fromEntity(Resources resource) {
             return new ResourceUpdateRes(
                     resource.getName(),
@@ -165,7 +179,17 @@ public class ResourceDto {
                     resource.getTimeInterval(),
                     resource.getCapacity(),
                     resource.getRow(),
-                    resource.getCol()
+                    resource.getCol(),
+                    Optional.ofNullable(resource.getTimeSlots())
+                    .orElse(List.of())
+                    .stream()
+                    .map(TimeSlotDto.TimeSlotResponse::from)
+                    .collect(Collectors.toList()),
+                    Optional.ofNullable(resource.getTimeSlotExceptions())
+                            .orElse(List.of())
+                            .stream()
+                            .map(TimeSlotDto.TimeSlotExceptionResponse::from)
+                            .collect(Collectors.toList())
             );
         }
     }
@@ -258,6 +282,12 @@ public class ResourceDto {
 
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
+
+        @Schema(description = "타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+
+        @Schema(description = "예외 타임슬롯 목록", nullable = true)
+        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
 
         // 입력값 검증 함수
         public void validate() {

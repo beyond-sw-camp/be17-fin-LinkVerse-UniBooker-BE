@@ -3,7 +3,6 @@ package org.example.unibooker.domain.resource.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.unibooker.common.BaseEntity;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalTime;
 
