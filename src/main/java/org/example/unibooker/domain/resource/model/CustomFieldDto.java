@@ -139,14 +139,14 @@ public class CustomFieldDto {
         @Schema(description = "필드 이름", example = "회의실 이름")
         private String fieldName;
 
-        @Schema(description = "값", example = "101호 회의실")
-        private String value;
+        @Schema(description = "값 목록", example = "[\"101호 회의실\"]")
+        private List<String> values;
 
         public static CustomFieldValueListRes fromUserEntity(UserCustomFieldValues entity) {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .value(entity.getFieldValue())
+                    .values(List.of(entity.getFieldValue()))
                     .build();
         }
 
@@ -154,10 +154,11 @@ public class CustomFieldDto {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .value(entity.getFieldValue())
+                    .values(List.of(entity.getFieldValue()))
                     .build();
         }
     }
+
 
 
     @Getter

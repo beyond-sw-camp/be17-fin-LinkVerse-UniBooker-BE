@@ -11,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -57,19 +60,45 @@ public class CustomFieldValueService {
 
 
     // -------------------- 리소스의 커스텀 필드 값 조회 --------------------
+    @Transactional(readOnly = true)
     public List<CustomFieldDto.CustomFieldValueListRes> getResourceFieldValues(Long resourceId) {
 
-        // 존재 여부 검증
+        // 1️⃣ 리소스 존재 여부 검증
         if (!resourceRepository.existsById(resourceId)) {
             throw new IllegalArgumentException("존재하지 않는 리소스입니다. id=" + resourceId);
         }
 
-        // RESOURCE 필드 값 조회
-        return resourceFieldRepository.findByResourceIdAndDeletedAtIsNull(resourceId)
-                .stream()
-                .map(CustomFieldDto.CustomFieldValueListRes::fromResourceEntity)
-                .toList();
+        // 2️⃣ 모든 RESOURCE 커스텀 필드 값 조회
+        List<ResourceCustomFieldValues> fieldValues = resourceFieldRepository
+                .findByResourceIdAndDeletedAtIsNull(resourceId);
+
+        // 3️⃣ customFieldId 기준으로 그룹핑하여 values 리스트 생성
+        Map<Long, List<String>> groupedValues = fieldValues.stream()
+                .collect(Collectors.groupingBy(
+                        fv -> fv.getCustomFieldDefinition().getId(),
+                        LinkedHashMap::new, // 순서 유지
+                        Collectors.mapping(ResourceCustomFieldValues::getFieldValue, Collectors.toList())
+                ));
+
+        // 4️⃣ DTO 생성
+        List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
+        for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
+            CustomFieldDefinitions field = fieldValues.stream()
+                    .filter(fv -> fv.getCustomFieldDefinition().getId().equals(entry.getKey()))
+                    .findFirst()
+                    .get()
+                    .getCustomFieldDefinition();
+
+            result.add(CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(field.getId())
+                    .fieldName(field.getFieldName())
+                    .values(entry.getValue())
+                    .build());
+        }
+
+        return result;
     }
+
 
 
     // -------------------- 예약의 사용자 커스텀 필드 값 조회 --------------------
