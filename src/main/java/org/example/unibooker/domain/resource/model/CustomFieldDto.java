@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Schema(description = "커스텀 필드 관련 DTO 클래스들")
@@ -91,22 +92,30 @@ public class CustomFieldDto {
         private Long customFieldId;
 
         @Schema(description = "입력 값", example = "회의실 101")
-        private String value;
+        private List<String> values;
 
-        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field, Long targetId) {
-            return UserCustomFieldValues.builder()
-                    .reservationId(targetId)
-                    .fieldValue(this.value)
-                    .customFieldDefinition(field)
-                    .build();
+        public List<UserCustomFieldValues> toUserEntity(CustomFieldDefinitions field, Long reservationId) {
+            List<UserCustomFieldValues> entities = new ArrayList<>();
+            for (String v : values) {
+                entities.add(UserCustomFieldValues.builder()
+                        .reservationId(reservationId)
+                        .fieldValue(v)
+                        .customFieldDefinition(field)
+                        .build());
+            }
+            return entities;
         }
 
-        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field, Long targetId) {
-            return ResourceCustomFieldValues.builder()
-                    .resourceId(targetId)
-                    .fieldValue(this.value)
-                    .customFieldDefinition(field)
-                    .build();
+        public List<ResourceCustomFieldValues> toResourceEntities(CustomFieldDefinitions field, Long resourceId) {
+            List<ResourceCustomFieldValues> entities = new ArrayList<>();
+            for (String v : values) {
+                entities.add(ResourceCustomFieldValues.builder()
+                        .resourceId(resourceId)
+                        .fieldValue(v)
+                        .customFieldDefinition(field)
+                        .build());
+            }
+            return entities;
         }
     }
 

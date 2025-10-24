@@ -25,7 +25,7 @@ public class CustomFieldValueService {
 
     // -------------------- 커스텀 필드 값 저장 -------------------
     public List<Object> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
-        List<Object> savedUserCustomFieldValues = new ArrayList<>();
+        List<Object> savedEntities = new ArrayList<>();
 
         for (CustomFieldDto.CustomFieldValue dto : dtos) {
             CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
@@ -33,18 +33,27 @@ public class CustomFieldValueService {
                             "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + dto.getCustomFieldId()));
 
             if (field.getTargetType() == CustomTargetType.USER) {
-                savedUserCustomFieldValues.add(userFieldRepository.save(dto.toUserEntity(field, targetId)));
+                List<UserCustomFieldValues> entities = dto.toUserEntity(field, targetId); // 여러 엔티티 리스트
+                for (UserCustomFieldValues entity : entities) {
+                    savedEntities.add(userFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                }
 
             } else if (field.getTargetType() == CustomTargetType.RESOURCE) {
-                savedUserCustomFieldValues.add(resourceFieldRepository.save(dto.toResourceEntity(field, targetId)));
-
+                List<ResourceCustomFieldValues> entities = dto.toResourceEntities(field, targetId);
+                for (ResourceCustomFieldValues entity : entities) {
+                    savedEntities.add(resourceFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                }
             } else {
-                throw new IllegalArgumentException("알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId());
+                throw new IllegalArgumentException(
+                        "알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId()
+                );
             }
         }
 
-        return savedUserCustomFieldValues;
+        return savedEntities;
     }
+
+
 
 
     // -------------------- 리소스의 커스텀 필드 값 조회 --------------------

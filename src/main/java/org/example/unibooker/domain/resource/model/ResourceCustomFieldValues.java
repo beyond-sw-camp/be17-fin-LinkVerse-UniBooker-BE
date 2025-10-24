@@ -16,6 +16,7 @@ public class ResourceCustomFieldValues extends BaseEntity {
     private Long resourceId;
     private String fieldValue;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "field_id")
     private CustomFieldDefinitions customFieldDefinition;

@@ -105,15 +105,11 @@ public class Resources extends BaseEntity {
     @Column(nullable = false)
     private Long version = 0L;
 
-    /*
-    public void setTimeInterval(int minutes) {
-        this.timeInterval = TimeIntervalType.fromMinutes(minutes).getMinutes();
+
+    public void setTimeInterval(TimeIntervalType timeInterval) {
+        this.timeInterval = timeInterval;
     }
 
-    public TimeIntervalType getTimeIntervalEnum() {
-        return TimeIntervalType.fromMinutes(this.timeInterval);
-    }
-    */
 
     // 서비스 수정 함수
     public void update(ResourceDto.ResourceUpdateReq dto) {
