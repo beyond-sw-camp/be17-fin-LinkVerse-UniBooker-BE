@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,9 @@ public class CustomFieldDto {
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        @Schema(description = "선택형 옵션 목록 (RADIO/CHECKBOX)", nullable = true)
+        private List<String> options;
 
         public CustomFieldDefinitions toEntity() {
             return CustomFieldDefinitions.builder()
@@ -66,6 +70,10 @@ public class CustomFieldDto {
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        @Setter
+        @Schema(description = "선택형 옵션 목록 (RADIO/CHECKBOX)", nullable = true)
+        private List<String> options;
 
         public static CustomFieldRes fromEntity(CustomFieldDefinitions entity) {
             return CustomFieldRes.builder()
