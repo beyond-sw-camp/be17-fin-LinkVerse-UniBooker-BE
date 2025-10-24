@@ -93,6 +93,14 @@ public class Resources extends BaseEntity {
     @JoinColumn(name = "updated_by")
     private Users updatedBy;
 
+    /** 타임 슬롯 */
+    @OneToMany(mappedBy = "resources",  cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTimeSlots> timeSlots = new ArrayList<>();
+
+    /** 예외 타임 슬롯 */
+    @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTimeSlotExceptions> timeSlotExceptions = new ArrayList<>();
+
     @Version
     @Column(nullable = false)
     private Long version = 0L;
