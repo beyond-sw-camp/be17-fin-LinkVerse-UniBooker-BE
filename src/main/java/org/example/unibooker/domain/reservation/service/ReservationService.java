@@ -12,6 +12,9 @@ import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
 import org.example.unibooker.domain.resource.service.CustomFieldValueService;
+import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.entity.Users;
+import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,21 +25,37 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReservationService {
 
+    /** service */
     private final CustomFieldValueService customFieldValueService;
 
+    /** repository */
     private final ReservationRepository reservationRepository;
     private final ResourceGroupRepository resourceGroupRepository;
     private final ResourceRepository resourceRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * 사용자 권한 확인
+     */
+    public void userRoleCheck(Users user) {
+        if (user == null || !(user.getRole() == UserRole.USER)) {
+            throw new BaseException(BaseResponseStatus.INVALID_USER_ROLE);
+        }
+    }
 
     /**
      * 예약하기
      */
     public ReservationDto.Response reserve(ReservationDto.Request dto, Long resourceId, Long userId) {
+        // 일반 사용자 체크
+        Users user = userRepository.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        userRoleCheck(user);
+
         // 리소스 존재 여부 체크
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
 
         // 예약 생성 및 저장
-        Reservations reservation = reservationRepository.save(dto.toReservationEntity(userId, resource));
+        Reservations reservation = reservationRepository.save(dto.toReservationEntity(user, resource, reservationRepository));
 
         // 사용자 커스텀 필드 값 저장
         List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
@@ -85,7 +104,7 @@ public class ReservationService {
         Reservations reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
 
         // 하나의 예약에 대한 사용자 압력 커스텀 필드 값 리스트
-        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues = customFieldValueService.getResourceFieldValues(reservationId);
+        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues = customFieldValueService.getUserFieldValuesByReservation(reservationId);
 
         // 카테고리 별 알맞은 형식으로 응답
         return switch (reservation.getResources().getResourceGroup().getCategory()) {

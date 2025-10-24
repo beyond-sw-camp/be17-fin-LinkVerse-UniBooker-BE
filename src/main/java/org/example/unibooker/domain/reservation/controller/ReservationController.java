@@ -41,38 +41,10 @@ public class ReservationController {
     }
 
 
-    /*
     // ===================
     // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스 그룹"의 목록
     // ===================
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 리소스 그룹에 예약된 리소스 목록 및 예약/신청된 목록 조회를 합니다.")
-    @GetMapping("/list/all/{resourceGroupId}")
-    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminReservations(@PathVariable Long resourceGroupId) {
-        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));
-    }
-
-
-    // ===================
-    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자
-    // ===================
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "")
-    @GetMapping("/list/group/{resourceGroupId}")
-    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceGroupReservations(@PathVariable Long resourceGroupId) {
-        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceGroupReservations(resourceGroupId)));
-    }
-
-
-    // ===================
-    // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스"의 목록
-    // ===================
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 기업의 서비스마다 예약/신청 목록 조회를 합니다.")
-    @GetMapping("/list/resource/{resourceId}")
-    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminResourceReservations(@PathVariable Long resourceId) {
-        return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminResourceReservations(resourceId)));
-    }
-     */
-
-    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "")
+    @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 리소스 그룹에 예약된 모든 예약/신청된 목록 조회를 합니다.")
     @GetMapping("/list/all/{resourceGroupId}")
     public ResponseEntity getAdminReservations(@PathVariable Long resourceGroupId) {
         return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));

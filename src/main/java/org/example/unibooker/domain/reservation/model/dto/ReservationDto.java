@@ -23,11 +23,8 @@ public class ReservationDto {
     // 예약 요청 DTO
     // ===================
     @Getter
-    @RequiredArgsConstructor
     @Schema(description = "예약시 필요 요청 정보")
     public static class Request {
-        private final ReservationRepository reservationRepository;
-
         @Schema(description = "예약할 날짜", example = "2025-10-16")
         private LocalDate date;
 
@@ -47,8 +44,8 @@ public class ReservationDto {
         private List<CustomFieldDto.CustomFieldValue> customFieldValues;
 
         /** dto -> entity 변환 함수 */
-        public Reservations toReservationEntity(Long userId, Resources resource) {
-            Users user = Users.builder().id(userId).build();
+        // TODO : reservationRepository 분리 필요
+        public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
             LocalDateTime startDate = null, endDate = null;
 
             // 신청인지 아닌지 체크 - 신청이면 날짜/시간 저장 안함(null). 신청일은 createdAt 으로 구별
@@ -56,6 +53,19 @@ public class ReservationDto {
                 startDate = date.atTime(time);
                 endDate = startDate.plusMinutes(resource.getTimeInterval().getMinutes());
             }
+
+            // 중복 예약 체크
+            Boolean isDuplicate;
+            if(!(resource.getResourceGroup().getCategory() == ServiceCategory.EVENT)) {
+                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), startDate, endDate);
+            } else {
+                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+            }
+            if (isDuplicate) {
+                throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
+            }
+
+            // TODO : 범위 내 날짜, 시간 체크
 
             // 정원 초과 체크
             if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 수용 가능
@@ -73,17 +83,6 @@ public class ReservationDto {
                 if((currentCount >= resource.getCapacity())) {
                     throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
                 }
-            }
-
-            // 중복 예약 체크
-            Boolean isDuplicate;
-            if(!(resource.getResourceGroup().getCategory() == ServiceCategory.EVENT)) {
-                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(userId, resource.getId(), startDate, endDate);
-            } else {
-                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(userId, resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
-            }
-            if (isDuplicate) {
-                throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
             }
 
             // 예약 Entity 반환
