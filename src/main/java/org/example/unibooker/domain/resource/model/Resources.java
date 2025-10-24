@@ -33,6 +33,9 @@ public class Resources extends BaseEntity {
     @Column(length = 500)
     private String description;
 
+    /** 리소스 이미지 */
+    private String resourceImage;
+
     /** 활성화 여부 */
     @Column(nullable = false)
     @Builder.Default
@@ -77,11 +80,6 @@ public class Resources extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_group_id")
     private ResourceGroups resourceGroup;
-
-    /** 리소스 이미지 목록 */
-    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ResourceImages> resourceImages = new ArrayList<>();
 
     /** 생성자 */
     @ManyToOne(fetch = FetchType.LAZY)

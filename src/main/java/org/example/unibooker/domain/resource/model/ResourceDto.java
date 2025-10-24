@@ -29,8 +29,8 @@ public class ResourceDto {
         @Schema(description = "서비스가 속한 그룹 ID", example = "1")
         private Long resourceGroupId;
 
-        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]")
-        private List<ResourceImages> resourceImageUrls;
+        @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
+        private String resourceImage;
 
         @Schema(description = "시작 날짜", example = "2025.10.16", nullable = true)
         private LocalDate startDate;
@@ -79,12 +79,6 @@ public class ResourceDto {
             if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
                 throw new IllegalArgumentException("종료시간은 시작시간보다 늦어야 합니다.");
             }
-            /*
-            // 시간 간격 체크
-            if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
-                throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
-            }
-            */
         }
 
         public Resources toEntity(ResourceGroups group) {
@@ -105,6 +99,7 @@ public class ResourceDto {
             return Resources.builder()
                     .name(name)
                     .description(description)
+                    .resourceImage(resourceImage)
                     .resourceGroup(group)
                     .startDate(startDate)
                     .endDate(endDate)
@@ -131,8 +126,8 @@ public class ResourceDto {
         @Schema(description = "서비스 설명", example = "회의실 101 예약용")
         private String description;
 
-        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]")
-        private List<String> resourceImageUrls;
+        @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
+        private String resourceImage;
 
         @Schema(description = "시작 날짜", example = "2025.10.16", nullable = true)
         private LocalDate startDate;
@@ -169,11 +164,7 @@ public class ResourceDto {
             return new ResourceUpdateRes(
                     resource.getName(),
                     resource.getDescription(),
-                    resource.getResourceImages() != null
-                            ? resource.getResourceImages().stream()
-                            .map(img -> img.getResourceImage())
-                            .collect(Collectors.toList())
-                            : null,
+                    resource.getResourceImage(),
                     resource.getStartDate(),
                     resource.getEndDate(),
                     resource.getStartTime(),
@@ -240,9 +231,7 @@ public class ResourceDto {
                     resource.getId(),
                     resource.getName(),
                     resource.getDescription(),
-                    resource.getResourceImages() != null && !resource.getResourceImages().isEmpty()
-                            ? resource.getResourceImages().get(0).getResourceImage()
-                            : null,
+                    resource.getResourceImage(),
                     resource.getStatus(),
                     resource.getCreatedBy() != null ? resource.getCreatedBy().getName() : null,
                     resource.getUpdatedAt() != null ? resource.getUpdatedAt().format(DATE_FORMATTER) : null,
@@ -281,8 +270,8 @@ public class ResourceDto {
         @Schema(description = "서비스 설명", example = "회의실 101 예약용")
         private String description;
 
-        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\"]")
-        private List<String> resourceImageUrls;
+        @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
+        private String resourceImage;
 
         @Schema(description = "시작 날짜", example = "2025-10-16", nullable = true)
         private LocalDate startDate;
@@ -297,7 +286,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private TimeIntervalType timeInterval; // private Integer timeInterval;
+        private int timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -313,17 +302,6 @@ public class ResourceDto {
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
         private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
-
-        // 입력값 검증 함수
-        public void validate() {
-            /*
-            if (timeInterval != null && timeInterval != 30 && timeInterval != 60) {
-                throw new IllegalArgumentException("timeInterval은 30 또는 60만 허용됩니다.");
-            }
-            */
-
-            // 필요하다면 다른 필드 검증도 여기에 넣기
-        }
     }
 
 
