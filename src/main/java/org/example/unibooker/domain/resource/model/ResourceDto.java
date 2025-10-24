@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -215,6 +217,24 @@ public class ResourceDto {
         @Schema(description = "서비스 상태", example = "PROGRESS_BEFORE/PROGRESS_BEFORE/CLOSE")
         private ResourceStatus status;
 
+        @Schema(description = "생성자 이름", example = "김한화")
+        private String createdByName;
+
+        @Schema(description = "생성일자", example = "2025.10.20")
+        private String updatedAt;
+
+        @Schema(description = "시작시간", example = "12:00")
+        private String startTime;
+
+        @Schema(description = "종료시간", example = "17:00")
+        private String endTime;
+
+        @Schema(description = "인원수", example = "7")
+        private String capacity;
+
+        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
         public static ResourceListInfo fromEntity(Resources resource) {
             return new ResourceListInfo(
                     resource.getId(),
@@ -223,7 +243,12 @@ public class ResourceDto {
                     resource.getResourceImages() != null && !resource.getResourceImages().isEmpty()
                             ? resource.getResourceImages().get(0).getResourceImage()
                             : null,
-                    resource.getStatus()
+                    resource.getStatus(),
+                    resource.getCreatedBy() != null ? resource.getCreatedBy().getName() : null,
+                    resource.getUpdatedAt() != null ? resource.getUpdatedAt().format(DATE_FORMATTER) : null,
+                    resource.getStartTime() != null ? resource.getStartTime().format(TIME_FORMATTER) : null,
+                    resource.getEndTime() != null ? resource.getEndTime().format(TIME_FORMATTER) : null,
+                    resource.getCapacity() != null ? resource.getCapacity().toString() : null
             );
         }
     }
