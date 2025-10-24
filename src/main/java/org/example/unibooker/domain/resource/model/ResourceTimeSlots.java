@@ -3,7 +3,6 @@ package org.example.unibooker.domain.resource.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.unibooker.common.BaseEntity;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalTime;
 
@@ -35,9 +34,4 @@ public class ResourceTimeSlots extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
-    // 예약 여부
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean isReserved = false;
 }
