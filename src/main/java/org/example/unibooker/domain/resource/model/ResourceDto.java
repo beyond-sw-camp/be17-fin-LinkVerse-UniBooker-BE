@@ -145,7 +145,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval;
+        private TimeIntervalType timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
