@@ -37,5 +37,5 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
     private Boolean isClosed = true;
 
     // 비고
-    private Character note;
+    private String note;
 }
