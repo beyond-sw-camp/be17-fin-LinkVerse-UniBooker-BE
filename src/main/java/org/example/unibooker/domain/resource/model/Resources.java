@@ -90,6 +90,7 @@ public class Resources extends BaseEntity {
 
     /** 예외 타임 슬롯 */
     @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ResourceTimeSlotExceptions> timeSlotExceptions = new ArrayList<>();
 
     @Version
@@ -153,5 +154,10 @@ public class Resources extends BaseEntity {
     public void addTimeSlot(ResourceTimeSlots slot) {
         slot.setResources(this);
         this.timeSlots.add(slot);
+    }
+
+    public void addTimeSlotException(ResourceTimeSlotExceptions exception) {
+        timeSlotExceptions.add(exception);
+        exception.setResources(this);
     }
 }
