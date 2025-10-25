@@ -57,7 +57,7 @@ public class ResourceDto {
         private List<TimeSlotDto.TimeSlotRequest> timeSlots;
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
-        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+        private List<TimeSlotDto.ExceptionSlotRequest> exceptionSlots;
 
         // 입력값 검증 함수
         public void validate() {
