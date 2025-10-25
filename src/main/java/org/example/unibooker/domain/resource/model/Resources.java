@@ -33,6 +33,9 @@ public class Resources extends BaseEntity {
     @Column(length = 500)
     private String description;
 
+    /** 리소스 이미지 */
+    private String resourceImage;
+
     /** 활성화 여부 */
     @Column(nullable = false)
     @Builder.Default
@@ -45,14 +48,6 @@ public class Resources extends BaseEntity {
     /** 예약 종료일 */
     @Column(nullable = true)
     private LocalDate endDate;
-
-    /** 예약 시작 시간 */
-    @Column(nullable = true)
-    private LocalTime startTime;
-
-    /** 예약 종료 시간 */
-    @Column(nullable = true)
-    private LocalTime endTime;
 
     /** 시간 간격 */
     @Column(nullable = true)
@@ -78,11 +73,6 @@ public class Resources extends BaseEntity {
     @JoinColumn(name = "resource_group_id")
     private ResourceGroups resourceGroup;
 
-    /** 리소스 이미지 목록 */
-    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ResourceImages> resourceImages = new ArrayList<>();
-
     /** 생성자 */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -95,6 +85,7 @@ public class Resources extends BaseEntity {
 
     /** 타임 슬롯 */
     @OneToMany(mappedBy = "resources",  cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ResourceTimeSlots> timeSlots = new ArrayList<>();
 
     /** 예외 타임 슬롯 */
@@ -138,14 +129,14 @@ public class Resources extends BaseEntity {
             this.status = ResourceStatus.PROGRESS_BEFORE;
         }
 
+        int intervalMinutes = dto.getTimeInterval();
+        this.timeInterval = TimeIntervalType.fromMinutes(intervalMinutes);
+
         // 필드 업데이트 (null 체크)
         if (dto.getName() != null) this.name = dto.getName();
         if (dto.getDescription() != null) this.description = dto.getDescription();
         if (dto.getStartDate() != null) this.startDate = dto.getStartDate();
         if (dto.getEndDate() != null) this.endDate = dto.getEndDate();
-        if (dto.getStartTime() != null) this.startTime = dto.getStartTime();
-        if (dto.getEndTime() != null) this.endTime = dto.getEndTime();
-        if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval(); // if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval();
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();
@@ -157,5 +148,10 @@ public class Resources extends BaseEntity {
 
     public void setUpdateStatus(ResourceStatus resourceStatus) {
         this.status = resourceStatus;
+    }
+
+    public void addTimeSlot(ResourceTimeSlots slot) {
+        slot.setResources(this);
+        this.timeSlots.add(slot);
     }
 }
