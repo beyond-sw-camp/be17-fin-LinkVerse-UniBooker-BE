@@ -8,6 +8,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Schema(description = "리소스 타임슬롯 정보 DTO")
 public class TimeSlotDto {
@@ -69,16 +70,24 @@ public class TimeSlotDto {
         private String dayOfWeek;
 
         @Schema(description = "시작 시간", example = "10:00")
-        private String startTime;
+        private LocalTime startTime;
 
         @Schema(description = "종료 시간", example = "17:00")
-        private String endTime;
+        private LocalTime endTime;
 
-        public static TimeSlotResponse from(ResourceTimeSlots slot) {
+        public static TimeSlotResponse fromEntity(ResourceTimeSlots slot) {
             return TimeSlotResponse.builder()
                     .dayOfWeek(slot.getDayOfWeek().name())
-                    .startTime(slot.getStartTime().toString())
-                    .endTime(slot.getEndTime().toString())
+                    .startTime(slot.getStartTime())
+                    .endTime(slot.getEndTime())
+                    .build();
+        }
+
+        public static TimeSlotResponse from(LocalTime startTime, LocalTime endTime, DayOfWeek dayOfWeek) {
+            return TimeSlotResponse.builder()
+                    .dayOfWeek(dayOfWeek.name())
+                    .startTime(startTime)
+                    .endTime(endTime)
                     .build();
         }
     }
@@ -91,10 +100,10 @@ public class TimeSlotDto {
         private String date;
 
         @Schema(description = "시작 시간", example = "10:00")
-        private String startTime;
+        private LocalTime startTime;
 
         @Schema(description = "종료 시간", example = "17:00")
-        private String endTime;
+        private LocalTime endTime;
 
         @Schema(description = "휴무 여부", example = "true")
         private boolean isClosed;
@@ -102,13 +111,33 @@ public class TimeSlotDto {
         @Schema(description = "비고", example = "공휴일")
         private String note;
 
-        public static TimeSlotExceptionResponse from(ResourceTimeSlotExceptions ex) {
+        public static TimeSlotExceptionResponse fromEntity(ResourceTimeSlotExceptions ex) {
             return TimeSlotExceptionResponse.builder()
                     .date(ex.getDate().toString())
-                    .startTime(ex.getStartTime().toString())
-                    .endTime(ex.getEndTime().toString())
+                    .startTime(ex.getStartTime())
+                    .endTime(ex.getEndTime())
                     .isClosed(ex.getIsClosed())
                     .note(ex.getNote() == null ? "" : String.valueOf(ex.getNote()))
+                    .build();
+        }
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class DailyTimeSlotResponse {
+        private String date; // yyyy-MM-dd
+        private boolean isClosed; // 휴무 여부
+        private List<TimeSlotResponse> slots; // 정규 시간 슬롯
+        private String note;
+
+        public static DailyTimeSlotResponse fromEntity(LocalDate date, boolean isClosed, String note, List<TimeSlotDto.TimeSlotResponse> slotResponses) {
+            return DailyTimeSlotResponse.builder()
+                    .date(date.toString())
+                    .isClosed(isClosed)
+                    .note(note)
+                    .slots(slotResponses)
                     .build();
         }
     }

@@ -10,5 +10,9 @@ import java.util.List;
 
 @Repository
 public interface ResourceTimeSlotExceptionRepository extends JpaRepository<ResourceTimeSlotExceptions, Long> {
-    List<ResourceTimeSlotExceptions> findAllByResourcesId(Long resourceId);
+
+    // 특정 리소스 예외시간 슬롯 조회
+    List<ResourceTimeSlotExceptions> findByResources_Id(Long resourceId);
+
+    List<ResourceTimeSlotExceptions> findByResources_IdAndDateBetween(Long resourceId, LocalDate start, LocalDate end);
 }

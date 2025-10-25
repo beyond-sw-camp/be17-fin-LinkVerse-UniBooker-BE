@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.TimeSlotDto;
 import org.example.unibooker.domain.resource.service.TimeSlotService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,11 +21,15 @@ public class TimeSlotController {
     // 타임슬롯, 예외타임슬롯 생성은 리소스 생성할 때 같이 생성됩니다.
 
 
-    // ---------------- 단건 조회 ----------------
-    @Operation(summary = "타임슬롯 조회", description = "서비스에 대한 타임슬롯을 조회합니다.")
-    @GetMapping("/{resourceId}")
-    public BaseResponse<List<TimeSlotDto.TimeSlotResponse>> getTimeSlots(@PathVariable Long resourceId) {
-        List<TimeSlotDto.TimeSlotResponse> response = timeSlotService.getTimeSlots(resourceId);
-        return BaseResponse.success(response);
+    // ---------------- 조회 ----------------
+    @GetMapping("/{resourceId}/timeslots/exceptions")
+    public List<TimeSlotDto.DailyTimeSlotResponse> getTimeSlots(
+            @PathVariable Long resourceId,
+            @RequestParam int year,
+            @RequestParam int month,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int pageSize) {
+
+        return timeSlotService.getTimeSlotsWithExceptions(resourceId, year, month, page, pageSize);
     }
 }
