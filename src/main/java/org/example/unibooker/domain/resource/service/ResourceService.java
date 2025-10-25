@@ -35,7 +35,6 @@ public class ResourceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         Resources resource = dto.toEntity(group);
-        resource.setTimeInterval(TimeIntervalType.fromMinutes(dto.getTimeInterval()));
         resourceRepository.save(resource);
 
         // 시간 슬롯 생성

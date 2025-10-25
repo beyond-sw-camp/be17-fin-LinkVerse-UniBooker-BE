@@ -39,7 +39,7 @@ public class ResourceDto {
         private LocalDate endDate;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval; // private Integer timeInterval;
+        private int timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -69,6 +69,10 @@ public class ResourceDto {
             if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
                 throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
             }
+            // 시간 간격 검증
+            if (timeInterval != 30 && timeInterval != 60) {
+                throw new IllegalArgumentException("timeInterval은 30 또는 60만 가능합니다.");
+            }
         }
 
         public Resources toEntity(ResourceGroups group) {
@@ -93,7 +97,7 @@ public class ResourceDto {
                     .resourceGroup(group)
                     .startDate(startDate)
                     .endDate(endDate)
-                    .timeInterval(TimeIntervalType.fromMinutes(this.timeInterval))
+                    .timeInterval(timeInterval)
                     .capacity(capacity)
                     .row(row)
                     .col(col)
@@ -124,7 +128,7 @@ public class ResourceDto {
         private LocalDate endDate;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private TimeIntervalType timeInterval;
+        private int timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
