@@ -556,32 +556,54 @@ public class AuthDto {
     // ========== Refresh Token 관련 DTO ==========
 
     /**
-     * Refresh Token 요청 DTO
-     */
-    @Getter
-    @Schema(description = "Refresh Token 갱신 요청")
-    public static class RefreshTokenRequest {
-
-        @Schema(description = "Refresh Token", example = "eyJhbGciOiJIUzI1NiJ9...")
-        private String refreshToken;
-    }
-
-    /**
      * Refresh Token 응답 DTO
+     * - Access Token은 HttpOnly Cookie로 전달되므로 Response Body에서 제외
      */
     @Getter
     @Builder
     @Schema(description = "Refresh Token 갱신 응답")
     public static class RefreshTokenResponse {
 
-        @Schema(description = "새로운 Access Token", example = "eyJhbGciOiJIUzI1NiJ9...")
-        private String accessToken;
-
-        @Schema(description = "새로운 Refresh Token (Rotation 적용 시)", example = "eyJhbGciOiJIUzI1NiJ9...")
-        private String refreshToken;
-
         @Schema(description = "사용자 ID", example = "123")
         private Long userId;
+
+        @Schema(description = "갱신 성공 메시지", example = "Access Token이 갱신되었습니다.")
+        private String message;
+    }
+
+    /**
+     * Refresh Token 응답 DTO (내부 전달용)
+     * - Service → Controller 간 토큰 전달
+     * - Controller에서 Cookie 설정 후 RefreshTokenResponse로 변환
+     */
+    @Getter
+    @Builder
+    @Schema(hidden = true, description = "Refresh Token 갱신 응답 (내부 전달용)")
+    public static class RefreshTokenResponseWithToken {
+
+        // ===== 토큰 (내부 전달용) =====
+
+        private String accessToken;
+        private UserRole role;  // ← 추가
+
+        // @Schema(description = "새로운 Refresh Token (Rotation 적용 시)")
+        // private String refreshToken;  // Rotation 적용 시 활성화
+
+        // ===== 클라이언트 응답 필드 =====
+
+        private Long userId;
+        private String message;
+
+        /**
+         * 클라이언트 응답 DTO로 변환
+         * - 토큰 제외한 정보만 반환
+         */
+        public RefreshTokenResponse toResponse() {
+            return RefreshTokenResponse.builder()
+                    .userId(this.userId)
+                    .message(this.message)
+                    .build();
+        }
     }
 
     /**
@@ -594,5 +616,8 @@ public class AuthDto {
 
         @Schema(description = "성공 메시지", example = "로그아웃되었습니다.")
         private String message;
+
+        @Schema(description = "로그아웃 일시", example = "2025-10-25T15:00:00")
+        private LocalDateTime logoutAt;  // ← 추가
     }
 }

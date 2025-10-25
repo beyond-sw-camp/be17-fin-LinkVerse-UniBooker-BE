@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -40,11 +41,16 @@ public class AuthService {
 
     /**
      * 일반 사용자 로그인 (USER)
-     * - 이메일 + companyId로 조회
+     * - 이메일 + companyId + role(USER)로 조회
      */
-    public UserDto.LoginResponse loginWithCompany(String email, String password, Long companyId) {
-        // 1. 사용자 조회
-        Users user = userRepository.findByEmailAndCompanyId(email, companyId)
+    public UserDto.LoginResponseWithToken loginWithCompany(String email, String password, Long companyId) {
+        // 1. 사용자 조회 (USER role 명시, DELETED 제외)
+        Users user = userRepository.findByEmailAndCompanyIdAndRoleAndStatusNot(
+                        email,
+                        companyId,
+                        UserRole.USER,  // ← role 명시 추가
+                        UserStatus.DELETED
+                )
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 계정 상태 검증
@@ -69,7 +75,7 @@ public class AuthService {
      * 관리자/매니저 로그인 (ADMIN/MANAGER)
      * - 이메일로만 조회, ADMIN 또는 MANAGER 권한
      */
-    public UserDto.LoginResponse loginWithRoles(String email, String password, List<UserRole> roles) {
+    public UserDto.LoginResponseWithToken loginWithRoles(String email, String password, List<UserRole> roles) {
         // 1. 사용자 조회
         Users user = userRepository.findByEmailAndRoleIn(email, roles)
                 .stream()
@@ -98,7 +104,7 @@ public class AuthService {
      * 슈퍼 관리자 로그인 (SUPER)
      * - 이메일로만 조회, SUPER 권한만
      */
-    public UserDto.LoginResponse loginWithRole(String email, String password, UserRole role) {
+    public UserDto.LoginResponseWithToken loginWithRole(String email, String password, UserRole role) {
         // 1. 사용자 조회
         Users user = userRepository.findByEmailAndRoleIn(email, List.of(role))
                 .stream()
@@ -143,11 +149,12 @@ public class AuthService {
     }
 
     /**
-     * 로그인 응답 생성
+     * 로그인 응답 생성 (내부 전달용)
      * - Access Token 및 Refresh Token 발급
      * - Refresh Token을 저장소에 저장
+     * - Controller에서 Cookie 설정 후 LoginResponse로 변환
      */
-    private UserDto.LoginResponse createLoginResponse(Users user, Companies company) {
+    private UserDto.LoginResponseWithToken createLoginResponse(Users user, Companies company) {
         // JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(user);
         String refreshToken = jwtUtil.createRefreshToken(user);
@@ -161,7 +168,7 @@ public class AuthService {
 
         log.info("로그인 성공 - userId: {}, role: {}", user.getId(), user.getRole());
 
-        return UserDto.LoginResponse.builder()
+        return UserDto.LoginResponseWithToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .userId(user.getId())
@@ -175,12 +182,13 @@ public class AuthService {
     }
 
     /**
-     * Refresh Token으로 Access Token 갱신
+     * Refresh Token으로 Access Token 갱신 (내부 전달용)
      * - Refresh Token 유효성 검증
      * - 저장소에서 토큰 확인
      * - 새로운 Access Token 발급
+     * - Controller에서 Cookie 설정 후 RefreshTokenResponse로 변환
      */
-    public AuthDto.RefreshTokenResponse refreshAccessToken(String refreshToken) {
+    public AuthDto.RefreshTokenResponseWithToken refreshAccessToken(String refreshToken) {
         // 1. Refresh Token 형식 검증
         if (!jwtUtil.validateRefreshToken(refreshToken)) {
             log.warn("유효하지 않은 Refresh Token 형식");
@@ -217,12 +225,14 @@ public class AuthService {
         // String newRefreshToken = jwtUtil.createRefreshToken(user);
         // tokenStorageService.saveRefreshToken(userId, newRefreshToken, 604800000L);
 
-        log.info("Access Token 갱신 성공 - userId: {}", userId);
+        log.info("Access Token 갱신 성공 - userId: {}, role: {}", userId, user.getRole());
 
-        return AuthDto.RefreshTokenResponse.builder()
+        return AuthDto.RefreshTokenResponseWithToken.builder()
                 .accessToken(newAccessToken)
+                .role(user.getRole())  // ← 추가
                 // .refreshToken(newRefreshToken)  // Rotation 적용 시
                 .userId(userId)
+                .message("Access Token이 갱신되었습니다.")
                 .build();
     }
 
@@ -237,6 +247,7 @@ public class AuthService {
 
         return AuthDto.LogoutResponse.builder()
                 .message("로그아웃되었습니다.")
+                .logoutAt(LocalDateTime.now())  // ← 추가
                 .build();
     }
 
