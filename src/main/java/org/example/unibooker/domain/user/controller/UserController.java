@@ -69,9 +69,7 @@ public class UserController {
         accessTokenCookie.setHttpOnly(true);    // JavaScript 접근 불가 (XSS 방어)
         accessTokenCookie.setSecure(false);     // 개발: false, 운영: true (HTTPS)
         accessTokenCookie.setPath("/");         // 모든 경로에서 사용
-        accessTokenCookie.setMaxAge(30 * 60);   // 30분 (초 단위)
-        // accessTokenCookie.setAttribute("SameSite", "Lax");  // CSRF 방어 (Spring Boot 2.6+)
-
+        accessTokenCookie.setMaxAge(15 * 60);   // 15분 (초 단위)
         response.addCookie(accessTokenCookie);
 
         // Refresh Token을 HttpOnly Cookie에 저장
