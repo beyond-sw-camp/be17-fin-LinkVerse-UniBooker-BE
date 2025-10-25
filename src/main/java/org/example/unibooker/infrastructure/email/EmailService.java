@@ -34,4 +34,14 @@ public interface EmailService {
      * @param serviceUrl 서비스 URL
      */
     void sendAdminApprovalEmail(String to, String name, String companyName, String tempPassword, String serviceUrl);
+
+    /**
+     * 비밀번호 찾기 이메일 발송
+     *
+     * @param to 수신자 이메일
+     * @param name 사용자 이름
+     * @param companyName 기업명
+     * @param tempPassword 임시 비밀번호
+     */
+    void sendPasswordResetEmail(String to, String name, String companyName, String tempPassword);
 }
