@@ -46,4 +46,8 @@ public class ResourceTimeSlots extends BaseEntity {
     public void setResources(Resources resources) {
         this.resources = resources;
     }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }

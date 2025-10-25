@@ -4,10 +4,7 @@ import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.resource.model.*;
-import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
-import org.example.unibooker.domain.resource.repository.ResourceCustomFieldValueRepository;
-import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
-import org.example.unibooker.domain.resource.repository.ResourceRepository;
+import org.example.unibooker.domain.resource.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +21,8 @@ public class ResourceService {
     private final ResourceGroupRepository resourceGroupRepository;
     private final CustomFieldDefinitionRepository customFieldDefinitionRepository;
     private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
+    private final ResourceTimeSlotRepository resourceTimeSlotRepository;
+    private final ResourceTimeSlotExceptionRepository resourceTimeSlotExceptionRepository;
 
 
     // -------------------- 리소스 등록 --------------------
@@ -120,13 +119,6 @@ public class ResourceService {
     }
 
 
-
-
-
-
-
-
-
     // -------------------- 리소스 목록 조회 --------------------
     public ResourceDto.ResourceListRes getAllResourcesByGroupId(Long serviceGroupId) {
         List<Resources> resources = resourceRepository
@@ -165,7 +157,59 @@ public class ResourceService {
         Resources resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스가 존재하지 않습니다."));
 
+        // 리소스 기본 정보 업데이트
         resource.update(dto);
+
+        // 정규 시간 슬롯 업데이트
+        List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+
+        List<TimeSlotDto.TimeSlotRequest> dtoSlots = dto.getTimeSlots();
+
+        for (ResourceTimeSlots slot : allSlots) {
+            boolean active = false;
+
+            if (dtoSlots != null && !dtoSlots.isEmpty()) {
+                for (TimeSlotDto.TimeSlotRequest ts : dtoSlots) {
+                    if (ts.getDays().contains(slot.getDayOfWeek())) {
+                        // DTO 범위 안에 slot이 들어있으면 활성화
+                        if (!slot.getStartTime().isBefore(ts.getStartTime()) && !slot.getEndTime().isAfter(ts.getEndTime())) {
+                            active = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            slot.setIsActive(active);
+        }
+
+
+
+        // 예외 시간 슬롯 업데이트
+        if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
+            // 기존 예외 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> existingExceptions =
+                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
+
+            // 새로운 예외 슬롯 추가
+            for (TimeSlotDto.ExceptionSlotRequest exDto : dto.getExceptionSlots()) {
+                ResourceTimeSlotExceptions ex = ResourceTimeSlotExceptions.builder()
+                        .resources(resource)
+                        .date(exDto.getDate())
+                        .startTime(exDto.getIsClosed() ? null : exDto.getStartTime())
+                        .endTime(exDto.getIsClosed() ? null : exDto.getEndTime())
+                        .isClosed(exDto.getIsClosed())
+                        .note(exDto.getNote())
+                        .build();
+                resourceTimeSlotExceptionRepository.save(ex);
+            }
+        } else {
+            // DTO에 예외 슬롯이 없으면 기존 예외 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> existingExceptions =
+                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
+        }
     }
 
 
@@ -180,8 +224,17 @@ public class ResourceService {
                 throw new IllegalArgumentException("이미 비활성화 또는 삭제된 리소스입니다.");
             }
 
+            // 리소스 비활성화 및 소프트 삭제
             resource.setIsActive(false);
             resource.softDelete();
+
+            // 연관 정규 시간 슬롯 소프트 삭제
+            List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+            allSlots.forEach(ResourceTimeSlots::softDelete);
+
+            // 연관 예외 시간 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> exceptionSlots = resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            exceptionSlots.forEach(ResourceTimeSlotExceptions::softDelete);
 
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 잠시 후 다시 시도해주세요.", e);

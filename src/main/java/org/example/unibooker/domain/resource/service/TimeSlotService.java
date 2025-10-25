@@ -26,6 +26,7 @@ public class TimeSlotService {
 
     // -------------------- 특정 리소스의 운영 시간 조회 --------------------
     // 예외 시간 적용한 운영시간입니다!! 따로 예외시간 처리할 필요 없어용
+    @Transactional
     public List<TimeSlotDto.DailyTimeSlotResponse> getTimeSlotsWithExceptions(
             Long resourceId, int year, int month, int page, int pageSize) {
 
@@ -37,7 +38,7 @@ public class TimeSlotService {
         LocalDate pageEnd = pageStart.plusDays(pageSize - 1);
         if (pageEnd.isAfter(monthEnd)) pageEnd = monthEnd;
 
-        // resource 단위 시간 간격 조회
+        // 리소스 단위 시간 간격 조회
         int intervalMinutes = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found"))
                 .getTimeInterval();
@@ -48,27 +49,24 @@ public class TimeSlotService {
             regularSlots.put(day, resourceTimeSlotRepository.findByResources_IdAndDayOfWeekAndIsActiveTrue(resourceId, day));
         }
 
-        // 예외 시간 슬롯 조회 (페이지 범위)
+        // 예외 시간 슬롯 조회 (deletedAt null 체크)
         List<ResourceTimeSlotExceptions> exceptions =
-                resourceTimeSlotExceptionRepository.findByResources_IdAndDateBetween(resourceId, pageStart, pageEnd);
+                resourceTimeSlotExceptionRepository.findByResources_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd);
         Map<LocalDate, List<ResourceTimeSlotExceptions>> exceptionMap =
                 exceptions.stream().collect(Collectors.groupingBy(ResourceTimeSlotExceptions::getDate));
 
         List<TimeSlotDto.DailyTimeSlotResponse> response = new ArrayList<>();
 
         for (LocalDate date = pageStart; !date.isAfter(pageEnd); date = date.plusDays(1)) {
-
             DayOfWeek dayOfWeek = mapJavaDayOfWeek(date.getDayOfWeek());
-
             boolean isClosed = false;
             String note = "";
             List<TimeSlotDto.TimeSlotResponse> slots = new ArrayList<>();
 
+            // -------------------- 예외 슬롯 처리 --------------------
             if (exceptionMap.containsKey(date)) {
                 for (ResourceTimeSlotExceptions ex : exceptionMap.get(date)) {
-                    if (ex.getNote() != null && note.isEmpty()) {
-                        note = ex.getNote();
-                    }
+                    if (ex.getNote() != null && note.isEmpty()) note = ex.getNote();
                     if (ex.getIsClosed()) {
                         isClosed = true;
                         slots.clear();
@@ -80,15 +78,19 @@ public class TimeSlotService {
                         while (start.isBefore(end)) {
                             LocalTime slotEnd = start.plusMinutes(intervalMinutes);
                             if (slotEnd.isAfter(end)) slotEnd = end;
-                            slots.add(TimeSlotDto.TimeSlotResponse.from(start, slotEnd, dayOfWeek));
+                            slots.add(TimeSlotDto.TimeSlotResponse.fromEntity(
+                                    ResourceTimeSlots.builder()
+                                            .dayOfWeek(dayOfWeek)
+                                            .startTime(start)
+                                            .endTime(slotEnd)
+                                            .build()
+                            ));
                             start = slotEnd;
                         }
                     }
                 }
-            }
-
-            // 예외 없는 경우 정규 슬롯 사용
-            if (!isClosed && slots.isEmpty()) {
+            } else {
+                // -------------------- 정규 슬롯 적용 --------------------
                 List<ResourceTimeSlots> dailySlots = regularSlots.getOrDefault(dayOfWeek, Collections.emptyList());
                 for (ResourceTimeSlots slot : dailySlots) {
                     LocalTime start = slot.getStartTime();
@@ -96,25 +98,30 @@ public class TimeSlotService {
                     while (start.isBefore(end)) {
                         LocalTime slotEnd = start.plusMinutes(intervalMinutes);
                         if (slotEnd.isAfter(end)) slotEnd = end;
-                        slots.add(TimeSlotDto.TimeSlotResponse.from(start, slotEnd, dayOfWeek));
+                        slots.add(TimeSlotDto.TimeSlotResponse.fromEntity(
+                                ResourceTimeSlots.builder()
+                                        .dayOfWeek(dayOfWeek)
+                                        .startTime(start)
+                                        .endTime(slotEnd)
+                                        .build()
+                        ));
                         start = slotEnd;
                     }
                 }
             }
 
             // 시간 기준 정렬
-            slots.sort(Comparator.comparing(s -> LocalTime.parse(s.getStartTime().toString())));
+            slots.sort(Comparator.comparing(TimeSlotDto.TimeSlotResponse::getStartTime));
 
-            response.add(TimeSlotDto.DailyTimeSlotResponse.fromEntity(
-                    date, isClosed, note, slots
-            ));
+            // DailyTimeSlotResponse 생성
+            response.add(TimeSlotDto.DailyTimeSlotResponse.fromEntity(date, isClosed, note, slots));
         }
 
         return response;
     }
 
 
-    // java.time.DayOfWeek -> 커스텀 DayOfWeek 매핑
+    // DayOfWeek 매핑
     private DayOfWeek mapJavaDayOfWeek(java.time.DayOfWeek javaDay) {
         switch (javaDay) {
             case MONDAY: return DayOfWeek.MON;
@@ -127,6 +134,7 @@ public class TimeSlotService {
             default: throw new IllegalArgumentException("Unknown day: " + javaDay);
         }
     }
+
 
 
 

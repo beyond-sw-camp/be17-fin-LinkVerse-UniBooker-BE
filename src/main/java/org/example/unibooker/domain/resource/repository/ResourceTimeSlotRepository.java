@@ -16,4 +16,6 @@ public interface ResourceTimeSlotRepository extends JpaRepository<ResourceTimeSl
 
     // 특정 리소스의 모든 활성화된 시간 슬롯 조회
     List<ResourceTimeSlots> findByResources_IdAndIsActiveTrue(Long resourceId);
+
+    List<ResourceTimeSlots> findByResources_Id(Long resourceId);
 }
