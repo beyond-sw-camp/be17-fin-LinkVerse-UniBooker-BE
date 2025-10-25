@@ -54,7 +54,7 @@ public class ResourceDto {
         private List<CustomFieldDto.CustomFieldValue> customFieldValues;
 
         @Schema(description = "타임슬롯 목록", nullable = true)
-        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+        private List<TimeSlotDto.TimeSlotRequest> timeSlots;
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
         private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
