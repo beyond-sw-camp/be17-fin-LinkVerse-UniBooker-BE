@@ -38,12 +38,6 @@ public class ResourceDto {
         @Schema(description = "종료 날짜", example = "2025.10.18", nullable = true)
         private LocalDate endDate;
 
-        @Schema(description = "시작 시간", example = "12:00", nullable = true)
-        private LocalTime startTime;
-
-        @Schema(description = "종료 시간", example = "19:00", nullable = true)
-        private LocalTime endTime;
-
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
         private int timeInterval; // private Integer timeInterval;
 
@@ -75,10 +69,6 @@ public class ResourceDto {
             if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
                 throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
             }
-            // 시작시간/종료시간 체크
-            if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
-                throw new IllegalArgumentException("종료시간은 시작시간보다 늦어야 합니다.");
-            }
         }
 
         public Resources toEntity(ResourceGroups group) {
@@ -103,8 +93,6 @@ public class ResourceDto {
                     .resourceGroup(group)
                     .startDate(startDate)
                     .endDate(endDate)
-                    .startTime(startTime)
-                    .endTime(endTime)
                     .timeInterval(TimeIntervalType.fromMinutes(this.timeInterval))
                     .capacity(capacity)
                     .row(row)
@@ -135,12 +123,6 @@ public class ResourceDto {
         @Schema(description = "종료 날짜", example = "2025.10.18", nullable = true)
         private LocalDate endDate;
 
-        @Schema(description = "시작 시간", example = "12:00", nullable = true)
-        private LocalTime startTime;
-
-        @Schema(description = "종료 시간", example = "19:00", nullable = true)
-        private LocalTime endTime;
-
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
         private TimeIntervalType timeInterval;
 
@@ -167,8 +149,6 @@ public class ResourceDto {
                     resource.getResourceImage(),
                     resource.getStartDate(),
                     resource.getEndDate(),
-                    resource.getStartTime(),
-                    resource.getEndTime(),
                     resource.getTimeInterval(),
                     resource.getCapacity(),
                     resource.getRow(),
@@ -214,17 +194,10 @@ public class ResourceDto {
         @Schema(description = "생성일자", example = "2025.10.20")
         private String updatedAt;
 
-        @Schema(description = "시작시간", example = "12:00")
-        private String startTime;
-
-        @Schema(description = "종료시간", example = "17:00")
-        private String endTime;
-
         @Schema(description = "인원수", example = "7")
         private String capacity;
 
         private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
         public static ResourceListInfo fromEntity(Resources resource) {
             return new ResourceListInfo(
@@ -235,8 +208,6 @@ public class ResourceDto {
                     resource.getStatus(),
                     resource.getCreatedBy() != null ? resource.getCreatedBy().getName() : null,
                     resource.getUpdatedAt() != null ? resource.getUpdatedAt().format(DATE_FORMATTER) : null,
-                    resource.getStartTime() != null ? resource.getStartTime().format(TIME_FORMATTER) : null,
-                    resource.getEndTime() != null ? resource.getEndTime().format(TIME_FORMATTER) : null,
                     resource.getCapacity() != null ? resource.getCapacity().toString() : null
             );
         }

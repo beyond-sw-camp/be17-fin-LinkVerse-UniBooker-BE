@@ -49,14 +49,6 @@ public class Resources extends BaseEntity {
     @Column(nullable = true)
     private LocalDate endDate;
 
-    /** 예약 시작 시간 */
-    @Column(nullable = true)
-    private LocalTime startTime;
-
-    /** 예약 종료 시간 */
-    @Column(nullable = true)
-    private LocalTime endTime;
-
     /** 시간 간격 */
     @Column(nullable = true)
     private TimeIntervalType timeInterval; // private int timeInterval;
@@ -144,8 +136,6 @@ public class Resources extends BaseEntity {
         if (dto.getDescription() != null) this.description = dto.getDescription();
         if (dto.getStartDate() != null) this.startDate = dto.getStartDate();
         if (dto.getEndDate() != null) this.endDate = dto.getEndDate();
-        if (dto.getStartTime() != null) this.startTime = dto.getStartTime();
-        if (dto.getEndTime() != null) this.endTime = dto.getEndTime();
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();
