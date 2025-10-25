@@ -36,20 +36,24 @@ public class ResourceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         Resources resource = dto.toEntity(group);
-//        resource.setTimeInterval(dto.getTimeInterval());
+        resource.setTimeInterval(TimeIntervalType.fromMinutes(dto.getTimeInterval()));
         resourceRepository.save(resource);
 
         // RESOURCE 커스텀 필드 값 저장
         if (dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
             for (CustomFieldDto.CustomFieldValue customValueDto : dto.getCustomFieldValues()) {
-                CustomFieldDefinitions field = customFieldDefinitionRepository.findByIdAndDeletedAtIsNull(customValueDto.getCustomFieldId())
+                CustomFieldDefinitions field = customFieldDefinitionRepository
+                        .findByIdAndDeletedAtIsNull(customValueDto.getCustomFieldId())
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + customValueDto.getCustomFieldId()));
 
                 // RESOURCE 타입만 저장
                 if (field.getTargetType() == CustomTargetType.RESOURCE) {
-                    ResourceCustomFieldValues value = customValueDto.toResourceEntity(field, resource.getId());
-                    resourceCustomFieldValueRepository.save(value);
+                    // 여러 개의 값이 있을 수 있으므로 반복 저장
+                    List<ResourceCustomFieldValues> values = customValueDto.toResourceEntities(field, resource.getId());
+                    for (ResourceCustomFieldValues value : values) {
+                        resourceCustomFieldValueRepository.save(value);
+                    }
                 }
             }
         }
