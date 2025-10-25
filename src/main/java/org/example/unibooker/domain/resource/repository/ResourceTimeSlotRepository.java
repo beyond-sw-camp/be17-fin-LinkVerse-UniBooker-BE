@@ -10,5 +10,7 @@ import java.util.List;
 
 @Repository
 public interface ResourceTimeSlotRepository extends JpaRepository<ResourceTimeSlots, Long> {
-    List<ResourceTimeSlots> findAllByResourcesIdAndIsActiveTrue(Long resourceId);
+
+    // resources.id와 isActive = true인 값 조회
+    List<ResourceTimeSlots> findByResources_IdAndIsActiveTrue(Long resourceId);
 }

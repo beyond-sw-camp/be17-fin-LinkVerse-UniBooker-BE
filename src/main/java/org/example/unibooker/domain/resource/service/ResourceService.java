@@ -46,8 +46,8 @@ public class ResourceService {
                 for (int i = 0; i < slotsPerDay; i++) {
                     LocalTime slotStart = LocalTime.of(0, 0).plusMinutes((long) i * intervalMinutes);
                     LocalTime slotEnd = slotStart.plusMinutes(intervalMinutes);
+
                     if (slotEnd.equals(LocalTime.MIDNIGHT)) {
-                        // DB에는 LocalTime이 24:00를 못 저장하므로 23:59:59로 처리
                         slotEnd = LocalTime.of(23, 59, 59);
                     }
 
@@ -55,18 +55,24 @@ public class ResourceService {
 
                     if (dto.getTimeSlots() != null) {
                         for (TimeSlotDto.TimeSlotRequest slotDto : dto.getTimeSlots()) {
-                            if (slotDto.getDays() != null && slotDto.getDays().contains(day)) {
-                                LocalTime targetStart = slotDto.getStartTime();
-                                LocalTime targetEnd = slotDto.getEndTime();
+                            if (slotDto.getDays() != null) {
+                                for (DayOfWeek dayEnum : slotDto.getDays()) { // 이미 Enum
+                                    if (dayEnum == day) { // Enum 비교
+                                        LocalTime targetStart = slotDto.getStartTime();
+                                        LocalTime targetEnd = slotDto.getEndTime();
 
-                                if ((slotStart.equals(targetStart) || slotStart.isAfter(targetStart))
-                                        && slotStart.isBefore(targetEnd)) {
-                                    active = true;
-                                    break;
+                                        if ((slotStart.equals(targetStart) || slotStart.isAfter(targetStart))
+                                                && slotStart.isBefore(targetEnd)) {
+                                            active = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
+                            if (active) break;
                         }
                     }
+
 
                     ResourceTimeSlots slot = ResourceTimeSlots.builder()
                             .resources(resource)
@@ -80,6 +86,7 @@ public class ResourceService {
                 }
             }
         }
+
 
         // 예외 시간 슬롯 생성
         if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
