@@ -5,6 +5,7 @@ import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.model.UserRole;
@@ -173,7 +174,7 @@ public class UserService {
      * - AuthService에 위임
      */
     @Transactional(readOnly = true)
-    public UserDto.LoginResponse login(UserDto.LoginRequest request) {
+    public UserDto.LoginResponseWithToken login(UserDto.LoginRequest request) {
         return authService.loginWithCompany(
                 request.getEmail(),
                 request.getPassword(),
@@ -182,23 +183,40 @@ public class UserService {
     }
 
     /**
-     * 로그아웃
+     * 현재 사용자 정보 조회 (헤더 인증 검증용)
      */
-    @Transactional
-    public UserDto.LogoutResponse logout(Long userId, UserDto.LogoutRequest request) {
+    @Transactional(readOnly = true)
+    public UserDto.CurrentUserResponse getCurrentUserInfo(Long userId) {
         // 1. 사용자 조회
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        // 2. 리프레시 토큰 무효화 처리 (Redis 등에서 삭제)
-        // TODO: Redis에서 refreshToken 제거 로직 구현
-        // jwtUtil.invalidateRefreshToken(request.getRefreshToken());
+        // 2. 기업 정보 조회
+        Companies company = null;
+        if (user.getCompanyId() != null) {
+            company = companyRepository.findById(user.getCompanyId())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+        }
 
-        // 3. 응답 생성
-        return UserDto.LogoutResponse.builder()
-                .message("로그아웃이 완료되었습니다.")
-                .logoutAt(LocalDateTime.now())
+        // 3. Response 생성
+        return UserDto.CurrentUserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .companyId(company != null ? company.getId() : null)
+                .companySlug(company != null ? company.getCompanySlug() : null)  // ← getSlug() → getCompanySlug()
+                .role(user.getRole())
+                .status(user.getStatus())
                 .build();
+    }
+
+    /**
+     * 로그아웃
+     * - AuthService에 위임
+     */
+    @Transactional
+    public AuthDto.LogoutResponse logout(Long userId) {
+        return authService.logout(userId);
     }
 
     /**
