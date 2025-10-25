@@ -28,7 +28,7 @@ public class TimeSlotController {
             @RequestParam int year,
             @RequestParam int month,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int pageSize) {
+            @RequestParam(defaultValue = "31") int pageSize) {
 
         return timeSlotService.getTimeSlotsWithExceptions(resourceId, year, month, page, pageSize);
     }
