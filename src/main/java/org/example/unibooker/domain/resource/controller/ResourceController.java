@@ -10,8 +10,6 @@ import org.example.unibooker.domain.resource.model.ResourceGroupDto;
 import org.example.unibooker.domain.resource.service.ResourceService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Tag(name = "리소스 관리", description = "리소스에 대한 값들을 관리합니다.")
 @RestController
 @RequiredArgsConstructor

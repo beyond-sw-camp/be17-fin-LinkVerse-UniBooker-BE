@@ -27,8 +27,8 @@ public class ResourceDto {
         @Schema(description = "서비스가 속한 그룹 ID", example = "1")
         private Long resourceGroupId;
 
-//        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]")
-//        private List<ResourceImages> resourceImageUrls;
+        @Schema(description = "서비스 이미지 URL 목록", example = "[\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]")
+        private List<ResourceImages> resourceImageUrls;
 
         @Schema(description = "시작 날짜", example = "2025.10.16", nullable = true)
         private LocalDate startDate;
@@ -43,7 +43,7 @@ public class ResourceDto {
         private LocalTime endTime;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private TimeIntervalType timeInterval; // private Integer timeInterval;
+        private int timeInterval; // private Integer timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -108,7 +108,7 @@ public class ResourceDto {
                     .endDate(endDate)
                     .startTime(startTime)
                     .endTime(endTime)
-                    .timeInterval(timeInterval)
+                    .timeInterval(TimeIntervalType.fromMinutes(this.timeInterval))
                     .capacity(capacity)
                     .row(row)
                     .col(col)

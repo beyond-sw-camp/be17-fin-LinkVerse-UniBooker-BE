@@ -123,6 +123,51 @@ public class UserController {
         return BaseResponse.success(logoutResponse);
     }
 
+    // ========== Refresh Token 갱신 ==========
+
+    /**
+     * Access Token 갱신
+     * - Refresh Token을 사용하여 새로운 Access Token 발급
+     */
+    @Operation(summary = "Access Token 갱신",
+            description = "Refresh Token을 사용하여 만료된 Access Token을 갱신합니다.")
+    @PostMapping("/refresh")
+    public BaseResponse<AuthDto.RefreshTokenResponse> refreshToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response) {
+
+        // Cookie에서 Refresh Token 없으면 에러
+        if (refreshToken == null) {
+            throw new RefreshTokenException.RefreshTokenNotFoundException();
+        }
+
+        // Access Token 갱신
+        AuthDto.RefreshTokenResponse tokenResponse = authService.refreshAccessToken(refreshToken);
+
+        // 새로운 Access Token을 HttpOnly Cookie에 저장
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenResponse.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(15 * 60);  // 15분
+
+        response.addCookie(accessTokenCookie);
+
+        // (선택) Refresh Token Rotation 적용 시
+        // if (tokenResponse.getRefreshToken() != null) {
+        //     Cookie refreshTokenCookie = new Cookie("refreshToken", tokenResponse.getRefreshToken());
+        //     refreshTokenCookie.setHttpOnly(true);
+        //     refreshTokenCookie.setSecure(false);
+        //     refreshTokenCookie.setPath("/");
+        //     refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+        //     response.addCookie(refreshTokenCookie);
+        // }
+
+        return BaseResponse.success(tokenResponse);
+    }
+
+
+
     // ========== 비밀번호 변경 ==========
 
     /**

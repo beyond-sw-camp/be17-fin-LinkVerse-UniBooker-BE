@@ -12,7 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class CustomFieldValueService {
 
     // -------------------- 커스텀 필드 값 저장 -------------------
     public List<Object> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
-        List<Object> savedUserCustomFieldValues = new ArrayList<>();
+        List<Object> savedEntities = new ArrayList<>();
 
         for (CustomFieldDto.CustomFieldValue dto : dtos) {
             CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
@@ -35,49 +38,110 @@ public class CustomFieldValueService {
                             "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + dto.getCustomFieldId()));
 
             if (field.getTargetType() == CustomTargetType.USER) {
-                savedUserCustomFieldValues.add(userFieldRepository.save(dto.toUserEntity(field, targetId)));
+                List<UserCustomFieldValues> entities = dto.toUserEntity(field, targetId); // 여러 엔티티 리스트
+                for (UserCustomFieldValues entity : entities) {
+                    savedEntities.add(userFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                }
 
             } else if (field.getTargetType() == CustomTargetType.RESOURCE) {
-                savedUserCustomFieldValues.add(resourceFieldRepository.save(dto.toResourceEntity(field, targetId)));
-
+                List<ResourceCustomFieldValues> entities = dto.toResourceEntities(field, targetId);
+                for (ResourceCustomFieldValues entity : entities) {
+                    savedEntities.add(resourceFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                }
             } else {
-                throw new IllegalArgumentException("알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId());
+                throw new IllegalArgumentException(
+                        "알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId()
+                );
             }
         }
 
-        return savedUserCustomFieldValues;
+        return savedEntities;
     }
 
 
+
+
     // -------------------- 리소스의 커스텀 필드 값 조회 --------------------
+    @Transactional(readOnly = true)
     public List<CustomFieldDto.CustomFieldValueListRes> getResourceFieldValues(Long resourceId) {
 
-        // 존재 여부 검증
+        // 리소스 존재 여부 검증
         if (!resourceRepository.existsById(resourceId)) {
             throw new IllegalArgumentException("존재하지 않는 리소스입니다. id=" + resourceId);
         }
 
-        // RESOURCE 필드 값 조회
-        return resourceFieldRepository.findByResourceIdAndDeletedAtIsNull(resourceId)
-                .stream()
-                .map(CustomFieldDto.CustomFieldValueListRes::fromResourceEntity)
-                .toList();
+        // 모든 RESOURCE 커스텀 필드 값 조회
+        List<ResourceCustomFieldValues> fieldValues = resourceFieldRepository
+                .findByResourceIdAndDeletedAtIsNull(resourceId);
+
+        // customFieldId 기준으로 그룹핑하여 values 리스트 생성
+        Map<Long, List<String>> groupedValues = fieldValues.stream()
+                .collect(Collectors.groupingBy(
+                        fv -> fv.getCustomFieldDefinition().getId(),
+                        LinkedHashMap::new, // 순서 유지
+                        Collectors.mapping(ResourceCustomFieldValues::getFieldValue, Collectors.toList())
+                ));
+
+        // DTO 생성
+        List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
+        for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
+            CustomFieldDefinitions field = fieldValues.stream()
+                    .filter(fv -> fv.getCustomFieldDefinition().getId().equals(entry.getKey()))
+                    .findFirst()
+                    .get()
+                    .getCustomFieldDefinition();
+
+            result.add(CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(field.getId())
+                    .fieldName(field.getFieldName())
+                    .values(entry.getValue())
+                    .build());
+        }
+
+        return result;
     }
 
 
+
     // -------------------- 예약의 사용자 커스텀 필드 값 조회 --------------------
+    @Transactional(readOnly = true)
     public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
 
         // 예약 존재 여부 검증
         var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
-        // USER 필드 값 조회
-        return userFieldRepository.findByReservationIdAndDeletedAtIsNull(reservation.getId())
-                .stream()
-                .map(CustomFieldDto.CustomFieldValueListRes::fromUserEntity)
-                .toList();
+        // USER 커스텀 필드 값 조회 (서비스 메서드 호출)
+        List<UserCustomFieldValues> fieldValues = userFieldRepository
+                .findByReservationIdAndDeletedAtIsNull(reservation.getId());
+
+        // customFieldId 기준으로 그룹핑하여 values 리스트 생성
+        Map<Long, List<String>> groupedValues = fieldValues.stream()
+                .collect(Collectors.groupingBy(
+                        fv -> fv.getCustomFieldDefinition().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(UserCustomFieldValues::getFieldValue, Collectors.toList())
+                ));
+
+        // DTO 생성
+        List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
+        for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
+            CustomFieldDefinitions field = fieldValues.stream()
+                    .filter(fv -> fv.getCustomFieldDefinition().getId().equals(entry.getKey()))
+                    .findFirst()
+                    .get()
+                    .getCustomFieldDefinition();
+
+            result.add(CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(field.getId())
+                    .fieldName(field.getFieldName())
+                    .values(entry.getValue())
+                    .build());
+        }
+
+        return result;
     }
+
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------
