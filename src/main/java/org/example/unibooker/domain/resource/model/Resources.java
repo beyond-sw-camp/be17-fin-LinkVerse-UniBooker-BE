@@ -136,6 +136,9 @@ public class Resources extends BaseEntity {
             this.status = ResourceStatus.PROGRESS_BEFORE;
         }
 
+        int intervalMinutes = dto.getTimeInterval();
+        this.timeInterval = TimeIntervalType.fromMinutes(intervalMinutes);
+
         // 필드 업데이트 (null 체크)
         if (dto.getName() != null) this.name = dto.getName();
         if (dto.getDescription() != null) this.description = dto.getDescription();
@@ -143,7 +146,6 @@ public class Resources extends BaseEntity {
         if (dto.getEndDate() != null) this.endDate = dto.getEndDate();
         if (dto.getStartTime() != null) this.startTime = dto.getStartTime();
         if (dto.getEndTime() != null) this.endTime = dto.getEndTime();
-        if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval(); // if (dto.getTimeInterval() != null) this.timeInterval = dto.getTimeInterval();
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();

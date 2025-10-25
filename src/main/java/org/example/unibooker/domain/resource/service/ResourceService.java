@@ -94,7 +94,6 @@ public class ResourceService {
     // -------------------- 리소스 수정 --------------------
     @Transactional
     public void update(Long resourceId, ResourceDto.ResourceUpdateReq dto) {
-        dto.validate();
 
         Resources resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스가 존재하지 않습니다."));

@@ -48,7 +48,7 @@ public class SuperController {
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(30 * 60);  // 30분
+        accessTokenCookie.setMaxAge(15 * 60);  // 30분
         response.addCookie(accessTokenCookie);
 
         // Refresh Token을 HttpOnly Cookie에 저장
@@ -65,15 +65,35 @@ public class SuperController {
     /**
      * 슈퍼 관리자 로그아웃
      * - Refresh Token 무효화
+     * - 쿠키 삭제 추가
      */
     @Operation(summary = "슈퍼 관리자 로그아웃",
             description = "현재 로그인 세션을 종료하고 Refresh Token을 무효화합니다.")
     @PostMapping("/logout")
     public BaseResponse<UserDto.LogoutResponse> logout(
             @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal Long userId, HttpServletResponse response) {
 
-        UserDto.LogoutResponse response = userService.logout(userId, request);
-        return BaseResponse.success(response);
+        UserDto.LogoutResponse logoutResponse = userService.logout(userId, request);
+
+        // ===== 쿠키 삭제 로직 추가 =====
+
+        // Access Token 쿠키 삭제
+        Cookie accessTokenCookie = new Cookie("accessToken", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);
+        response.addCookie(accessTokenCookie);
+
+        // Refresh Token 쿠키 삭제
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+        response.addCookie(refreshTokenCookie);
+
+        return BaseResponse.success(logoutResponse);
     }
 }
