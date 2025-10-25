@@ -181,10 +181,10 @@ public class ResourceDto {
                     resource.getRow(),
                     resource.getCol(),
                     Optional.ofNullable(resource.getTimeSlots())
-                    .orElse(List.of())
-                    .stream()
-                    .map(TimeSlotDto.TimeSlotResponse::from)
-                    .collect(Collectors.toList()),
+                            .orElse(List.of())
+                            .stream()
+                            .map(TimeSlotDto.TimeSlotResponse::from)
+                            .collect(Collectors.toList()),
                     Optional.ofNullable(resource.getTimeSlotExceptions())
                             .orElse(List.of())
                             .stream()

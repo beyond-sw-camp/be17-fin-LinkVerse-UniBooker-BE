@@ -62,7 +62,17 @@ public class AdminService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
-        this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder, emailService, baseUrl);
+
+        // ✅ 수정: authService와 emailService 순서 변경
+        this.approvalService = new Approval(
+                companyRepository,
+                userRepository,
+                passwordEncoder,
+                authService,       // authService가 먼저
+                emailService,      // emailService가 나중
+                baseUrl
+        );
+
         this.managerManagement = new ManagerManagement(userRepository, companyRepository, passwordEncoder, emailService);
         this.authService = authService;
     }
@@ -317,6 +327,7 @@ public class AdminService {
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
         private final EmailService emailService;
+        private final AuthService authService;
         private final String baseUrl;
 
         private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -329,12 +340,14 @@ public class AdminService {
         public Approval(CompanyRepository companyRepository,
                         UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
+                        AuthService authService,
                         EmailService emailService,
                         String baseUrl) {
             this.companyRepository = companyRepository;
             this.userRepository = userRepository;
             this.passwordEncoder = passwordEncoder;
             this.emailService = emailService;
+            this.authService = authService;
             this.baseUrl = baseUrl;
         }
 
@@ -490,6 +503,7 @@ public class AdminService {
          * - 임시 비밀번호 검증
          * - 새 비밀번호 유효성 검증
          * - 비밀번호 변경 및 isFirstLogin 플래그 해제
+         * - 모든 Refresh Token 삭제 (보안 강화)  ← 추가
          */
         @Transactional
         public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
@@ -499,17 +513,17 @@ public class AdminService {
 
             // 2. 현재 비밀번호 검증 (임시 비밀번호 확인)
             if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-                throw new BaseException(BaseResponseStatus.CURRENT_PASSWORD_INCORRECT); // 30011
+                throw new BaseException(BaseResponseStatus.CURRENT_PASSWORD_INCORRECT);
             }
 
             // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
             if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-                throw new BaseException(BaseResponseStatus.PASSWORD_MISMATCH); // ← 30003 사용!
+                throw new BaseException(BaseResponseStatus.PASSWORD_MISMATCH);
             }
 
             // 4. 새 비밀번호가 현재 비밀번호와 동일한지 확인
             if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
-                throw new BaseException(BaseResponseStatus.SAME_PASSWORD); // 30010
+                throw new BaseException(BaseResponseStatus.SAME_PASSWORD);
             }
 
             // 5. 비밀번호 암호화
@@ -519,10 +533,13 @@ public class AdminService {
             user.updatePassword(encodedPassword);
             user.completeFirstLogin();
 
-            // 7. 명시적 저장
+            // 7. 비밀번호 변경 후 모든 Refresh Token 삭제 (보안 강화) ← 추가
+            authService.invalidateAllTokens(userId);
+
+            // 8. 명시적 저장
             userRepository.save(user);
 
-            // 8. 응답 생성
+            // 9. 응답 생성
             return AdminDto.PasswordResetResponse.builder()
                     .message("비밀번호가 성공적으로 변경되었습니다.")
                     .passwordChangeRequired(false)
@@ -759,7 +776,11 @@ public class AdminService {
          * 이메일 중복 검증 (DELETED 제외)
          */
         private void validateEmailDuplicate(String email) {
-            if (userRepository.existsByEmailAndStatusNot(email, UserStatus.DELETED)) {
+            // ADMIN과 MANAGER만 체크
+            if (userRepository.existsByEmailAndRoleInAndStatusNot(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER),
+                    UserStatus.DELETED)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }

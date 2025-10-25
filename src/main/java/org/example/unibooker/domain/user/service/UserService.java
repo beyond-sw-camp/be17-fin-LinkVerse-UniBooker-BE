@@ -114,7 +114,13 @@ public class UserService {
      * 특정 기업 내에서 이메일 중복 여부 확인
      */
     public boolean existsByEmailAndCompany(String email, Long companyId) {
-        return userRepository.existsByEmailAndCompanyId(email, companyId);
+        // USER Role만 체크하도록 수정
+        return userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                email,
+                companyId,
+                UserRole.USER,
+                UserStatus.DELETED
+        );
     }
 
     /**
