@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -24,6 +25,39 @@ public class TimeSlotDto {
 
         @Schema(description = "종료 시간", example = "07:00")
         private LocalTime endTime;
+    }
+
+
+    @Getter
+    @Builder
+    @Schema(description = "예외 타임슬롯 입력 DTO")
+    public static class ExceptionSlotRequest {
+
+        @Schema(description = "예외 날짜", example = "2025.10.25")
+        private LocalDate date;
+
+        @Schema(description = "시작 시간", example = "00:00")
+        private LocalTime startTime; // 휴무이면 null 가능
+
+        @Schema(description = "종료 시간", example = "12:00")
+        private LocalTime endTime;   // 휴무이면 null 가능
+
+        @Schema(description = "휴무 여부", example = "false")
+        private Boolean isClosed;
+
+        @Schema(description = "비고", example = "개인 사정으로 오전에만 운영합니다.")
+        private String note;
+
+        public ResourceTimeSlotExceptions toEntity(Resources resource) {
+            return ResourceTimeSlotExceptions.builder()
+                    .resources(resource)
+                    .date(this.date)
+                    .startTime(this.isClosed ? null : this.startTime)
+                    .endTime(this.isClosed ? null : this.endTime)
+                    .isClosed(this.isClosed)
+                    .note(this.note)
+                    .build();
+        }
     }
 
 
