@@ -5,11 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
-import org.example.unibooker.domain.resource.model.CustomFieldDefinitions;
-import org.example.unibooker.domain.resource.model.CustomFieldDto;
-import org.example.unibooker.domain.resource.model.ResourceGroupDto;
-import org.example.unibooker.domain.resource.model.ResourceGroups;
+import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
+import org.example.unibooker.domain.resource.repository.CustomFieldSelectRepository;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
@@ -31,6 +29,7 @@ public class ResourceGroupService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final CustomFieldDefinitionRepository customFieldRepository;
+    private final CustomFieldSelectRepository customFieldSelectRepository;
 
 
     // -------------------- 관리자, 매니저 권한을 가졌는지 확인하는 함수 --------------------
@@ -45,33 +44,46 @@ public class ResourceGroupService {
     @Transactional
     public void register(ResourceGroupDto.ResourceGroupRegisterReq dto, Long userId, Long companyId) {
 
-        // 기업 엔티티 조회
+        // 기업 조회
         Companies company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 기업 ID입니다."));
 
-        // 사용자 엔티티 조회
+        // 사용자 조회
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 ID입니다."));
 
         checkAdminOrManager(user);
 
-        // 서비스 그룹 생성 후
+        // 서비스 그룹 생성
         ResourceGroups group = dto.toEntity(user, company);
         resourceGroupRepository.save(group);
 
         // 커스텀 필드 생성
         if (dto.getCustomFields() != null && !dto.getCustomFields().isEmpty()) {
-            List<CustomFieldDefinitions> fields = dto.getCustomFields().stream()
-                    .map(fieldDto -> {
-                        CustomFieldDefinitions entity = fieldDto.toEntity();
-                        entity.setResourceGroup(group); // FK 설정
-                        return entity;
-                    })
-                    .toList();
+            for (CustomFieldDto.CustomFieldReq fieldDto : dto.getCustomFields()) {
 
-            customFieldRepository.saveAll(fields);
+                CustomFieldDefinitions fieldEntity = fieldDto.toEntity();
+                fieldEntity.setResourceGroup(group); // FK 설정
+                customFieldRepository.save(fieldEntity);
+
+                // RADIO / CHECKBOX 선택 항목 처리
+                if (fieldEntity.getDataType() == CustomDataType.RADIO
+                        || fieldEntity.getDataType() == CustomDataType.CHECKBOX) {
+
+                    if (fieldDto.getOptions() != null) {
+                        for (String optionName : fieldDto.getOptions()) {
+                            CustomFieldSelectDefinitions optionEntity = CustomFieldSelectDefinitions.builder()
+                                    .name(optionName)
+                                    .customFieldDefinition(fieldEntity)
+                                    .build();
+                            customFieldSelectRepository.save(optionEntity);
+                        }
+                    }
+                }
+            }
         }
     }
+
 
 
     // -------------------- 리소스 그룹 목록 조회 --------------------

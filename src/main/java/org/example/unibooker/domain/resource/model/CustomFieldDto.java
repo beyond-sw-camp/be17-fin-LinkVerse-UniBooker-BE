@@ -3,7 +3,9 @@ package org.example.unibooker.domain.resource.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Schema(description = "커스텀 필드 관련 DTO 클래스들")
@@ -30,6 +32,9 @@ public class CustomFieldDto {
 
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
+
+        @Schema(description = "선택형 옵션 목록 (RADIO/CHECKBOX)", nullable = true)
+        private List<String> options;
 
         public CustomFieldDefinitions toEntity() {
             return CustomFieldDefinitions.builder()
@@ -66,6 +71,10 @@ public class CustomFieldDto {
         @Schema(description = "필수 여부", example = "true")
         private Boolean required;
 
+        @Setter
+        @Schema(description = "선택형 옵션 목록 (RADIO/CHECKBOX)", nullable = true)
+        private List<String> options;
+
         public static CustomFieldRes fromEntity(CustomFieldDefinitions entity) {
             return CustomFieldRes.builder()
                     .id(entity.getId())
@@ -91,22 +100,30 @@ public class CustomFieldDto {
         private Long customFieldId;
 
         @Schema(description = "입력 값", example = "회의실 101")
-        private String value;
+        private List<String> values;
 
-        public UserCustomFieldValues toUserEntity(CustomFieldDefinitions field, Long targetId) {
-            return UserCustomFieldValues.builder()
-                    .reservationId(targetId)
-                    .fieldValue(this.value)
-                    .customFieldDefinition(field)
-                    .build();
+        public List<UserCustomFieldValues> toUserEntity(CustomFieldDefinitions field, Long reservationId) {
+            List<UserCustomFieldValues> entities = new ArrayList<>();
+            for (String v : values) {
+                entities.add(UserCustomFieldValues.builder()
+                        .reservationId(reservationId)
+                        .fieldValue(v)
+                        .customFieldDefinition(field)
+                        .build());
+            }
+            return entities;
         }
 
-        public ResourceCustomFieldValues toResourceEntity(CustomFieldDefinitions field, Long targetId) {
-            return ResourceCustomFieldValues.builder()
-                    .resourceId(targetId)
-                    .fieldValue(this.value)
-                    .customFieldDefinition(field)
-                    .build();
+        public List<ResourceCustomFieldValues> toResourceEntities(CustomFieldDefinitions field, Long resourceId) {
+            List<ResourceCustomFieldValues> entities = new ArrayList<>();
+            for (String v : values) {
+                entities.add(ResourceCustomFieldValues.builder()
+                        .resourceId(resourceId)
+                        .fieldValue(v)
+                        .customFieldDefinition(field)
+                        .build());
+            }
+            return entities;
         }
     }
 
@@ -122,14 +139,14 @@ public class CustomFieldDto {
         @Schema(description = "필드 이름", example = "회의실 이름")
         private String fieldName;
 
-        @Schema(description = "값", example = "101호 회의실")
-        private String value;
+        @Schema(description = "값 목록", example = "[\"101호 회의실\"]")
+        private List<String> values;
 
         public static CustomFieldValueListRes fromUserEntity(UserCustomFieldValues entity) {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .value(entity.getFieldValue())
+                    .values(List.of(entity.getFieldValue()))
                     .build();
         }
 
@@ -137,10 +154,11 @@ public class CustomFieldDto {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .value(entity.getFieldValue())
+                    .values(List.of(entity.getFieldValue()))
                     .build();
         }
     }
+
 
 
     @Getter
