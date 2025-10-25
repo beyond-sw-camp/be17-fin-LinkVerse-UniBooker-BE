@@ -978,7 +978,7 @@ public class AdminService {
      * 관리자/매니저 로그인
      * - AuthService에 위임
      */
-    public UserDto.LoginResponse adminLogin(AdminDto.AdminLoginRequest request) {
+    public UserDto.LoginResponseWithToken adminLogin(AdminDto.AdminLoginRequest request) {
         return authService.loginWithRoles(
                 request.getEmail(),
                 request.getPassword(),

@@ -23,7 +23,7 @@ public class SuperService {
      * 슈퍼 관리자 로그인
      * - 이메일로만 조회, SUPER 권한만
      */
-    public UserDto.LoginResponse superLogin(SuperDto.SuperLoginRequest request) {
+    public UserDto.LoginResponseWithToken superLogin(SuperDto.SuperLoginRequest request) {
         return authService.loginWithRole(
                 request.getEmail(),
                 request.getPassword(),

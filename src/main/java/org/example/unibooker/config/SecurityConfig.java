@@ -1,5 +1,6 @@
 package org.example.unibooker.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.config.filter.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // CORS 활성화
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"code\":40100,\"message\":\"인증이 필요합니다.\",\"isSuccess\":false}"
+                            );
+                        })
                 )
 
                 .authorizeHttpRequests(auth -> auth
