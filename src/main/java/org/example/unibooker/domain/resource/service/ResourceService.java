@@ -38,6 +38,7 @@ public class ResourceService {
         resource.setTimeInterval(TimeIntervalType.fromMinutes(dto.getTimeInterval()));
         resourceRepository.save(resource);
 
+        // 시간 슬롯 생성
         if (group.getCategory() != ServiceCategory.EVENT) {
             int intervalMinutes = dto.getTimeInterval();
             int slotsPerDay = (24 * 60) / intervalMinutes;
@@ -78,6 +79,18 @@ public class ResourceService {
 
                     resource.addTimeSlot(slot);
                 }
+            }
+        }
+
+        // 예외 시간 슬롯 생성
+        if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
+            for (TimeSlotDto.ExceptionSlotRequest exDto : dto.getExceptionSlots()) {
+
+                if (!exDto.getIsClosed() && (exDto.getStartTime() == null || exDto.getEndTime() == null)) {
+                    throw new IllegalArgumentException("휴무가 아닐 경우 시작시간과 종료시간은 필수입니다. 날짜: " + exDto.getDate());
+                }
+
+                resource.addTimeSlotException(exDto.toEntity(resource));
             }
         }
 
