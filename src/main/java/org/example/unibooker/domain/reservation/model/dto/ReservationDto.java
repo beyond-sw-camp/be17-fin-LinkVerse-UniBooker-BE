@@ -247,9 +247,6 @@ public class ReservationDto {
     @SuperBuilder
     @Schema(description = "일반 사용자 예약 목록 조회 단일 응답 정보")
     public static class UserResponse extends Response {
-        @Schema(description = "예약한 리소스의 이미지")
-        private String thumbnail;
-
         @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
         private LocalDateTime startDate;
 
@@ -295,6 +292,9 @@ public class ReservationDto {
         @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
         private ReservationStatus status;
 
+        @Schema(description = "예약한 리소스 그룹의 이미지")
+        private String thumbnail;
+
         @Schema(description = "예약한 리소스의 리소스 그룹명", example = "회의실")
         private String resourceGroupName;
 
@@ -333,6 +333,7 @@ public class ReservationDto {
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
                     .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
                     .createdAt(entity.getCreatedAt())
@@ -374,6 +375,7 @@ public class ReservationDto {
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
                     .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
                     .createdAt(entity.getCreatedAt())
@@ -403,6 +405,7 @@ public class ReservationDto {
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
                     .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
                     .createdAt(entity.getCreatedAt())
