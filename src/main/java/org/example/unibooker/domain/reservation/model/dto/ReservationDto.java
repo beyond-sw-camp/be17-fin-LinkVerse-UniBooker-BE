@@ -142,7 +142,7 @@ public class ReservationDto {
         @Schema(description = "예약자")
         private String userName;
 
-        @Schema(description = "예약한 서비스 항목")
+        @Schema(description = "예약한 리소스")
         private String resourceName;
 
         @Schema(description = "예약 시작 일시")
@@ -231,22 +231,40 @@ public class ReservationDto {
 
     // =============== 일반 사용자용 ===============
     @Getter
+    @Builder
+    @Schema(description = "일반 사용자 예약 목록 조회 응답 정보")
+    public static class UserResponseList {
+        List<UserResponse> reservations;
+
+        public static UserResponseList from(List<Reservations> entities) {
+            return UserResponseList.builder()
+                    .reservations(entities.stream().map(UserResponse::from).toList())
+                    .build();
+        }
+    }
+
+    @Getter
     @SuperBuilder
     @Schema(description = "일반 사용자 예약 목록 조회 단일 응답 정보")
     public static class UserResponse extends Response {
+        @Schema(description = "예약한 리소스의 이미지")
+        private String thumbnail;
+
         @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
         private LocalDateTime startDate;
 
         @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
         private LocalDateTime endDate;
 
-        @Schema(description = "서비스 카테고리", example = "RESERVATION/SEAT/EVENT")
+        @Schema(description = "리소스 그룹의 카테고리", example = "RESERVATION/SEAT/EVENT")
         private ServiceCategory serviceCategory;
 
         public static UserResponse from(Reservations entity) {
             return UserResponse.builder()
                     .id(entity.getId())
+                    .userName(entity.getUsers().getName())
                     .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceGroup().getThumbnail())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
                     .createdAt(entity.getCreatedAt())
@@ -256,19 +274,6 @@ public class ReservationDto {
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
                     .serviceCategory(entity.getResources().getResourceGroup().getCategory())
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
-    @Schema(description = "일반 사용자 예약 목록 조회 응답 정보")
-    public static class UserResponseList {
-        List<UserResponse> reservations;
-
-        public static UserResponseList from(List<Reservations> entities) {
-            return UserResponseList.builder()
-                    .reservations(entities.stream().map(UserResponse::from).toList())
                     .build();
         }
     }
@@ -290,10 +295,10 @@ public class ReservationDto {
         @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
         private ReservationStatus status;
 
-        @Schema(description = "예약한 서비스 항목의 서비스", example = "회의실")
+        @Schema(description = "예약한 리소스의 리소스 그룹명", example = "회의실")
         private String resourceGroupName;
 
-        @Schema(description = "예약한 서비스 항목", example = "회의실A")
+        @Schema(description = "예약한 리소스명", example = "회의실A")
         private String resourceName;
 
         @Schema(description = "생성일시")
