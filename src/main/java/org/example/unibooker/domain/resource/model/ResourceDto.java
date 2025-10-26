@@ -39,7 +39,7 @@ public class ResourceDto {
         private LocalDate endDate;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private int timeInterval; // private Integer timeInterval;
+        private int timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -57,7 +57,7 @@ public class ResourceDto {
         private List<TimeSlotDto.TimeSlotRequest> timeSlots;
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
-        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+        private List<TimeSlotDto.ExceptionSlotRequest> exceptionSlots;
 
         // 입력값 검증 함수
         public void validate() {
@@ -68,6 +68,10 @@ public class ResourceDto {
             // 시작일/종료일 체크
             if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
                 throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
+            }
+            // 시간 간격 검증
+            if (timeInterval != 30 && timeInterval != 60) {
+                throw new IllegalArgumentException("timeInterval은 30 또는 60만 가능합니다.");
             }
         }
 
@@ -93,7 +97,7 @@ public class ResourceDto {
                     .resourceGroup(group)
                     .startDate(startDate)
                     .endDate(endDate)
-                    .timeInterval(TimeIntervalType.fromMinutes(this.timeInterval))
+                    .timeInterval(timeInterval)
                     .capacity(capacity)
                     .row(row)
                     .col(col)
@@ -124,7 +128,7 @@ public class ResourceDto {
         private LocalDate endDate;
 
         @Schema(description = "시간 간격", example = "30 또는 60", nullable = true)
-        private TimeIntervalType timeInterval;
+        private int timeInterval;
 
         @Schema(description = "인원수", example = "4", nullable = true)
         private Integer capacity;
@@ -134,12 +138,6 @@ public class ResourceDto {
 
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
-
-        @Schema(description = "운영 시간 목록")
-        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
-
-        @Schema(description = "예외 시간 목록 (휴무일 등)")
-        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
 
 
         public static ResourceUpdateRes fromEntity(Resources resource) {
@@ -152,17 +150,7 @@ public class ResourceDto {
                     resource.getTimeInterval(),
                     resource.getCapacity(),
                     resource.getRow(),
-                    resource.getCol(),
-                    Optional.ofNullable(resource.getTimeSlots())
-                    .orElse(List.of())
-                    .stream()
-                    .map(TimeSlotDto.TimeSlotResponse::from)
-                    .collect(Collectors.toList()),
-                    Optional.ofNullable(resource.getTimeSlotExceptions())
-                            .orElse(List.of())
-                            .stream()
-                            .map(TimeSlotDto.TimeSlotExceptionResponse::from)
-                            .collect(Collectors.toList())
+                    resource.getCol()
             );
         }
     }
@@ -269,10 +257,10 @@ public class ResourceDto {
         private Integer col;
 
         @Schema(description = "타임슬롯 목록", nullable = true)
-        private List<TimeSlotDto.TimeSlotResponse> timeSlots;
+        private List<TimeSlotDto.TimeSlotRequest> timeSlots;
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
-        private List<TimeSlotDto.TimeSlotExceptionResponse> exceptionSlots;
+        private List<TimeSlotDto.ExceptionSlotRequest> exceptionSlots;
     }
 
 

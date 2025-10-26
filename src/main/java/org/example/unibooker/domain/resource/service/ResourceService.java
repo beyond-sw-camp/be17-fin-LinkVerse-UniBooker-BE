@@ -4,10 +4,7 @@ import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.resource.model.*;
-import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
-import org.example.unibooker.domain.resource.repository.ResourceCustomFieldValueRepository;
-import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
-import org.example.unibooker.domain.resource.repository.ResourceRepository;
+import org.example.unibooker.domain.resource.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +21,8 @@ public class ResourceService {
     private final ResourceGroupRepository resourceGroupRepository;
     private final CustomFieldDefinitionRepository customFieldDefinitionRepository;
     private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
+    private final ResourceTimeSlotRepository resourceTimeSlotRepository;
+    private final ResourceTimeSlotExceptionRepository resourceTimeSlotExceptionRepository;
 
 
     // -------------------- 리소스 등록 --------------------
@@ -35,9 +34,9 @@ public class ResourceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
         Resources resource = dto.toEntity(group);
-        resource.setTimeInterval(TimeIntervalType.fromMinutes(dto.getTimeInterval()));
         resourceRepository.save(resource);
 
+        // 시간 슬롯 생성
         if (group.getCategory() != ServiceCategory.EVENT) {
             int intervalMinutes = dto.getTimeInterval();
             int slotsPerDay = (24 * 60) / intervalMinutes;
@@ -46,8 +45,8 @@ public class ResourceService {
                 for (int i = 0; i < slotsPerDay; i++) {
                     LocalTime slotStart = LocalTime.of(0, 0).plusMinutes((long) i * intervalMinutes);
                     LocalTime slotEnd = slotStart.plusMinutes(intervalMinutes);
+
                     if (slotEnd.equals(LocalTime.MIDNIGHT)) {
-                        // DB에는 LocalTime이 24:00를 못 저장하므로 23:59:59로 처리
                         slotEnd = LocalTime.of(23, 59, 59);
                     }
 
@@ -55,18 +54,24 @@ public class ResourceService {
 
                     if (dto.getTimeSlots() != null) {
                         for (TimeSlotDto.TimeSlotRequest slotDto : dto.getTimeSlots()) {
-                            if (slotDto.getDays() != null && slotDto.getDays().contains(day)) {
-                                LocalTime targetStart = slotDto.getStartTime();
-                                LocalTime targetEnd = slotDto.getEndTime();
+                            if (slotDto.getDays() != null) {
+                                for (DayOfWeek dayEnum : slotDto.getDays()) { // 이미 Enum
+                                    if (dayEnum == day) { // Enum 비교
+                                        LocalTime targetStart = slotDto.getStartTime();
+                                        LocalTime targetEnd = slotDto.getEndTime();
 
-                                if ((slotStart.equals(targetStart) || slotStart.isAfter(targetStart))
-                                        && slotStart.isBefore(targetEnd)) {
-                                    active = true;
-                                    break;
+                                        if ((slotStart.equals(targetStart) || slotStart.isAfter(targetStart))
+                                                && slotStart.isBefore(targetEnd)) {
+                                            active = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
+                            if (active) break;
                         }
                     }
+
 
                     ResourceTimeSlots slot = ResourceTimeSlots.builder()
                             .resources(resource)
@@ -78,6 +83,19 @@ public class ResourceService {
 
                     resource.addTimeSlot(slot);
                 }
+            }
+        }
+
+
+        // 예외 시간 슬롯 생성
+        if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
+            for (TimeSlotDto.ExceptionSlotRequest exDto : dto.getExceptionSlots()) {
+
+                if (!exDto.getIsClosed() && (exDto.getStartTime() == null || exDto.getEndTime() == null)) {
+                    throw new IllegalArgumentException("휴무가 아닐 경우 시작시간과 종료시간은 필수입니다. 날짜: " + exDto.getDate());
+                }
+
+                resource.addTimeSlotException(exDto.toEntity(resource));
             }
         }
 
@@ -99,13 +117,6 @@ public class ResourceService {
             }
         }
     }
-
-
-
-
-
-
-
 
 
     // -------------------- 리소스 목록 조회 --------------------
@@ -146,7 +157,59 @@ public class ResourceService {
         Resources resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스가 존재하지 않습니다."));
 
+        // 리소스 기본 정보 업데이트
         resource.update(dto);
+
+        // 정규 시간 슬롯 업데이트
+        List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+
+        List<TimeSlotDto.TimeSlotRequest> dtoSlots = dto.getTimeSlots();
+
+        for (ResourceTimeSlots slot : allSlots) {
+            boolean active = false;
+
+            if (dtoSlots != null && !dtoSlots.isEmpty()) {
+                for (TimeSlotDto.TimeSlotRequest ts : dtoSlots) {
+                    if (ts.getDays().contains(slot.getDayOfWeek())) {
+                        // DTO 범위 안에 slot이 들어있으면 활성화
+                        if (!slot.getStartTime().isBefore(ts.getStartTime()) && !slot.getEndTime().isAfter(ts.getEndTime())) {
+                            active = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            slot.setIsActive(active);
+        }
+
+
+
+        // 예외 시간 슬롯 업데이트
+        if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
+            // 기존 예외 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> existingExceptions =
+                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
+
+            // 새로운 예외 슬롯 추가
+            for (TimeSlotDto.ExceptionSlotRequest exDto : dto.getExceptionSlots()) {
+                ResourceTimeSlotExceptions ex = ResourceTimeSlotExceptions.builder()
+                        .resources(resource)
+                        .date(exDto.getDate())
+                        .startTime(exDto.getIsClosed() ? null : exDto.getStartTime())
+                        .endTime(exDto.getIsClosed() ? null : exDto.getEndTime())
+                        .isClosed(exDto.getIsClosed())
+                        .note(exDto.getNote())
+                        .build();
+                resourceTimeSlotExceptionRepository.save(ex);
+            }
+        } else {
+            // DTO에 예외 슬롯이 없으면 기존 예외 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> existingExceptions =
+                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
+        }
     }
 
 
@@ -161,8 +224,17 @@ public class ResourceService {
                 throw new IllegalArgumentException("이미 비활성화 또는 삭제된 리소스입니다.");
             }
 
+            // 리소스 비활성화 및 소프트 삭제
             resource.setIsActive(false);
             resource.softDelete();
+
+            // 연관 정규 시간 슬롯 소프트 삭제
+            List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+            allSlots.forEach(ResourceTimeSlots::softDelete);
+
+            // 연관 예외 시간 슬롯 소프트 삭제
+            List<ResourceTimeSlotExceptions> exceptionSlots = resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            exceptionSlots.forEach(ResourceTimeSlotExceptions::softDelete);
 
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 잠시 후 다시 시도해주세요.", e);

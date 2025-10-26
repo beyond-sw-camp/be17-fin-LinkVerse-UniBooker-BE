@@ -10,5 +10,12 @@ import java.util.List;
 
 @Repository
 public interface ResourceTimeSlotRepository extends JpaRepository<ResourceTimeSlots, Long> {
-    List<ResourceTimeSlots> findAllByResourcesIdAndIsActiveTrue(Long resourceId);
+
+    // 특정 요일의 활성화된 시간 슬롯 조회
+    List<ResourceTimeSlots> findByResources_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek dayOfWeek);
+
+    // 특정 리소스의 모든 활성화된 시간 슬롯 조회
+    List<ResourceTimeSlots> findByResources_IdAndIsActiveTrue(Long resourceId);
+
+    List<ResourceTimeSlots> findByResources_Id(Long resourceId);
 }

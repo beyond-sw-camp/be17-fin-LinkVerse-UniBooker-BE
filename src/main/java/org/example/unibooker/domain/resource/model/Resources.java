@@ -51,7 +51,7 @@ public class Resources extends BaseEntity {
 
     /** 시간 간격 */
     @Column(nullable = true)
-    private TimeIntervalType timeInterval; // private int timeInterval;
+    private int timeInterval;
 
     /** 수용 인원 */
     @Column(nullable = false)
@@ -90,16 +90,12 @@ public class Resources extends BaseEntity {
 
     /** 예외 타임 슬롯 */
     @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ResourceTimeSlotExceptions> timeSlotExceptions = new ArrayList<>();
 
     @Version
     @Column(nullable = false)
     private Long version = 0L;
-
-
-    public void setTimeInterval(TimeIntervalType timeInterval) {
-        this.timeInterval = timeInterval;
-    }
 
 
     // 서비스 수정 함수
@@ -129,8 +125,6 @@ public class Resources extends BaseEntity {
             this.status = ResourceStatus.PROGRESS_BEFORE;
         }
 
-        int intervalMinutes = dto.getTimeInterval();
-        this.timeInterval = TimeIntervalType.fromMinutes(intervalMinutes);
 
         // 필드 업데이트 (null 체크)
         if (dto.getName() != null) this.name = dto.getName();
@@ -153,5 +147,10 @@ public class Resources extends BaseEntity {
     public void addTimeSlot(ResourceTimeSlots slot) {
         slot.setResources(this);
         this.timeSlots.add(slot);
+    }
+
+    public void addTimeSlotException(ResourceTimeSlotExceptions exception) {
+        timeSlotExceptions.add(exception);
+        exception.setResources(this);
     }
 }
