@@ -173,6 +173,9 @@ public class ResourceGroupDto {
         @Schema(description = "서비스 카테고리", example = "RESERVATION(예약형)/SEAT(좌석형)/EVENT(신청형)")
         private String category;
 
+        @Schema(description = "서비스 그룹의 상태", example = "true")
+        private Boolean isActive;
+
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
@@ -203,11 +206,16 @@ public class ResourceGroupDto {
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
+        @Schema(description = "커스텀 필드 목록")
+        private List<CustomFieldDto.CustomFieldRes> customFields;
+
         public static ServiceRegisterFieldRes fromEntity(ResourceGroups entity) {
             return ServiceRegisterFieldRes.builder()
                     .name(entity.getName())
                     .category(entity.getCategory())
                     .isAlwaysAvailable(entity.getIsAlwaysAvailable())
+                    .customFields(entity.getCustomFieldDefinitions()
+                            .stream().map(CustomFieldDto.CustomFieldRes::fromEntity).toList())
                     .build();
         }
     }

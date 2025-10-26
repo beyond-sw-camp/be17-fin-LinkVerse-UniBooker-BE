@@ -13,8 +13,8 @@ public class CookieUtil {
 
     // ===== 상수 정의 =====
 
-    /** Access Token 만료 시간 (초): 15분 */
-    private static final int ACCESS_TOKEN_MAX_AGE = 15 * 60;
+    /** Access Token 만료 시간 (초): 1일 */
+    private static final int ACCESS_TOKEN_MAX_AGE = 24 * 60 * 60;
 
     /** Refresh Token 만료 시간 (초): 7일 */
     private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
