@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.unibooker.common.BaseEntity;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,6 +13,7 @@ import java.time.LocalTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "deleted_at IS NULL")
 public class ResourceTimeSlotExceptions extends BaseEntity {
 
     // 리소스

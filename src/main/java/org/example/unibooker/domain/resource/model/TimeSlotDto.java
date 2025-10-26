@@ -65,8 +65,9 @@ public class TimeSlotDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @Schema(description = "정기운영 시간 조회 응답 DTO")
     public static class TimeSlotResponse {
-        @Schema(description = "요일", example = "Mon")
+        @Schema(description = "요일", example = "MON")
         private String dayOfWeek;
 
         @Schema(description = "시작 시간", example = "10:00")
@@ -82,15 +83,8 @@ public class TimeSlotDto {
                     .endTime(slot.getEndTime())
                     .build();
         }
-
-        public static TimeSlotResponse from(LocalTime startTime, LocalTime endTime, DayOfWeek dayOfWeek) {
-            return TimeSlotResponse.builder()
-                    .dayOfWeek(dayOfWeek.name())
-                    .startTime(startTime)
-                    .endTime(endTime)
-                    .build();
-        }
     }
+
 
     @Getter
     @Builder

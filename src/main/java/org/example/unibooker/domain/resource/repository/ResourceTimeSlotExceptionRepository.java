@@ -15,4 +15,6 @@ public interface ResourceTimeSlotExceptionRepository extends JpaRepository<Resou
     List<ResourceTimeSlotExceptions> findByResources_Id(Long resourceId);
 
     List<ResourceTimeSlotExceptions> findByResources_IdAndDateBetweenAndDeletedAtIsNull(Long resourceId, LocalDate pageStart, LocalDate pageEnd);
+
+    List<ResourceTimeSlotExceptions> findByResources_IdOrderByDateAscStartTimeAsc(Long resourceId);
 }
