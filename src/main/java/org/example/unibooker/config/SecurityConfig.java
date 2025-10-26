@@ -79,6 +79,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
 
+                        // ===== 비밀번호 찾기 =====
+                        .requestMatchers(HttpMethod.POST, "/api/users/reset-password").permitAll()
+
+                        // ===== 아이디 찾기 ===== (추가)
+                        .requestMatchers(HttpMethod.POST, "/api/users/find-email").permitAll()
+
+                        // ===== 계정 조회 (아이디 찾기) =====
+                        .requestMatchers(HttpMethod.GET, "/api/users/accounts").permitAll()
+
                         // ===== 기업 정보 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 

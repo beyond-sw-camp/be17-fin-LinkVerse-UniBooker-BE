@@ -2,9 +2,7 @@ package org.example.unibooker.domain.user.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
@@ -418,6 +416,50 @@ public class UserDto {
         private UserStatus status;
 
         @Schema(description = "가입 일시", example = "2025-10-16T14:30:00")
+        private LocalDateTime createdAt;
+    }
+
+    /**
+     * 아이디 찾기 요청
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "아이디 찾기 요청")
+    public static class FindEmailRequest {
+
+        @Schema(description = "이름", example = "홍길동")
+        @NotBlank(message = "이름을 입력해주세요")
+        private String name;
+
+        @Schema(description = "기업 ID", example = "1")
+        @NotNull(message = "기업 ID를 입력해주세요")
+        private Long companyId;
+
+        @Schema(description = "전화번호", example = "010-1234-5678")
+        private String phone;
+
+        @Schema(description = "생년월일", example = "1990-01-01")
+        private String birthDate;
+    }
+
+    /**
+     * 아이디 찾기 응답
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "아이디 찾기 응답")
+    public static class FindEmailResponse {
+
+        @Schema(description = "마스킹된 이메일", example = "abc***@gmail.com")
+        private String maskedEmail;
+
+        @Schema(description = "가입일", example = "2024-01-15T10:30:00")
         private LocalDateTime createdAt;
     }
 }

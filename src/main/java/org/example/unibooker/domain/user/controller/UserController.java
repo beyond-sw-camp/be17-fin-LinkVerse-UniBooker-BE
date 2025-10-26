@@ -244,4 +244,35 @@ public class UserController {
         List<UserDto.AccountInfo> accounts = userService.getAccountsByEmail(email);
         return BaseResponse.success(accounts);
     }
+
+    // ========== 비밀번호 찾기 ==========
+
+    /**
+     * 비밀번호 찾기 - 임시 비밀번호 발급
+     */
+    @Operation(summary = "비밀번호 찾기",
+            description = "이메일과 기업ID로 사용자를 확인하고 임시 비밀번호를 이메일로 발송합니다.")
+    @PostMapping("/reset-password")
+    public BaseResponse<String> resetPassword(
+            @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다") String email,
+            @RequestParam @Schema(description = "기업 ID", example = "1") Long companyId) {
+
+        userService.resetPassword(email, companyId);
+        return BaseResponse.success("임시 비밀번호가 이메일로 발송되었습니다. 이메일을 확인해주세요.");
+    }
+
+    // ========== 아이디 찾기 ==========
+
+    /**
+     * 아이디 찾기 - 이메일 조회
+     */
+    @Operation(summary = "아이디 찾기",
+            description = "이름과 전화번호 또는 생년월일로 가입한 이메일을 찾습니다. 이메일은 마스킹 처리되어 반환됩니다.")
+    @PostMapping("/find-email")
+    public BaseResponse<UserDto.FindEmailResponse> findEmail(
+            @RequestBody @Valid UserDto.FindEmailRequest request) {
+
+        UserDto.FindEmailResponse response = userService.findEmail(request);
+        return BaseResponse.success(response);
+    }
 }
