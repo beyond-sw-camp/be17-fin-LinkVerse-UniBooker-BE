@@ -13,7 +13,7 @@ RUN ./gradlew dependencies --no-daemon --configure-on-demand
 COPY src ./src
 RUN ./gradlew bootJar --no-daemon --configure-on-demand
 
-# 실행
+# 실행.
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
