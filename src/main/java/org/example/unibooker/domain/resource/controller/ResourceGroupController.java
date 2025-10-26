@@ -5,14 +5,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
-import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.service.ResourceGroupService;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
-import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "리소스 그룹 관리", description = "리소스 그룹에 대한 값들을 관리합니다.")
 @RestController
@@ -31,22 +27,21 @@ public class ResourceGroupController {
         return BaseResponse.success("서비스 그룹이 생성되었습니다.");
     }
 
-    // ---------------- 목록 조회(SUPER) ----------------
+    // ---------------- 목록 조회(SUPER)----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("/company/{companyId}")
-    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@PathVariable Long companyId) {
-        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(companyId);
+    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser, Long companyId) {
+        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getRole(), companyId);
         return BaseResponse.success(response);
     }
 
-    // ---------------- 목록 조회(USER, MANANGER, ADMIN) ----------------
+    // ---------------- 목록 조회 ----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("/company")
     public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser ) {
-        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getCompanyId());
+        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getRole(), authUser.getCompanyId());
         return BaseResponse.success(response);
     }
-
 
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회", description = "특정 서비스 그룹의 이름, 설명, 썸네일 이미지를 조회합니다.")
