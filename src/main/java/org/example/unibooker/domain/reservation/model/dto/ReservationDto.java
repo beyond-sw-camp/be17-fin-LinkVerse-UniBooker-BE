@@ -51,7 +51,7 @@ public class ReservationDto {
             // 신청인지 아닌지 체크 - 신청이면 날짜/시간 저장 안함(null). 신청일은 createdAt 으로 구별
             if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
                 startDate = date.atTime(time);
-                endDate = startDate.plusMinutes(resource.getTimeInterval().getMinutes());
+                endDate = startDate.plusMinutes(resource.getTimeInterval());
             }
 
             // 중복 예약 체크

@@ -24,11 +24,11 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
     private LocalDate date;
 
     // 시작 시간
-    @Column(nullable = false)
+    @Column(nullable = true )
     private LocalTime startTime;
 
     // 종료 시간
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalTime endTime;
 
     // 휴무 여부
@@ -38,4 +38,8 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
 
     // 비고
     private String note;
+
+    public void setResources(Resources resources) {
+        this.resources = resources;
+    }
 }

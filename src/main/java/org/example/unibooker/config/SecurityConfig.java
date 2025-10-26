@@ -1,5 +1,6 @@
 package org.example.unibooker.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.config.filter.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,16 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"code\":40100,\"message\":\"인증이 필요합니다.\",\"isSuccess\":false}"
+                            );
+                        })
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         // ===== 회원가입 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
@@ -67,6 +78,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
+
+                        // ===== 비밀번호 찾기 =====
+                        .requestMatchers(HttpMethod.POST, "/api/users/reset-password").permitAll()
+
+                        // ===== 아이디 찾기 ===== (추가)
+                        .requestMatchers(HttpMethod.POST, "/api/users/find-email").permitAll()
+
+                        // ===== 계정 조회 (아이디 찾기) =====
+                        .requestMatchers(HttpMethod.GET, "/api/users/accounts").permitAll()
 
                         // ===== 기업 정보 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()

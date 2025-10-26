@@ -17,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.example.unibooker.utils.CookieUtil;
+import org.example.unibooker.domain.user.model.UserRole;
 
 import java.io.IOException;
 import java.util.List;
@@ -119,18 +121,72 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 쿠키에서 accessToken 추출
+     * 요청 경로를 기반으로 권한 추론
+     * - 프론트엔드 경로: /admin, /manager, /c/, /super
+     * - API 경로: /api/admins, /api/managers, /api/users, /api/super
+     */
+    private UserRole inferRoleFromPath(String requestUri) {
+        // 프론트엔드 경로
+        if (requestUri.startsWith("/admin")) {
+            return UserRole.ADMIN;
+        } else if (requestUri.startsWith("/manager")) {
+            return UserRole.MANAGER;
+        } else if (requestUri.startsWith("/c/")) {
+            return UserRole.USER;
+        } else if (requestUri.startsWith("/super")) {
+            return UserRole.SUPER;
+        }
+
+        // API 경로
+        if (requestUri.startsWith("/api/admins")) {
+            return UserRole.ADMIN;
+        } else if (requestUri.startsWith("/api/managers")) {
+            return UserRole.MANAGER;
+        } else if (requestUri.startsWith("/api/users") || requestUri.startsWith("/api/c/")) {
+            return UserRole.USER;
+        } else if (requestUri.startsWith("/api/super")) {
+            return UserRole.SUPER;
+        }
+
+        return null;
+    }
+
+    /**
+     * 쿠키에서 권한별 accessToken 추출
+     * - 경로 기반으로 권한을 추론하여 해당 쿠키 탐색
+     * - API 경로는 모든 권한 순차 확인
      */
     private String extractTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-
         if (cookies == null) {
             return null;
         }
 
-        for (Cookie cookie : cookies) {
-            if ("accessToken".equals(cookie.getName())) {
-                return cookie.getValue();
+        String requestUri = request.getRequestURI();
+        UserRole inferredRole = inferRoleFromPath(requestUri);
+
+        // 특정 권한 경로인 경우 (예: /admin, /manager, /c/, /super)
+        if (inferredRole != null) {
+            String targetCookieName = CookieUtil.getAccessTokenCookieName(inferredRole);
+            for (Cookie cookie : cookies) {
+                if (targetCookieName.equals(cookie.getName())) {
+                    log.debug("경로 기반 토큰 추출 - role: {}, cookieName: {}",
+                            inferredRole, targetCookieName);
+                    return cookie.getValue();
+                }
+            }
+            return null;
+        }
+
+        // API 경로 등: 모든 권한 쿠키 순차 확인
+        for (UserRole role : UserRole.values()) {
+            String cookieName = CookieUtil.getAccessTokenCookieName(role);
+            for (Cookie cookie : cookies) {
+                if (cookieName.equals(cookie.getName())) {
+                    log.debug("API 경로 토큰 추출 - role: {}, cookieName: {}",
+                            role, cookieName);
+                    return cookie.getValue();
+                }
             }
         }
 

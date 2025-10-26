@@ -53,7 +53,12 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     /**
      * 이메일과 기업 ID로 사용자 조회
      */
-    Optional<Users> findByEmailAndCompanyId(String email, Long companyId);
+    Optional<Users> findByEmailAndCompanyIdAndRoleAndStatusNot(
+            String email,
+            Long companyId,
+            UserRole role,
+            UserStatus status
+    );
 
     /**
      * 특정 기업 내에서 이메일 존재 여부 확인
@@ -119,4 +124,26 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * 이메일, 기업 ID, 권한, 상태로 사용자 조회 (재가입 시 탈퇴 계정 찾기용)
      */
     Optional<Users> findByEmailAndCompanyIdAndRoleAndStatus(String email, Long companyId, UserRole role, UserStatus status);
+
+    /**
+     * 이름 + 기업ID + 전화번호로 사용자 조회 (USER 역할, DELETED 제외)
+     */
+    Optional<Users> findByNameAndCompanyIdAndPhoneAndRoleAndStatusNot(
+            String name,
+            Long companyId,
+            String phone,
+            UserRole role,
+            UserStatus status
+    );
+
+    /**
+     * 이름 + 기업ID + 생년월일로 사용자 조회 (USER 역할, DELETED 제외)
+     */
+    Optional<Users> findByNameAndCompanyIdAndBirthDateAndRoleAndStatusNot(
+            String name,
+            Long companyId,
+            String birthDate,
+            UserRole role,
+            UserStatus status
+    );
 }

@@ -2,9 +2,7 @@ package org.example.unibooker.domain.user.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
@@ -129,18 +127,16 @@ public class UserDto {
         private Long companyId;
     }
 
-    // ========== 로그인 Response ==========
+// ========== 로그인 Response ==========
 
+    /**
+     * 로그인 응답 DTO
+     * - 토큰은 HttpOnly Cookie로 전달되므로 Response Body에서 제외
+     */
     @Getter
     @Builder
     @Schema(description = "로그인 응답")
     public static class LoginResponse {
-
-        @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        private String accessToken;
-
-        @Schema(description = "JWT 리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        private String refreshToken;
 
         @Schema(description = "사용자 ID (user_id)", example = "1")
         private Long userId;
@@ -164,21 +160,89 @@ public class UserDto {
         private String companySlug;
     }
 
-    // ========== 로그아웃 Request (신규) ==========
+    // ========== 인증 확인 관련 (신규) ==========
 
     /**
-     * 로그아웃 요청 DTO
+     * 현재 사용자 정보 응답 DTO
+     * - 헤더 인증 검증용 (쿠키 기반 실제 인증 상태 확인)
+     * - companySlug 비교를 통한 멀티탭 세션 검증
      */
     @Getter
-    @NoArgsConstructor
-    @Schema(description = "로그아웃 요청")
-    public static class LogoutRequest {
+    @Builder
+    @Schema(description = "현재 사용자 정보 응답")
+    public static class CurrentUserResponse {
 
-        @NotBlank(message = "리프레시 토큰은 필수입니다")
-        @Schema(description = "리프레시 토큰 (refresh_token)",
-                example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                required = true)
+        /** 사용자 ID */
+        @Schema(description = "사용자 ID", example = "1")
+        private Long id;
+
+        /** 이메일 */
+        @Schema(description = "이메일", example = "user@example.com")
+        private String email;
+
+        /** 이름 */
+        @Schema(description = "이름", example = "홍길동")
+        private String name;
+
+        /** 기업 ID */
+        @Schema(description = "기업 ID", example = "1")
+        private Long companyId;
+
+        /** 기업 Slug */
+        @Schema(description = "기업 Slug (URL 경로용)", example = "a-company")
+        private String companySlug;
+
+        /** 사용자 권한 */
+        @Schema(description = "사용자 권한", example = "USER")
+        private UserRole role;
+
+        /** 계정 상태 */
+        @Schema(description = "계정 상태", example = "ACTIVE")
+        private UserStatus status;
+    }
+
+// ========== 로그인 Response (내부 전달용) ==========
+
+    /**
+     * 로그인 응답 DTO (내부 전달용)
+     * - Service → Controller 간 토큰 전달
+     * - Controller에서 Cookie 설정 후 LoginResponse로 변환
+     */
+    @Getter
+    @Builder
+    @Schema(hidden = true, description = "로그인 응답 (내부 전달용)")
+    public static class LoginResponseWithToken {
+
+        // ===== 토큰 (내부 전달용) =====
+
+        private String accessToken;
         private String refreshToken;
+
+        // ===== 클라이언트 응답 필드 =====
+
+        private Long userId;
+        private String name;
+        private String email;
+        private UserRole role;
+        private Boolean passwordChangeRequired;
+        private Long companyId;
+        private String companySlug;
+
+        /**
+         * 클라이언트 응답 DTO로 변환
+         * - 토큰 제외한 정보만 반환
+         */
+        public LoginResponse toResponse() {
+            return LoginResponse.builder()
+                    .userId(this.userId)
+                    .name(this.name)
+                    .email(this.email)
+                    .role(this.role)
+                    .passwordChangeRequired(this.passwordChangeRequired)
+                    .companyId(this.companyId)
+                    .companySlug(this.companySlug)
+                    .build();
+        }
     }
 
     // ========== 로그아웃 Response (신규) ==========
@@ -352,6 +416,50 @@ public class UserDto {
         private UserStatus status;
 
         @Schema(description = "가입 일시", example = "2025-10-16T14:30:00")
+        private LocalDateTime createdAt;
+    }
+
+    /**
+     * 아이디 찾기 요청
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "아이디 찾기 요청")
+    public static class FindEmailRequest {
+
+        @Schema(description = "이름", example = "홍길동")
+        @NotBlank(message = "이름을 입력해주세요")
+        private String name;
+
+        @Schema(description = "기업 ID", example = "1")
+        @NotNull(message = "기업 ID를 입력해주세요")
+        private Long companyId;
+
+        @Schema(description = "전화번호", example = "010-1234-5678")
+        private String phone;
+
+        @Schema(description = "생년월일", example = "1990-01-01")
+        private String birthDate;
+    }
+
+    /**
+     * 아이디 찾기 응답
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "아이디 찾기 응답")
+    public static class FindEmailResponse {
+
+        @Schema(description = "마스킹된 이메일", example = "abc***@gmail.com")
+        private String maskedEmail;
+
+        @Schema(description = "가입일", example = "2024-01-15T10:30:00")
         private LocalDateTime createdAt;
     }
 }

@@ -64,4 +64,12 @@ public class EmailServiceImpl implements EmailService {
 
         sendHtmlEmail(to, subject, htmlContent);
     }
+
+    @Override
+    public void sendPasswordResetEmail(String to, String name, String companyName, String tempPassword) {
+        String htmlContent = templateService.renderPasswordResetTemplate(name, companyName, tempPassword);
+        String subject = "[UniBooker] 임시 비밀번호가 발급되었습니다";
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
 }
