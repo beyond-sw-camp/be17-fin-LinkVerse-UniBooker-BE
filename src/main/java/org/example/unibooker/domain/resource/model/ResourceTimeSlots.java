@@ -33,5 +33,9 @@ public class ResourceTimeSlots extends BaseEntity {
     // 운영 여부
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isActive = true;
+    private Boolean isActive = false;
+
+    public void setResources(Resources resources) {
+        this.resources = resources;
+    }
 }

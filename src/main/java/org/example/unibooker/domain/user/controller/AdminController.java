@@ -3,6 +3,8 @@ package org.example.unibooker.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import org.example.unibooker.domain.user.service.AuthService;
+import org.example.unibooker.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -40,6 +42,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final UserService userService;
+    private final AuthService authService;
 
     // ========== 관리자 본인 관리 ==========
 
@@ -72,70 +75,47 @@ public class AdminController {
     }
 
     /**
-     * 로그인
-     * - UserService의 공통 로그인 로직 사용
+     * 관리자 로그인
+     * - 단일 세션 정책: 기존 모든 역할의 쿠키 삭제 후 새 쿠키 생성
      * - JWT 토큰을 HTTP-Only 쿠키로 설정
      */
-    @Operation(summary = "로그인",
-            description = "관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid AdminDto.AdminLoginRequest request,
-            HttpServletResponse response) {  // ← HttpServletResponse 추가
+            HttpServletResponse response) {
 
-        UserDto.LoginResponse loginResponse = adminService.adminLogin(request);
+        // 1. 로그인 처리 (토큰 포함)
+        UserDto.LoginResponseWithToken loginResponseWithToken = adminService.adminLogin(request);
 
-        // ===== JWT 토큰을 HTTP-Only 쿠키로 설정 =====
+        // 2. 단일 세션 정책: 모든 역할의 기존 쿠키 삭제
+        CookieUtil.deleteAllRolesCookies(response);
 
-        // Access Token 쿠키 설정 (15분)
-        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);  // XSS 방어
-        accessTokenCookie.setSecure(false);   // HTTPS에서만 전송 (개발 환경: false, 프로덕션: true)
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(15 * 60);  // 15분
-        response.addCookie(accessTokenCookie);
+        // 3. 현재 역할의 토큰을 HttpOnly Cookie에 저장
+        response.addCookie(CookieUtil.createAccessTokenCookie(
+                loginResponseWithToken.getAccessToken(),
+                loginResponseWithToken.getRole()
+        ));
+        response.addCookie(CookieUtil.createRefreshTokenCookie(
+                loginResponseWithToken.getRefreshToken(),
+                loginResponseWithToken.getRole()
+        ));
 
-        // Refresh Token 쿠키 설정 (7일)
-        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);   // 개발 환경: false, 프로덕션: true
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일
-        response.addCookie(refreshTokenCookie);
-
-        return BaseResponse.success(loginResponse);
+        // 4. 클라이언트 응답 생성 (토큰 제외)
+        return BaseResponse.success(loginResponseWithToken.toResponse());
     }
 
     /**
      * 로그아웃
      * - UserService의 공통 로그아웃 로직 사용
      */
-    @Operation(summary = "로그아웃",
-            description = "현재 로그인 세션을 종료하고 Refresh Token을 무효화합니다.")
     @PostMapping("/logout")
-    public BaseResponse<UserDto.LogoutResponse> logout(
-            @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId, HttpServletResponse response) {
+    public BaseResponse<AuthDto.LogoutResponse> logout(
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,  // 타입 변경: Long → AuthDto.AuthAdmin
+            HttpServletResponse response) {
 
-        UserDto.LogoutResponse logoutResponse = userService.logout(userId, request);
+        AuthDto.LogoutResponse logoutResponse = authService.logout(authAdmin.getId());  // authAdmin.getId() 사용
 
-        // ===== 쿠키 삭제 로직 추가 =====
-
-        // Access Token 쿠키 삭제
-        Cookie accessTokenCookie = new Cookie("accessToken", null);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(false);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
-        response.addCookie(accessTokenCookie);
-
-        // Refresh Token 쿠키 삭제
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
-        response.addCookie(refreshTokenCookie);
+        CookieUtil.deleteAllTokenCookies(response, authAdmin.getRole());  // 권한 파라미터 추가
 
         return BaseResponse.success(logoutResponse);
     }
@@ -162,24 +142,7 @@ public class AdminController {
     @GetMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> getMyProfile(
             @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,
-            HttpServletRequest request) {  // ← 임시 추가
-
-        // ===== 디버깅 로그 =====
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                log.debug("Cookie: {} = {}", cookie.getName(), cookie.getValue());
-            }
-        } else {
-            log.warn("쿠키가 전달되지 않음");
-        }
-
-        log.debug("authAdmin: {}", authAdmin);
-        // =======================
-
-        if (authAdmin == null) {
-            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
-        }
+            HttpServletRequest request) {
 
         UserDto.ProfileResponse response = userService.getMyProfile(authAdmin.getId());
         return BaseResponse.success(response);

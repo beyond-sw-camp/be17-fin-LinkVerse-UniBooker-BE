@@ -2,13 +2,15 @@ package org.example.unibooker.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.common.exception.RefreshTokenException;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.service.AuthService;
+import org.example.unibooker.utils.CookieUtil;
+import org.example.unibooker.domain.user.model.UserRole;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,45 +27,96 @@ public class AuthController {
     private final AuthService authService;
 
     /**
-     * Access Token 갱신 (공통)
-     * - 모든 권한(USER, ADMIN, MANAGER, SUPER) 공통 사용
-     * - Refresh Token을 사용하여 새로운 Access Token 발급
-     * - 쿠키에서 Refresh Token 자동 추출
+     * Access Token 갱신
+     * - 권한별 Refresh Token을 Cookie에서 자동 추출
+     * - 요청 경로 기반으로 권한 추론
+     * - 새로운 Access Token을 권한별 Cookie로 전달
      */
-    @Operation(summary = "Access Token 갱신 (공통)",
-            description = "Refresh Token을 사용하여 만료된 Access Token을 갱신합니다. 모든 권한에서 공통으로 사용합니다.")
+    @Operation(summary = "Access Token 갱신",
+            description = "Refresh Token을 사용하여 Access Token을 갱신합니다. 권한별 쿠키에서 자동으로 추출됩니다.")
     @PostMapping("/refresh")
     public BaseResponse<AuthDto.RefreshTokenResponse> refreshToken(
-            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            @CookieValue(value = "adminRefreshToken", required = false) String adminRefreshToken,
+            @CookieValue(value = "userRefreshToken", required = false) String userRefreshToken,
+            @CookieValue(value = "superRefreshToken", required = false) String superRefreshToken,
+            @CookieValue(value = "managerRefreshToken", required = false) String managerRefreshToken,
+            HttpServletRequest request,
             HttpServletResponse response) {
 
-        // Cookie에서 Refresh Token 없으면 에러
+        // 1. 요청 경로 및 Referer 기반 권한 추론
+        String requestUri = request.getRequestURI();
+        String referer = request.getHeader("Referer");
+
+        UserRole role = inferRoleFromRequest(requestUri, referer);
+
+        // 2. 권한에 맞는 Refresh Token 선택
+        String refreshToken = getRefreshTokenByRole(role, adminRefreshToken,
+                userRefreshToken, superRefreshToken,
+                managerRefreshToken);
+
+        // 3. Refresh Token 검증
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new RefreshTokenException.RefreshTokenNotFoundException();
         }
 
-        // Access Token 갱신
-        AuthDto.RefreshTokenResponse tokenResponse = authService.refreshAccessToken(refreshToken);
+        // 4. Access Token 갱신
+        AuthDto.RefreshTokenResponseWithToken tokenResponseWithToken =
+                authService.refreshAccessToken(refreshToken);
 
-        // 새로운 Access Token을 HttpOnly Cookie에 저장
-        Cookie accessTokenCookie = new Cookie("accessToken", tokenResponse.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(15 * 60);  // 15분
-
-        response.addCookie(accessTokenCookie);
+        // 5. 권한별 새로운 Access Token 쿠키 생성
+        response.addCookie(CookieUtil.createAccessTokenCookie(
+                tokenResponseWithToken.getAccessToken(),
+                role  // 권한 파라미터 추가
+        ));
 
         // (선택) Refresh Token Rotation 적용 시
-        // if (tokenResponse.getRefreshToken() != null) {
-        //     Cookie refreshTokenCookie = new Cookie("refreshToken", tokenResponse.getRefreshToken());
-        //     refreshTokenCookie.setHttpOnly(true);
-        //     refreshTokenCookie.setSecure(false);
-        //     refreshTokenCookie.setPath("/");
-        //     refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-        //     response.addCookie(refreshTokenCookie);
+        // if (tokenResponseWithToken.getRefreshToken() != null) {
+        //     response.addCookie(CookieUtil.createRefreshTokenCookie(
+        //             tokenResponseWithToken.getRefreshToken(), role));
         // }
 
-        return BaseResponse.success(tokenResponse);
+        // 6. 클라이언트 응답 생성 (토큰 제외)
+        return BaseResponse.success(tokenResponseWithToken.toResponse());
+    }
+
+    /**
+     * 요청 정보 기반 권한 추론
+     * - Referer 헤더 우선 확인
+     * - URI 기반 추론
+     * - 기본값: USER
+     */
+    private UserRole inferRoleFromRequest(String requestUri, String referer) {
+        // Referer 헤더 우선 확인 (프론트엔드에서 호출 시)
+        if (referer != null) {
+            if (referer.contains("/admin")) return UserRole.ADMIN;
+            if (referer.contains("/manager")) return UserRole.MANAGER;
+            if (referer.contains("/c/")) return UserRole.USER;
+            if (referer.contains("/super")) return UserRole.SUPER;
+        }
+
+        // URI 기반 추론 (백엔드 직접 호출 시)
+        if (requestUri.startsWith("/admin")) return UserRole.ADMIN;
+        if (requestUri.startsWith("/manager")) return UserRole.MANAGER;
+        if (requestUri.startsWith("/c/")) return UserRole.USER;
+        if (requestUri.startsWith("/super")) return UserRole.SUPER;
+
+        // 기본값 (API 경로 등)
+        return UserRole.USER;
+    }
+
+    /**
+     * 권한별 Refresh Token 선택
+     */
+    private String getRefreshTokenByRole(UserRole role,
+                                         String adminToken,
+                                         String userToken,
+                                         String superToken,
+                                         String managerToken) {
+        return switch(role) {
+            case ADMIN -> adminToken;
+            case MANAGER -> managerToken;
+            case USER -> userToken;
+            case SUPER -> superToken;
+        };
     }
 }
