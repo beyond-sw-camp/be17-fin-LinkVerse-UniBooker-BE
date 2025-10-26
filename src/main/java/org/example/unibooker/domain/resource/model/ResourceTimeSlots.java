@@ -35,7 +35,19 @@ public class ResourceTimeSlots extends BaseEntity {
     @Builder.Default
     private Boolean isActive = false;
 
+    @PrePersist
+    @PreUpdate
+    private void upperCaseDayOfWeek() {
+        if (this.dayOfWeek != null) {
+            this.dayOfWeek = DayOfWeek.valueOf(this.dayOfWeek.name().toUpperCase());
+        }
+    }
+
     public void setResources(Resources resources) {
         this.resources = resources;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
