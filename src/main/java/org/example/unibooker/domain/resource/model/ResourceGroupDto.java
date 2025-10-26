@@ -206,11 +206,16 @@ public class ResourceGroupDto {
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
+        @Schema(description = "커스텀 필드 목록")
+        private List<CustomFieldDto.CustomFieldRes> customFields;
+
         public static ServiceRegisterFieldRes fromEntity(ResourceGroups entity) {
             return ServiceRegisterFieldRes.builder()
                     .name(entity.getName())
                     .category(entity.getCategory())
                     .isAlwaysAvailable(entity.getIsAlwaysAvailable())
+                    .customFields(entity.getCustomFieldDefinitions()
+                            .stream().map(CustomFieldDto.CustomFieldRes::fromEntity).toList())
                     .build();
         }
     }
