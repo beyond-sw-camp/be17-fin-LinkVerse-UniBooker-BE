@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -66,7 +67,7 @@ public class ManagerDto {
         private LocalDateTime createdAt;
     }
 
-    // ========== 매니저 목록 조회 Response (신규) ==========
+    // ========== 매니저 목록 조회 Response ==========
 
     /**
      * 관리자가 매니저 목록 조회 응답 DTO (페이징)
@@ -125,7 +126,7 @@ public class ManagerDto {
         }
     }
 
-    // ========== 매니저 삭제 Response (신규) ==========
+    // ========== 매니저 삭제 Response ==========
 
     /**
      * 관리자가 매니저 삭제 응답 DTO
@@ -150,5 +151,39 @@ public class ManagerDto {
 
         @Schema(description = "삭제 일시", example = "2025-10-16T15:30:00")
         private LocalDateTime deletedAt;
+    }
+
+    // ========== 매니저 수정 요청 DTO ==========
+
+    /**
+     * 매니저 정보 수정 요청 DTO
+     */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UpdateRequest {
+
+        @NotBlank(message = "이름은 필수입니다")
+        @Size(max = 50, message = "이름은 50자 이내로 입력해주세요")
+        private String name;
+
+        @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$",
+                message = "연락처는 010-1234-5678 형식이어야 합니다")
+        private String phone;
+    }
+
+    /**
+     * 매니저 정보 수정 응답 DTO
+     */
+    @Getter
+    @Builder
+    public static class UpdateResponse {
+        private String message;
+        private Long managerId;
+        private String name;
+        private String email;
+        private String phone;
+        private LocalDateTime updatedAt;
     }
 }

@@ -122,67 +122,73 @@ public class AdminController {
 
     /**
      * 비밀번호 재설정 (첫 로그인 시 필수)
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @PatchMapping("/password/reset")
     public BaseResponse<AdminDto.PasswordResetResponse> resetPassword(
             @RequestBody @Valid AdminDto.PasswordResetRequest request,
-            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike 변경
 
-        if (authAdmin == null) {
+        if (admin == null) {
             throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
         }
 
-        AdminDto.PasswordResetResponse response = adminService.resetPassword(authAdmin.getId(), request);
+        AdminDto.PasswordResetResponse response = adminService.resetPassword(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
     /**
      * 내 프로필 조회
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @GetMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> getMyProfile(
-            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,
+            @AuthenticationPrincipal AuthDto.AdminLike admin,  // ← AuthAdmin → AdminLike
             HttpServletRequest request) {
 
-        UserDto.ProfileResponse response = userService.getMyProfile(authAdmin.getId());
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.ProfileResponse response = userService.getMyProfile(admin.getId());
         return BaseResponse.success(response);
     }
 
     /**
      * 내 프로필 수정
-     * - UserService의 공통 프로필 수정 로직 사용
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @Operation(summary = "내 프로필 수정",
             description = "현재 로그인한 관리자의 프로필 정보를 수정합니다.")
     @PatchMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> updateMyProfile(
             @RequestBody @Valid UserDto.ProfileUpdateRequest request,
-            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike
 
-        if (authAdmin == null) {
+        if (admin == null) {
             throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
         }
 
-        UserDto.ProfileResponse response = userService.updateMyProfile(authAdmin.getId(), request);
+        UserDto.ProfileResponse response = userService.updateMyProfile(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
     /**
      * 회원 탈퇴
-     * - UserService의 공통 회원 탈퇴 로직 사용
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @Operation(summary = "회원 탈퇴",
             description = "현재 로그인한 관리자의 계정을 탈퇴 처리합니다.")
     @DeleteMapping("/me")
     public BaseResponse<UserDto.WithdrawResponse> withdraw(
             @RequestBody @Valid UserDto.WithdrawRequest request,
-            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike
 
-        if (authAdmin == null) {
+        if (admin == null) {
             throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
         }
 
-        UserDto.WithdrawResponse response = userService.withdraw(authAdmin.getId(), request);
+        UserDto.WithdrawResponse response = userService.withdraw(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
@@ -260,6 +266,27 @@ public class AdminController {
         }
 
         ManagerDto.ManagerDeleteResponse response = adminService.deleteManager(managerId, authAdmin.getId());
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 매니저 정보 수정
+     * - ADMIN 권한 필요
+     */
+    @Operation(summary = "매니저 정보 수정",
+            description = "관리자가 매니저 정보를 수정합니다. (ADMIN 권한 필요)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/managers/{managerId}")
+    public BaseResponse<ManagerDto.UpdateResponse> updateManager(
+            @PathVariable Long managerId,
+            @RequestBody @Valid ManagerDto.UpdateRequest request,
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.UpdateResponse response = adminService.updateManager(managerId, request, authAdmin.getId());
         return BaseResponse.success(response);
     }
 

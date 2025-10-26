@@ -622,18 +622,51 @@ public class AdminService {
 
         /**
          * 매니저 계정 생성
+         * - 같은 기업의 DELETED MANAGER 계정이 있으면 재활용
+         * - 없으면 신규 생성
          */
         @Transactional
         public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
+            // 1. Admin 권한 검증
             Users admin = validateAdminAuthority(currentUserId);
+
+            // 2. Company 승인 상태 검증
             Companies company = validateCompanyStatus(admin.getCompanyId());
-            validateEmailDuplicate(request.getEmail());
 
+            // 3. 이메일 중복 검증 (같은 기업 내)
+            validateEmailDuplicate(request.getEmail(), admin.getCompanyId());
+
+            // 4. 같은 기업의 DELETED MANAGER 계정 찾기
+            Optional<Users> deletedManager = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
+                    request.getEmail(),
+                    admin.getCompanyId(),
+                    UserRole.MANAGER,
+                    UserStatus.DELETED
+            );
+
+            Users manager;
             String temporaryPassword = generateTemporaryPassword();
-            Users manager = createManagerUser(request, company.getId(), temporaryPassword);
 
+            if (deletedManager.isPresent()) {
+                // 5-1. DELETED MANAGER 재활용
+                manager = deletedManager.get();
+                manager.restore(); // DELETED → ACTIVE
+
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+                manager.updatePassword(encodedPassword);
+                manager.updateName(request.getName());
+                manager.updatePhone(request.getPhone());
+
+                userRepository.save(manager);
+            } else {
+                // 5-2. 신규 MANAGER 생성
+                manager = createManagerUser(request, company.getId(), temporaryPassword);
+            }
+
+            // 6. 이메일 발송
             sendManagerCreationEmail(request, company, temporaryPassword);
 
+            // 7. 응답 생성
             return buildCreateResponse(manager, company);
         }
 
@@ -773,20 +806,28 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증 (DELETED 제외)
+         * MANAGER 이메일 중복 검증 (같은 기업 내에서만)
+         * - 같은 기업 내 MANAGER 중복 체크 (DELETED 제외)
+         * - 같은 기업 내 ADMIN 역할 충돌 체크 (DELETED 제외)
+         * - 다른 기업의 계정은 체크하지 않음 (멀티테넌트)
          */
-        private void validateEmailDuplicate(String email) {
-            // ADMIN과 MANAGER만 체크
-            if (userRepository.existsByEmailAndRoleInAndStatusNot(
-                    email,
-                    List.of(UserRole.ADMIN, UserRole.MANAGER),
-                    UserStatus.DELETED)) {
-                throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
+        private void validateEmailDuplicate(String email, Long companyId) {
+            // 1. 같은 기업 내 MANAGER 중복 체크 (DELETED 제외)
+            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                    email, companyId, UserRole.MANAGER, UserStatus.DELETED)) {
+                throw new BaseException(BaseResponseStatus.MANAGER_ALREADY_EXISTS);
+            }
+
+            // 2. 같은 기업 내 ADMIN 역할 충돌 체크 (DELETED 제외)
+            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                    email, companyId, UserRole.ADMIN, UserStatus.DELETED)) {
+                throw new BaseException(BaseResponseStatus.ROLE_CONFLICT_IN_COMPANY);
             }
         }
 
         /**
          * Manager User 엔티티 생성
+         * - 즉시 사용 가능하도록 ACTIVE 상태로 생성
          */
         private Users createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
             String encodedPassword = passwordEncoder.encode(temporaryPassword);
@@ -797,7 +838,7 @@ public class AdminService {
                     .name(request.getName())
                     .phone(request.getPhone())
                     .role(UserRole.MANAGER)
-                    .status(UserStatus.INACTIVE)
+                    .status(UserStatus.ACTIVE)
                     .companyId(companyId)
                     .isFirstLogin(true)
                     .build();
@@ -853,6 +894,46 @@ public class AdminService {
                     .name(manager.getName())
                     .email(manager.getEmail())
                     .deletedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        /**
+         * 매니저 정보 수정
+         */
+        @Transactional
+        public ManagerDto.UpdateResponse updateManager(Long managerId, ManagerDto.UpdateRequest request, Long adminUserId) {
+            // 1. Admin 권한 검증
+            Users admin = validateAdminAuthority(adminUserId);
+
+            // 2. 매니저 조회
+            Users manager = userRepository.findById(managerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 3. 매니저 권한 확인
+            if (!manager.isManager()) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 4. 같은 회사 소속인지 확인
+            if (!manager.getCompanyId().equals(admin.getCompanyId())) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 5. 정보 업데이트
+            manager.updateName(request.getName());
+            manager.updatePhone(request.getPhone());
+
+            // 6. 명시적 저장
+            userRepository.save(manager);
+
+            // 7. 응답 생성
+            return ManagerDto.UpdateResponse.builder()
+                    .message("매니저 정보가 성공적으로 수정되었습니다.")
+                    .managerId(manager.getId())
+                    .name(manager.getName())
+                    .email(manager.getEmail())
+                    .phone(manager.getPhone())
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
 
@@ -995,6 +1076,13 @@ public class AdminService {
 
     public ManagerDto.ManagerDeleteResponse deleteManager(Long managerId, Long currentUserId) {
         return managerManagement.deleteManager(managerId, currentUserId);
+    }
+
+    /**
+     * 매니저 정보 수정
+     */
+    public ManagerDto.UpdateResponse updateManager(Long managerId, ManagerDto.UpdateRequest request, Long currentUserId) {
+        return managerManagement.updateManager(managerId, request, currentUserId);
     }
 
     /**

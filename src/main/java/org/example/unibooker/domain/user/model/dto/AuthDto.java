@@ -316,7 +316,7 @@ public class AuthDto {
      */
     @Getter
     @Schema(description = "인증된 매니저")
-    public static class AuthManager extends AuthenticatedUser {
+    public static class AuthManager extends AuthenticatedUser implements AdminLike {
 
         private AuthManager(Long id, LocalDateTime createdAt, LocalDateTime updatedAt,
                             LocalDateTime deletedAt, String name, String email,
@@ -409,6 +409,30 @@ public class AuthDto {
         }
     }
 
+    /**
+     * ADMIN/MANAGER 공통 인터페이스
+     * - 관리자 권한이 필요한 메서드에서 공통으로 사용
+     * - @AuthenticationPrincipal에서 타입 안정성 확보
+     */
+    public interface AdminLike {
+        Long getId();
+        String getEmail();
+        UserRole getRole();
+        Long getCompanyId();
+        UserStatus getStatus();
+        Boolean getIsFirstLogin();
+
+        /**
+         * 활성 상태 확인
+         */
+        boolean isActive();
+
+        /**
+         * 특정 기업 소속 여부 확인
+         */
+        boolean belongsToCompany(Long companyId);
+    }
+
     // ========== 관리자 ==========
 
     /**
@@ -416,7 +440,7 @@ public class AuthDto {
      */
     @Getter
     @Schema(description = "인증된 관리자")
-    public static class AuthAdmin extends AuthenticatedUser {
+    public static class AuthAdmin extends AuthenticatedUser implements AdminLike {
 
         @Schema(description = "슈퍼관리자 여부", example = "false")
         private final boolean isSuper;

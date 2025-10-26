@@ -39,7 +39,6 @@ public class AuthController {
             @CookieValue(value = "adminRefreshToken", required = false) String adminRefreshToken,
             @CookieValue(value = "userRefreshToken", required = false) String userRefreshToken,
             @CookieValue(value = "superRefreshToken", required = false) String superRefreshToken,
-            @CookieValue(value = "managerRefreshToken", required = false) String managerRefreshToken,
             HttpServletRequest request,
             HttpServletResponse response) {
 
@@ -51,8 +50,7 @@ public class AuthController {
 
         // 2. 권한에 맞는 Refresh Token 선택
         String refreshToken = getRefreshTokenByRole(role, adminRefreshToken,
-                userRefreshToken, superRefreshToken,
-                managerRefreshToken);
+                userRefreshToken, superRefreshToken);
 
         // 3. Refresh Token 검증
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -106,15 +104,14 @@ public class AuthController {
 
     /**
      * 권한별 Refresh Token 선택
+     * - Manager는 Admin 토큰 사용
      */
     private String getRefreshTokenByRole(UserRole role,
                                          String adminToken,
                                          String userToken,
-                                         String superToken,
-                                         String managerToken) {
+                                         String superToken) {
         return switch(role) {
-            case ADMIN -> adminToken;
-            case MANAGER -> managerToken;
+            case ADMIN, MANAGER -> adminToken;
             case USER -> userToken;
             case SUPER -> superToken;
         };
