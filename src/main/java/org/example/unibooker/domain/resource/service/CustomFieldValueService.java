@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.LinkedHashMap;
 
@@ -82,6 +83,13 @@ public class CustomFieldValueService {
                         Collectors.mapping(ResourceCustomFieldValues::getFieldValue, Collectors.toList())
                 ));
 
+        // true/false -> 예/아니오 변환 메서드
+        Function<String, String> convertBooleanValue = v -> {
+            if ("true".equalsIgnoreCase(v)) return "예";
+            if ("false".equalsIgnoreCase(v)) return "아니오";
+            return v;
+        };
+
         // DTO 생성
         List<CustomFieldDto.CustomFieldValueListRes> result = new ArrayList<>();
         for (Map.Entry<Long, List<String>> entry : groupedValues.entrySet()) {
@@ -91,10 +99,15 @@ public class CustomFieldValueService {
                     .get()
                     .getCustomFieldDefinition();
 
+            // 값 변환
+            List<String> convertedValues = entry.getValue().stream()
+                    .map(convertBooleanValue)
+                    .collect(Collectors.toList());
+
             result.add(CustomFieldDto.CustomFieldValueListRes.builder()
                     .customFieldId(field.getId())
                     .fieldName(field.getFieldName())
-                    .values(entry.getValue())
+                    .values(convertedValues)
                     .build());
         }
 

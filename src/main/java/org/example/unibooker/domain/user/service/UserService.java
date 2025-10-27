@@ -128,14 +128,16 @@ public class UserService {
     }
 
     /**
-     * ADMIN/MANAGER 이메일 중복 확인
+     * ADMIN/MANAGER 이메일 중복 확인 (DELETED 제외)
      * - ADMIN, MANAGER와만 중복 체크 (USER 제외)
+     * - 탈퇴한 계정(DELETED)은 중복으로 간주하지 않음 (재가입 가능)
      * - 한 이메일로 USER + ADMIN 계정 각각 생성 가능
      */
     public boolean existsByEmailForAdmin(String email) {
-        return userRepository.existsByEmailAndRoleIn(
+        return userRepository.existsByEmailAndRoleInAndStatusNot(
                 email,
-                List.of(UserRole.ADMIN, UserRole.MANAGER)
+                List.of(UserRole.ADMIN, UserRole.MANAGER),
+                UserStatus.DELETED
         );
     }
 

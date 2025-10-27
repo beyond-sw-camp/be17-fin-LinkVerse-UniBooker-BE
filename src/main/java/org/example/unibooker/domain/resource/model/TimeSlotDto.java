@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,32 +66,28 @@ public class TimeSlotDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @Schema(description = "정기운영 시간 조회 응답 DTO")
     public static class TimeSlotResponse {
-        @Schema(description = "요일", example = "Mon")
+        @Schema(description = "요일", example = "MON")
         private String dayOfWeek;
 
         @Schema(description = "시작 시간", example = "10:00")
-        private LocalTime startTime;
+        private String startTime;
 
         @Schema(description = "종료 시간", example = "17:00")
-        private LocalTime endTime;
+        private String endTime;
 
         public static TimeSlotResponse fromEntity(ResourceTimeSlots slot) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
             return TimeSlotResponse.builder()
                     .dayOfWeek(slot.getDayOfWeek().name())
-                    .startTime(slot.getStartTime())
-                    .endTime(slot.getEndTime())
-                    .build();
-        }
-
-        public static TimeSlotResponse from(LocalTime startTime, LocalTime endTime, DayOfWeek dayOfWeek) {
-            return TimeSlotResponse.builder()
-                    .dayOfWeek(dayOfWeek.name())
-                    .startTime(startTime)
-                    .endTime(endTime)
+                    .startTime(slot.getStartTime() != null ? slot.getStartTime().format(formatter) : null)
+                    .endTime(slot.getEndTime() != null ? slot.getEndTime().format(formatter) : null)
                     .build();
         }
     }
+
 
     @Getter
     @Builder
@@ -100,10 +97,10 @@ public class TimeSlotDto {
         private String date;
 
         @Schema(description = "시작 시간", example = "10:00")
-        private LocalTime startTime;
+        private String startTime;
 
         @Schema(description = "종료 시간", example = "17:00")
-        private LocalTime endTime;
+        private String endTime;
 
         @Schema(description = "휴무 여부", example = "true")
         private boolean isClosed;
@@ -112,10 +109,12 @@ public class TimeSlotDto {
         private String note;
 
         public static TimeSlotExceptionResponse fromEntity(ResourceTimeSlotExceptions ex) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
             return TimeSlotExceptionResponse.builder()
                     .date(ex.getDate().toString())
-                    .startTime(ex.getStartTime())
-                    .endTime(ex.getEndTime())
+                    .startTime(ex.getStartTime() != null ? ex.getStartTime().format(formatter) : null)
+                    .endTime(ex.getEndTime() != null ? ex.getEndTime().format(formatter) : null)
                     .isClosed(ex.getIsClosed())
                     .note(ex.getNote() == null ? "" : String.valueOf(ex.getNote()))
                     .build();

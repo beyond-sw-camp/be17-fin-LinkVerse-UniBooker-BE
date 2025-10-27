@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.service;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.*;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class ResourceService {
     private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
     private final ResourceTimeSlotRepository resourceTimeSlotRepository;
     private final ResourceTimeSlotExceptionRepository resourceTimeSlotExceptionRepository;
+    private final NotificationService notificationService;
 
 
     // -------------------- 리소스 등록 --------------------
@@ -210,6 +212,7 @@ public class ResourceService {
                     resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
             existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
         }
+
     }
 
 

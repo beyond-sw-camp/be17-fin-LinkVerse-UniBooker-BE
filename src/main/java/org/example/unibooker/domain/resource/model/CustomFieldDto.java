@@ -142,11 +142,17 @@ public class CustomFieldDto {
         @Schema(description = "값 목록", example = "[\"101호 회의실\"]")
         private List<String> values;
 
+        private static String convertBooleanValue(String value) {
+            if ("true".equalsIgnoreCase(value)) return "예";
+            if ("false".equalsIgnoreCase(value)) return "아니오";
+            return value; // boolean이 아니면 원래 값 그대로
+        }
+
         public static CustomFieldValueListRes fromUserEntity(UserCustomFieldValues entity) {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .values(List.of(entity.getFieldValue()))
+                    .values(List.of(convertBooleanValue(entity.getFieldValue())))
                     .build();
         }
 
@@ -154,7 +160,7 @@ public class CustomFieldDto {
             return CustomFieldValueListRes.builder()
                     .customFieldId(entity.getCustomFieldDefinition().getId())
                     .fieldName(entity.getCustomFieldDefinition().getFieldName())
-                    .values(List.of(entity.getFieldValue()))
+                    .values(List.of(convertBooleanValue(entity.getFieldValue())))
                     .build();
         }
     }

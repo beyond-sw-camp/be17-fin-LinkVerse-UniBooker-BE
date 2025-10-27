@@ -32,4 +32,22 @@ public class TimeSlotController {
 
         return timeSlotService.getTimeSlotsWithExceptions(resourceId, year, month, page, pageSize);
     }
+
+
+    // ---------------- 정규 운영 시간 조회 ----------------
+    @GetMapping("/{resourceId}/timeslots")
+    public BaseResponse<List<TimeSlotDto.TimeSlotResponse>> getTimeSlots(@PathVariable Long resourceId) {
+        List<TimeSlotDto.TimeSlotResponse> slots = timeSlotService.getTimeSlots(resourceId);
+
+        return BaseResponse.success(slots);
+    }
+
+
+    // ---------------- 예외 운영 시간 조회 ----------------
+    @GetMapping("/{resourceId}/exceptions")
+    public BaseResponse<List<TimeSlotDto.TimeSlotExceptionResponse>> getResourceExceptions(
+            @PathVariable Long resourceId) {
+        List<TimeSlotDto.TimeSlotExceptionResponse> result = timeSlotService.getExceptions(resourceId);
+        return BaseResponse.success(result);
+    }
 }
