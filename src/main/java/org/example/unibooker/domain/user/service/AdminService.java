@@ -119,15 +119,18 @@ public class AdminService {
             validateCompanySlug(request.getCompanySlug());
 
             // 2. 탈퇴한 ADMIN 계정이 있는지 확인
-            Optional<Users> deletedAdmin = userRepository.findByEmailAndStatus(
+            Optional<Users> deletedUser = userRepository.findByEmailAndStatus(
                     request.getEmail(),
                     UserStatus.DELETED
             );
 
+            // ADMIN 역할의 탈퇴 계정만 필터링
+            Optional<Users> deletedAdmin = deletedUser.filter(Users::isAdmin);
+
             Companies company;
             Users admin;
 
-            if (deletedAdmin.isPresent() && deletedAdmin.get().isAdmin()) {
+            if (deletedAdmin.isPresent()) {
                 // 2-1. 탈퇴 ADMIN 계정 복구
                 admin = deletedAdmin.get();
                 admin.restore(); // DELETED → INACTIVE 변경
