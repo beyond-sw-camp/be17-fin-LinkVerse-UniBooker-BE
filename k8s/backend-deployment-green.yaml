@@ -7,6 +7,9 @@ metadata:
     version: green
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       app: backend
@@ -17,6 +20,8 @@ spec:
         app: backend
         version: green
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker5
       containers:
         - name: backend
           image: linkverseunibooker/backend:latest
