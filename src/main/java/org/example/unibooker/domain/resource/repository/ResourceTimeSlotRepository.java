@@ -18,4 +18,6 @@ public interface ResourceTimeSlotRepository extends JpaRepository<ResourceTimeSl
     List<ResourceTimeSlots> findByResources_IdAndIsActiveTrue(Long resourceId);
 
     List<ResourceTimeSlots> findByResources_Id(Long resourceId);
+
+    List<ResourceTimeSlots> findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId);
 }

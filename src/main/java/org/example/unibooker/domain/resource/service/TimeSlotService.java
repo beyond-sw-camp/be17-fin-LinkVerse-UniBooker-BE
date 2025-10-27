@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,66 @@ public class TimeSlotService {
     private final ResourceTimeSlotRepository resourceTimeSlotRepository;
     private final ResourceTimeSlotExceptionRepository resourceTimeSlotExceptionRepository;
     private final ResourceRepository resourceRepository;
+
+
+    // -------------------- 리소스 상세 조회용 --------------------
+    public List<TimeSlotDto.TimeSlotResponse> getTimeSlots(Long resourceId) {
+        List<ResourceTimeSlots> slots = resourceTimeSlotRepository.findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
+
+        // 요일별로 그룹화
+        Map<String, List<ResourceTimeSlots>> byDay = slots.stream()
+                .collect(Collectors.groupingBy(
+                        slot -> slot.getDayOfWeek().name(),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        List<TimeSlotDto.TimeSlotResponse> result = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        for (String day : byDay.keySet()) {
+            List<ResourceTimeSlots> daySlots = byDay.get(day);
+
+            LocalTime start = null;
+            LocalTime end = null;
+
+            for (int i = 0; i < daySlots.size(); i++) {
+                ResourceTimeSlots slot = daySlots.get(i);
+
+                if (slot.getIsActive()) {
+                    if (start == null) start = slot.getStartTime();
+                    end = slot.getEndTime();
+                }
+
+                boolean isLast = (i == daySlots.size() - 1);
+                boolean nextInactive = !isLast && !daySlots.get(i + 1).getIsActive();
+
+                // 현재 활성 구간 끝나면 DTO 추가
+                if ((slot.getIsActive() && (isLast || nextInactive)) && start != null) {
+                    result.add(new TimeSlotDto.TimeSlotResponse(
+                            day,
+                            start != null ? start.format(formatter) : null,
+                            end != null ? end.format(formatter) : null
+                    ));
+                    start = null;
+                    end = null;
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+    // -------------------- 특정 리소스의 예외 운영 시간 조회 --------------------
+    public List<TimeSlotDto.TimeSlotExceptionResponse> getExceptions(Long resourceId) {
+        List<ResourceTimeSlotExceptions> exceptions = resourceTimeSlotExceptionRepository
+                .findByResources_IdOrderByDateAscStartTimeAsc(resourceId);
+
+        return exceptions.stream()
+                .map(TimeSlotDto.TimeSlotExceptionResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 
 
     // -------------------- 특정 리소스의 운영 시간 조회 --------------------

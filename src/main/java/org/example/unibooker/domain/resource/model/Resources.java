@@ -129,6 +129,7 @@ public class Resources extends BaseEntity {
         // 필드 업데이트 (null 체크)
         if (dto.getName() != null) this.name = dto.getName();
         if (dto.getDescription() != null) this.description = dto.getDescription();
+        if (dto.getResourceImage() != null) this.resourceImage = dto.getResourceImage();
         if (dto.getStartDate() != null) this.startDate = dto.getStartDate();
         if (dto.getEndDate() != null) this.endDate = dto.getEndDate();
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
