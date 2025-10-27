@@ -38,6 +38,7 @@ public class TimeSlotService {
                 ));
 
         List<TimeSlotDto.TimeSlotResponse> result = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
         for (String day : byDay.keySet()) {
             List<ResourceTimeSlots> daySlots = byDay.get(day);
@@ -60,8 +61,8 @@ public class TimeSlotService {
                 if ((slot.getIsActive() && (isLast || nextInactive)) && start != null) {
                     result.add(new TimeSlotDto.TimeSlotResponse(
                             day,
-                            start,
-                            end
+                            start != null ? start.format(formatter) : null,
+                            end != null ? end.format(formatter) : null
                     ));
                     start = null;
                     end = null;
