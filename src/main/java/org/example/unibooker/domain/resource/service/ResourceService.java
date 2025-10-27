@@ -141,15 +141,6 @@ public class ResourceService {
     }
 
 
-    // -------------------- 리소스 상세 조회 (수정용) --------------------
-    public ResourceDto.ResourceDetailInfo getResourceDetailForUpdate(Long resourceId) {
-        Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
-
-        return ResourceDto.ResourceDetailInfo.fromEntity(resource);
-    }
-
-
     // -------------------- 리소스 상세 조회 (목록 조회용) --------------------
     public ResourceDto.ResourceDetailInfo getResourceById(Long resourceId) {
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
