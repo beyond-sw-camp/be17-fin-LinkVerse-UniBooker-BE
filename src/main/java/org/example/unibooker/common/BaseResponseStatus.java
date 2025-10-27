@@ -28,6 +28,8 @@ public enum BaseResponseStatus {
     SUSPENDED_USER(30009, "정지된 계정입니다."),
     SAME_PASSWORD(30010, "새 비밀번호는 현재 비밀번호와 달라야 합니다."),
     CURRENT_PASSWORD_INCORRECT(30011, "현재 비밀번호가 일치하지 않습니다."),
+    ROLE_CONFLICT_IN_COMPANY(30012, "같은 기업 내에서 관리자와 매니저 역할을 동시에 가질 수 없습니다."),
+    MANAGER_ALREADY_EXISTS(30013, "해당 이메일로 이미 매니저가 등록되어 있습니다."),
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),

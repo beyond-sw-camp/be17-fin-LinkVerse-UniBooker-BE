@@ -27,22 +27,30 @@ public class CookieUtil {
     /**
      * 권한별 Access Token 쿠키 이름 생성
      * - ADMIN → adminAccessToken
+     * - MANAGER → adminAccessToken (ADMIN과 동일)
      * - USER → userAccessToken
      * - SUPER → superAccessToken
-     * - MANAGER → managerAccessToken
      */
     private static String createAccessTokenCookieName(UserRole role) {
+        // Manager는 Admin 토큰 사용
+        if (role == UserRole.MANAGER) {
+            return "adminAccessToken";
+        }
         return role.name().toLowerCase() + "AccessToken";
     }
 
     /**
      * 권한별 Refresh Token 쿠키 이름 생성
      * - ADMIN → adminRefreshToken
+     * - MANAGER → adminRefreshToken (ADMIN과 동일)
      * - USER → userRefreshToken
      * - SUPER → superRefreshToken
-     * - MANAGER → managerRefreshToken
      */
     private static String createRefreshTokenCookieName(UserRole role) {
+        // Manager는 Admin 토큰 사용
+        if (role == UserRole.MANAGER) {
+            return "adminRefreshToken";
+        }
         return role.name().toLowerCase() + "RefreshToken";
     }
 
