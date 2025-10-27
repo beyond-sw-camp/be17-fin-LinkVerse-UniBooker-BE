@@ -46,8 +46,9 @@ public class ResourceGroupController {
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 그룹 상세 조회", description = "특정 서비스 그룹의 이름, 설명, 썸네일 이미지를 조회합니다.")
     @GetMapping("/{resourceGroupId}")
-    public BaseResponse<ResourceGroupDto.ResourceGroupDetailRes> getResourceGroupById(@PathVariable Long resourceGroupId) {
-        ResourceGroupDto.ResourceGroupDetailRes response = resourceGroupService.getResourceGroupById(resourceGroupId);
+    public BaseResponse<ResourceGroupDto.ResourceGroupDetailRes> getResourceGroupById(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                                                                      @PathVariable Long resourceGroupId) {
+        ResourceGroupDto.ResourceGroupDetailRes response = resourceGroupService.getResourceGroupById(authUser, resourceGroupId);
         return BaseResponse.success(response);
     }
 

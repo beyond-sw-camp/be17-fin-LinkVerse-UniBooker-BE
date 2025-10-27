@@ -55,6 +55,10 @@ public class ResourceGroups extends BaseEntity {
     @OneToMany(mappedBy = "resourceGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomFieldDefinitions> customFieldDefinitions = new ArrayList<>();
 
+    // 조회수
+    @JoinColumn(name= "view_count")
+    private int viewCount;
+
 
     // 서비스 그룹 수정 함수
     public void update(String name, String description, String thumbnail, String category, Boolean isAlwaysAvailable, Users updatedBy) {

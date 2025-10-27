@@ -21,7 +21,7 @@ public class DashboardDto {
         private Summary summary;
 
         @Schema(description = "서비스 그룹별 현황 데이터 목록")
-        private List<ResourceGroupInfo> serviceGroups;
+        private List<ResourceGroupStats> serviceGroups;
 
         @Schema(description = "예약 트렌드 데이터 (날짜별 그룹별 예약 수)")
         private List<ReservationTrend> reservationTrends;
@@ -54,7 +54,7 @@ public class DashboardDto {
     @AllArgsConstructor
     @NoArgsConstructor
     @Schema(description = "서비스 그룹별 현황 데이터")
-    public static class ResourceGroupInfo {
+    public static class ResourceGroupStats {
 
         @Schema(description = "서비스 그룹명", example = "회의실 예약")
         private String name;

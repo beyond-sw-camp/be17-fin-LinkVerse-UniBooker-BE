@@ -108,9 +108,13 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 조회 --------------------
     @Transactional(readOnly = true)
-    public ResourceGroupDto.ResourceGroupDetailRes getResourceGroupById(Long resourceGroupId) {
+    public ResourceGroupDto.ResourceGroupDetailRes getResourceGroupById(AuthDto.AuthenticatedUser authUser, Long resourceGroupId) {
         ResourceGroups group = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 서비스 그룹이 존재하지 않습니다."));
+
+        if(authUser.getRole() == UserRole.USER){ // USER가 조회했을 경우에만
+            resourceGroupRepository.incrementViewCount(resourceGroupId); // 조회수 증가
+        }
 
         return ResourceGroupDto.ResourceGroupDetailRes.fromEntity(group);
     }

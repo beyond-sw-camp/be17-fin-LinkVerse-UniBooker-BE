@@ -8,6 +8,7 @@ import org.example.unibooker.domain.analytics.model.DashboardDto;
 import org.example.unibooker.domain.analytics.service.DashboardService;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,9 +20,9 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @Operation(summary = "대시보드 요약")
-    @RequestMapping("/company/summary")
-    public BaseResponse<DashboardDto.DashboardResponse> getCompanySummary(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
-        DashboardDto.DashboardResponse response = dashboardService.getCompanyDashboardData(authUser.getCompanyId());
+    @GetMapping
+    public BaseResponse<DashboardDto.DashboardResponse> getCompanyDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
+        DashboardDto.DashboardResponse response = dashboardService.getCompanyDashboard(authUser.getCompanyId());
         return BaseResponse.success(response);
     }
 
