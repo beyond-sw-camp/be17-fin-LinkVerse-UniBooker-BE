@@ -1,6 +1,18 @@
 package org.example.unibooker.domain.notification.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+/**
+ * 알림 서비스
+ * - 미활성 계정 삭제 알림 (추후 구현)
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
 public class NotificationService {
+
     /**
      * TODO: 미활성 계정 자동 삭제 알림 발송 (팀원 구현)
      *
@@ -23,7 +35,7 @@ public class NotificationService {
      *    - 총 삭제 개수
      *    - 삭제 일시
      */
-// public void sendInactiveAccountDeletionNotice(List<Users> deletedAccounts) {
-//     // 구현 필요
-// }
+//    public void sendInactiveAccountDeletionNotice(List<Users> deletedAccounts) {
+//        // 추후 구현
+//    }
 }
