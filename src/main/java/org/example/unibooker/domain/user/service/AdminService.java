@@ -674,7 +674,7 @@ public class AdminService {
         }
 
         /**
-         * 관리자가 자신의 기업 소속 매니저 목록 조회
+         * 관리자가 자신의 기업 소속 매니저 목록 조회 (DELETED 제외)
          */
         public ManagerDto.ManagerListResponse getManagers(Long adminUserId, int page, int size) {
             // 1. Admin 권한 검증
@@ -683,10 +683,11 @@ public class AdminService {
             // 2. 페이징 처리
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-            // 3. 같은 기업의 매니저 조회
-            Page<Users> managerPage = userRepository.findByCompanyIdAndRole(
+            // 3. 같은 기업의 매니저 조회 (DELETED 제외)
+            Page<Users> managerPage = userRepository.findByCompanyIdAndRoleAndStatusNot(
                     admin.getCompanyId(),
                     UserRole.MANAGER,
+                    UserStatus.DELETED,
                     pageable
             );
 

@@ -166,4 +166,14 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             Boolean isFirstLogin,
             LocalDateTime createdAtBefore
     );
+
+    /**
+     * 기업 ID와 권한으로 사용자 페이징 조회 (DELETED 제외)
+     */
+    Page<Users> findByCompanyIdAndRoleAndStatusNot(
+            Long companyId,
+            UserRole role,
+            UserStatus status,
+            Pageable pageable
+    );
 }
