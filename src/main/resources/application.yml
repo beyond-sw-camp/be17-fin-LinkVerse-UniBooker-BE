@@ -109,6 +109,11 @@ app:
     from: noreply@unibooker.com
     login-url: https://unibooker.com/login
 
+  account-cleanup:
+    enabled: true                    # 자동 삭제 기능 활성화 여부
+    inactive-minutes: 4320               # 미활성 기준 시간 (72시간 = 3일)
+    cron: "0 0 2  * * *"             # 매일 새벽 2시 실행
+
 # =================================================================
 # 서버 설정
 # =================================================================

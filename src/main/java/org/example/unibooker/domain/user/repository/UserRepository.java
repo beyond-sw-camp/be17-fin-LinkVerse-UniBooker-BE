@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -157,4 +158,27 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * - ADMIN/MANAGER/SUPER 로그인 시 사용
      */
     List<Users> findByEmailAndRoleInAndStatusNot(String email, List<UserRole> roles, UserStatus status);
+
+    /**
+     * 미활성 첫 로그인 계정 조회 (자동 삭제 대상)
+     * - ADMIN/MANAGER 중 isFirstLogin=true
+     * - status=ACTIVE (INACTIVE, SUSPENDED, DELETED 제외)
+     * - 생성일이 특정 시간 이전
+     */
+    List<Users> findByRoleInAndStatusAndIsFirstLoginAndCreatedAtBefore(
+            List<UserRole> roles,
+            UserStatus status,
+            Boolean isFirstLogin,
+            LocalDateTime createdAtBefore
+    );
+
+    /**
+     * 기업 ID와 권한으로 사용자 페이징 조회 (DELETED 제외)
+     */
+    Page<Users> findByCompanyIdAndRoleAndStatusNot(
+            Long companyId,
+            UserRole role,
+            UserStatus status,
+            Pageable pageable
+    );
 }

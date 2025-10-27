@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.infrastructure.email.template.EmailTemplateService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
@@ -69,6 +70,14 @@ public class EmailServiceImpl implements EmailService {
     public void sendPasswordResetEmail(String to, String name, String companyName, String tempPassword) {
         String htmlContent = templateService.renderPasswordResetTemplate(name, companyName, tempPassword);
         String subject = "[UniBooker] 임시 비밀번호가 발급되었습니다";
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
+
+    @Override
+    public void sendAccountDeletionNotice(String to, String name, UserRole role) {
+        String htmlContent = templateService.renderAccountDeletionTemplate(name, role);
+        String subject = "[UniBooker] 계정이 삭제되었습니다";
 
         sendHtmlEmail(to, subject, htmlContent);
     }
