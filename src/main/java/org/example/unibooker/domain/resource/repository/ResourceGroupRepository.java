@@ -2,6 +2,8 @@ package org.example.unibooker.domain.resource.repository;
 
 import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +23,9 @@ public interface ResourceGroupRepository extends JpaRepository<ResourceGroups, L
 
     // 특정 기업의 리소스 그룹 조회 (활성화 상태 확인)
     List<ResourceGroups> findAllByCompanyIdAndIsActive(Long companyId, Boolean isActive);
+
+    // 조회수 증가
+    @Modifying
+    @Query("UPDATE ResourceGroups rg SET rg.viewCount = rg.viewCount + 1 WHERE rg.id = :groupId")
+    void incrementViewCount(Long groupId);
 }

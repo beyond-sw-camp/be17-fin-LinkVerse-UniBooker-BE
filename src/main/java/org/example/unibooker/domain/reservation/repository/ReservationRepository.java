@@ -1,8 +1,6 @@
 package org.example.unibooker.domain.reservation.repository;
 
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
-import org.example.unibooker.domain.resource.model.Resources;
-import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -52,4 +50,22 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // 리소스 그룹의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);
+
+    // 특정 기업의 모든 예약 수 카운트
+    @Query("SELECT COUNT(r) FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.company.id = :companyId")
+    int countByCompanyId(Long companyId);
+
+    // 특정 리소스 그룹의 예약 수
+    @Query("SELECT COUNT(r) FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
+    int countByResourceGroupId(Long resourceGroupId);
+
+    // 특정 기간 동안의 리소스 그룹별 예약수
+    @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +
+            "FROM Reservations r " +
+            "JOIN r.resources res " +
+            "JOIN res.resourceGroup rg " +
+            "WHERE rg.company.id = :companyId AND r.startDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY DATE(r.startDate), rg.name " +
+            "ORDER BY DATE(r.startDate) ASC")
+    List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
 }

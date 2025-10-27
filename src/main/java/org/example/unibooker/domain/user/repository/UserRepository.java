@@ -76,6 +76,11 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     Optional<Users> findByCompanyIdAndRole(Long companyId, UserRole role);
 
     /**
+     * 기업 ID와 권한으로 사용자 목록 조회
+     */
+    List<Users> findAllByCompanyIdAndRole(Long companyId, UserRole role);
+
+    /**
      * 기업 ID와 권한으로 사용자 페이징 조회
      */
     Page<Users> findByCompanyIdAndRole(Long companyId, UserRole role, Pageable pageable);
