@@ -2,15 +2,21 @@ package org.example.unibooker.domain.reservation.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.example.unibooker.common.BaseResponseStatus;
+import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.reservation.model.entity.ReservationStatus;
+import org.example.unibooker.domain.reservation.model.entity.Reservations;
+import org.example.unibooker.domain.reservation.repository.ReservationRepository;
+import org.example.unibooker.domain.resource.model.CustomFieldDto;
+import org.example.unibooker.domain.resource.model.Resources;
+import org.example.unibooker.domain.resource.model.ServiceCategory;
+import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- * Request - 예약 요청
- * Response - 예약 조회 응답
- **/
 public class ReservationDto {
 
     // ===================
@@ -18,7 +24,7 @@ public class ReservationDto {
     // ===================
     @Getter
     @Schema(description = "예약시 필요 요청 정보")
-    public class Request {
+    public static class Request {
         @Schema(description = "예약할 날짜", example = "2025-10-16")
         private LocalDate date;
 
@@ -28,42 +34,385 @@ public class ReservationDto {
         @Schema(description = "인원수", example = "3")
         private Integer headCount;
 
-        @Schema(description = "관리자가 커스텀으로 정의한 필드",
-                example = "{\"department_name\": \"인사부\", \"request_note\": \"회의실에 빔프로젝터 필요\"}")
-        private Map<String, Object> customFields;
+        @Schema(description = "좌석 행", example = "1")
+        private Integer row;
+
+        @Schema(description = "좌석 열", example = "2")
+        private Integer col;
+
+        @Schema(description = "리소스에 등록되어 있는 사용자 입력 커스텀 필드 값")
+        private List<CustomFieldDto.CustomFieldValue> customFieldValues;
+
+        /** dto -> entity 변환 함수 */
+        // TODO : reservationRepository 분리 필요
+        public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
+            LocalDateTime startDate = null, endDate = null;
+
+            // 신청인지 아닌지 체크 - 신청이면 날짜/시간 저장 안함(null). 신청일은 createdAt 으로 구별
+            if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
+                startDate = date.atTime(time);
+                endDate = startDate.plusMinutes(resource.getTimeInterval());
+            }
+
+            // 중복 예약 체크
+            Boolean isDuplicate;
+            if(!(resource.getResourceGroup().getCategory() == ServiceCategory.EVENT)) {
+                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), startDate, endDate);
+            } else {
+                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+            }
+            if (isDuplicate) {
+                throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
+            }
+
+            // TODO : 범위 내 날짜, 시간 체크
+
+            // 정원 초과 체크
+            if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 수용 가능
+                Integer currentCount = reservationRepository.countByResourceIdAndDate(resource.getId(), startDate.toLocalDate());
+                if ((currentCount >= resource.getCapacity())) {
+                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+                }
+            } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.RESERVATION)) { // 시간대별 한 타임 예약 가능
+                Boolean isReserved = reservationRepository.existsByResourceIdAndTimeRange(resource.getId(), startDate, endDate);
+                if (isReserved) {
+                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+                }
+            } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
+                Integer currentCount = reservationRepository.countByResourcesId(resource.getId());
+                if((currentCount >= resource.getCapacity())) {
+                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+                }
+            }
+
+            // 예약 Entity 반환
+            return Reservations.builder()
+                    .users(user)
+                    .resources(resource)
+                    .createdBy(user)
+                    .status(ReservationStatus.CONFIRMED)
+                    .attendeeCount(headCount)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .row(row)
+                    .col(col)
+                    .build();
+        }
     }
 
 
     // ===================
-    // 예약 응답 DTO
+    // 예약 목록 응답 DTO
     // ===================
-    @Schema(description = "예약 조회 응답 정보")
-    public class Response {
-        @Schema(description = "예약 번호", example = "1")
-        private Integer id;
 
-        @Schema(description = "예약자", example = "유현경")
-        private String username;
+    // =============== 플랫폼 관리자 및 기업 관리자 용 ===============
+    @Getter
+    @Builder
+    @Schema(description = "관리자 예약 목록 조회 응답 정보")
+    public static class ResponseList {
+        private List<Object> list;
 
-        @Schema(description = "예약 상태", example = "CONFIRMED")
+        public static ResponseList from(List<Reservations> entities, ServiceCategory serviceCategory) {
+            return switch(serviceCategory) {
+                case RESERVATION ->
+                        ResponseList.builder()
+                        .list(entities.stream().map(ReservationResponseListInfo::from).collect(Collectors.toList()))
+                        .build();
+                case SEAT ->
+                        ResponseList.builder()
+                        .list(entities.stream().map(SeatResponseListInfo::from).collect(Collectors.toList()))
+                        .build();
+                case EVENT ->
+                        ResponseList.builder()
+                        .list(entities.stream().map(EventResponseListInfo::from).collect(Collectors.toList()))
+                        .build();
+                default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
+            };
+        }
+    }
+
+    @Getter
+    @Builder
+    @Schema(description = "관리자 예약 목록 조회 [예약형] 단일 응답 정보")
+    public static class ReservationResponseListInfo {
+
+        @Schema(description = "예약 번호")
+        private Long id;
+
+        @Schema(description = "예약자")
+        private String userName;
+
+        @Schema(description = "예약한 리소스")
+        private String resourceName;
+
+        @Schema(description = "예약 시작 일시")
+        private LocalDateTime startDate;
+
+        @Schema(description = "예약 종료 일시")
+        private LocalDateTime endDate;
+
+        public static ReservationResponseListInfo from(Reservations entity) {
+            return ReservationResponseListInfo.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .resourceName(entity.getResources().getName())
+                    .startDate(entity.getStartDate())
+                    .endDate(entity.getEndDate())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @Schema(description = "관리자 예약 목록 조회 [좌석형] 단일 응답 정보")
+    public static class SeatResponseListInfo {
+
+        @Schema(description = "예약 번호")
+        private Long id;
+
+        @Schema(description = "예약자")
+        private String userName;
+
+        @Schema(description = "좌석 행")
+        private Integer row;
+
+        @Schema(description = "좌석 열")
+        private Integer col;
+
+        @Schema(description = "예약 시작 일시")
+        private LocalDateTime startDate;
+
+        @Schema(description = "예약 종료 일시")
+        private LocalDateTime endDate;
+
+
+        public static SeatResponseListInfo from(Reservations entity) {
+            return SeatResponseListInfo.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .row(entity.getRow())
+                    .col(entity.getCol())
+                    .startDate(entity.getStartDate())
+                    .endDate(entity.getEndDate())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @Schema(description = "관리자 예약 목록 조회 [신청형] 단일 응답 정보")
+    public static class EventResponseListInfo {
+
+        @Schema(description = "예약 번호")
+        private Long id;
+
+        @Schema(description = "예약자")
+        private String userName;
+
+        @Schema(description = "이메일")
+        private String email;
+
+        @Schema(description = "신청일")
+        private LocalDateTime applicationDate;
+
+        @Schema(description = "신청 상태")
         private ReservationStatus status;
 
-        @Schema(description = "시작 일시", example = "2025-10-16 10:00:00")
-        private LocalDateTime startTime;
+        public static EventResponseListInfo from(Reservations entity) {
+            return EventResponseListInfo.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .email(entity.getUsers().getEmail())
+                    .applicationDate(entity.getCreatedAt())
+                    .status(entity.getStatus())
+                    .build();
+        }
+    }
 
-        @Schema(description = "종료 일시", example = "2025-10-16 11:00:00")
-        private LocalDateTime endTime;
+    // =============== 일반 사용자용 ===============
+    @Getter
+    @Builder
+    @Schema(description = "일반 사용자 예약 목록 조회 응답 정보")
+    public static class UserResponseList {
+        List<UserResponse> reservations;
 
-        @Schema(description = "예약한 서비스 항목의 서비스", example = "회의실")
-        private String resourceGroup;
+        public static UserResponseList from(List<Reservations> entities) {
+            return UserResponseList.builder()
+                    .reservations(entities.stream().map(UserResponse::from).toList())
+                    .build();
+        }
+    }
 
-        @Schema(description = "예약한 서비스 항목", example = "회의실A")
-        private String resource;
+    @Getter
+    @SuperBuilder
+    @Schema(description = "일반 사용자 예약 목록 조회 단일 응답 정보")
+    public static class UserResponse extends Response {
+        @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
+        private LocalDateTime startDate;
+
+        @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
+        private LocalDateTime endDate;
+
+        @Schema(description = "리소스 그룹의 카테고리", example = "RESERVATION/SEAT/EVENT")
+        private ServiceCategory serviceCategory;
+
+        public static UserResponse from(Reservations entity) {
+            return UserResponse.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceGroup().getThumbnail())
+                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
+                    .resourceName(entity.getResources().getName())
+                    .createdAt(entity.getCreatedAt())
+                    .updatedAt(entity.getUpdatedAt())
+                    .deletedAt(entity.getDeletedAt())
+                    // 아래부터는 일반 사용자 예약 목록 조회용 정보
+                    .startDate(entity.getStartDate())
+                    .endDate(entity.getEndDate())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
+                    .build();
+        }
+    }
+
+
+    // ===================
+    // 예약 상세 응답 DTO
+    // ===================
+    @Getter
+    @SuperBuilder
+    @Schema(description = "예약 상세 조회 [공통] 응답 정보")
+    public abstract static class Response {
+        @Schema(description = "예약 번호", example = "1")
+        private Long id;
+
+        @Schema(description = "예약자", example = "유현경")
+        private String userName;
+
+        @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
+        private ReservationStatus status;
+
+        @Schema(description = "예약한 리소스 그룹의 이미지")
+        private String thumbnail;
+
+        @Schema(description = "예약한 리소스의 리소스 그룹명", example = "회의실")
+        private String resourceGroupName;
+
+        @Schema(description = "예약한 리소스명", example = "회의실A")
+        private String resourceName;
 
         @Schema(description = "생성일시")
         private LocalDateTime createdAt;
 
         @Schema(description = "수정일시")
         private LocalDateTime updatedAt;
+
+        @Schema(description = "삭제일시")
+        private LocalDateTime deletedAt;
+    }
+
+    @Getter
+    @SuperBuilder
+    @Schema(description = "예약 상세 조회 [예약형] 응답 정보")
+    public static class ReservationResponse extends Response {
+        @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
+        private LocalDateTime startDate;
+
+        @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
+        private LocalDateTime endDate;
+
+        @Schema(description = "인원수")
+        private Integer headCount;
+
+        @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
+        private List<CustomFieldDto.CustomFieldValueListRes> customFieldValues;
+
+        /** entity -> dto 로 변환 */
+        public static ReservationResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
+            return ReservationResponse.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
+                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
+                    .resourceName(entity.getResources().getName())
+                    .createdAt(entity.getCreatedAt())
+                    .updatedAt(entity.getUpdatedAt())
+                    .deletedAt(entity.getDeletedAt())
+                    .customFieldValues(userCustomFieldValues)
+                    // 아래부터는 예약형 정보
+                    .startDate(entity.getStartDate())
+                    .endDate(entity.getEndDate())
+                    .headCount(entity.getAttendeeCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @SuperBuilder
+    @Schema(description = "예약 상세 조회 [좌석형] 응답 정보")
+    public static class SeatResponse extends Response {
+        @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
+        private LocalDateTime startDate;
+
+        @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
+        private LocalDateTime endDate;
+
+        @Schema(description = "인원수")
+        private Integer headCount;
+
+        @Schema(description = "좌석 행")
+        private Integer row;
+
+        @Schema(description = "좌석 열")
+        private Integer col;
+
+        @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
+        private List<CustomFieldDto.CustomFieldValueListRes> customFieldValues;
+
+        public static SeatResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
+            return SeatResponse.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
+                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
+                    .resourceName(entity.getResources().getName())
+                    .createdAt(entity.getCreatedAt())
+                    .updatedAt(entity.getUpdatedAt())
+                    .deletedAt(entity.getDeletedAt())
+                    .customFieldValues(userCustomFieldValues)
+                    // 아래부터는 좌석형 정보
+                    .startDate(entity.getStartDate())
+                    .endDate(entity.getEndDate())
+                    .headCount(entity.getAttendeeCount())
+                    .row(entity.getRow())
+                    .col(entity.getCol())
+                    .build();
+        }
+    }
+
+    @Getter
+    @SuperBuilder
+    @Schema(description = "예약 상세 조회 [신청형] 응답 정보")
+    public static class EventResponse extends Response{
+
+        @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
+        private List<CustomFieldDto.CustomFieldValueListRes> customFieldValues;
+
+        public static EventResponse from(Reservations entity, List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues) {
+            return EventResponse.builder()
+                    .id(entity.getId())
+                    .userName(entity.getUsers().getName())
+                    .status(entity.getStatus())
+                    .thumbnail(entity.getResources().getResourceImage())
+                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
+                    .resourceName(entity.getResources().getName())
+                    .createdAt(entity.getCreatedAt())
+                    .updatedAt(entity.getUpdatedAt())
+                    .deletedAt(entity.getDeletedAt())
+                    .customFieldValues(userCustomFieldValues)
+                    .build();
+        }
     }
 }

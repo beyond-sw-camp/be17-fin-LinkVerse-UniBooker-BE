@@ -1,11 +1,9 @@
 package org.example.unibooker.domain.resource.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.unibooker.domain.resource.model.CustomFieldDefinitions;
-import org.example.unibooker.domain.resource.model.CustomFieldDto;
-import org.example.unibooker.domain.resource.model.CustomTargetType;
-import org.example.unibooker.domain.resource.model.ResourceGroups;
+import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.CustomFieldDefinitionRepository;
+import org.example.unibooker.domain.resource.repository.CustomFieldSelectRepository;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
@@ -19,6 +17,7 @@ import java.util.List;
 public class CustomFieldService {
     private final CustomFieldDefinitionRepository customFieldRepository;
     private final ResourceGroupRepository resourceGroupRepository;
+    private final CustomFieldSelectRepository customFieldSelectRepository;
 
 
     // -------------------- 커스텀 필드 생성 --------------------
@@ -42,17 +41,33 @@ public class CustomFieldService {
         List<CustomFieldDefinitions> fields;
 
         if (type != null) {
-            // 특정 targetType만 조회
             fields = customFieldRepository.findByResourceGroupAndTargetTypeAndDeletedAtIsNull(group, type);
         } else {
-            // 전체 조회
             fields = customFieldRepository.findByResourceGroupAndDeletedAtIsNull(group);
         }
 
         return fields.stream()
-                .map(CustomFieldDto.CustomFieldRes::fromEntity)
+                .map(field -> {
+                    CustomFieldDto.CustomFieldRes res = CustomFieldDto.CustomFieldRes.fromEntity(field);
+
+                    // RADIO / CHECKBOX일 경우 옵션 조회
+                    if (field.getDataType() == CustomDataType.RADIO
+                            || field.getDataType() == CustomDataType.CHECKBOX) {
+
+                        List<String> options = customFieldSelectRepository
+                                .findByCustomFieldDefinitionAndDeletedAtIsNull(field)
+                                .stream()
+                                .map(CustomFieldSelectDefinitions::getName)
+                                .toList();
+
+                        res.setOptions(options);
+                    }
+
+                    return res;
+                })
                 .toList();
     }
+
 
 
     // -------------------- 커스텀 필드 수정 --------------------

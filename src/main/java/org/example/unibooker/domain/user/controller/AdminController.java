@@ -3,16 +3,21 @@ package org.example.unibooker.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import org.example.unibooker.domain.user.service.AuthService;
+import org.example.unibooker.utils.CookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.service.AdminService;
@@ -28,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
  * - 매니저 관리 (생성, 조회, 삭제) - ADMIN 권한
  * - 관리자 관리 (목록 조회, 상태 변경) - SUPER_ADMIN 권한
  */
+@Slf4j
 @Tag(name = "Admin API", description = "관리자 및 매니저 관리 API")
 @RestController
 @RequestMapping("/api/admins")
@@ -36,6 +42,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final UserService userService;
+    private final AuthService authService;
 
     // ========== 관리자 본인 관리 ==========
 
@@ -68,112 +75,120 @@ public class AdminController {
     }
 
     /**
-     * 로그인
-     * - UserService의 공통 로그인 로직 사용
+     * 관리자 로그인
+     * - 단일 세션 정책: 기존 모든 역할의 쿠키 삭제 후 새 쿠키 생성
      * - JWT 토큰을 HTTP-Only 쿠키로 설정
      */
-    @Operation(summary = "로그인",
-            description = "관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid AdminDto.AdminLoginRequest request,
-            HttpServletResponse response) {  // ← HttpServletResponse 추가
+            HttpServletResponse response) {
 
-        UserDto.LoginResponse loginResponse = adminService.adminLogin(request);
+        // 1. 로그인 처리 (토큰 포함)
+        UserDto.LoginResponseWithToken loginResponseWithToken = adminService.adminLogin(request);
 
-        // ===== JWT 토큰을 HTTP-Only 쿠키로 설정 =====
+        // 2. 단일 세션 정책: 모든 역할의 기존 쿠키 삭제
+        CookieUtil.deleteAllRolesCookies(response);
 
-        // Access Token 쿠키 설정 (15분)
-        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);  // XSS 방어
-        accessTokenCookie.setSecure(false);   // HTTPS에서만 전송 (개발 환경: false, 프로덕션: true)
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(15 * 60);  // 15분
-        response.addCookie(accessTokenCookie);
+        // 3. 현재 역할의 토큰을 HttpOnly Cookie에 저장
+        response.addCookie(CookieUtil.createAccessTokenCookie(
+                loginResponseWithToken.getAccessToken(),
+                loginResponseWithToken.getRole()
+        ));
+        response.addCookie(CookieUtil.createRefreshTokenCookie(
+                loginResponseWithToken.getRefreshToken(),
+                loginResponseWithToken.getRole()
+        ));
 
-        // Refresh Token 쿠키 설정 (7일)
-        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);   // 개발 환경: false, 프로덕션: true
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일
-        response.addCookie(refreshTokenCookie);
-
-        return BaseResponse.success(loginResponse);
+        // 4. 클라이언트 응답 생성 (토큰 제외)
+        return BaseResponse.success(loginResponseWithToken.toResponse());
     }
 
     /**
      * 로그아웃
      * - UserService의 공통 로그아웃 로직 사용
      */
-    @Operation(summary = "로그아웃",
-            description = "현재 로그인 세션을 종료하고 Refresh Token을 무효화합니다.")
     @PostMapping("/logout")
-    public BaseResponse<UserDto.LogoutResponse> logout(
-            @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId) {
+    public BaseResponse<AuthDto.LogoutResponse> logout(
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,  // 타입 변경: Long → AuthDto.AuthAdmin
+            HttpServletResponse response) {
 
-        UserDto.LogoutResponse response = userService.logout(userId, request);
-        return BaseResponse.success(response);
+        AuthDto.LogoutResponse logoutResponse = authService.logout(authAdmin.getId());  // authAdmin.getId() 사용
+
+        CookieUtil.deleteAllTokenCookies(response, authAdmin.getRole());  // 권한 파라미터 추가
+
+        return BaseResponse.success(logoutResponse);
     }
 
     /**
      * 비밀번호 재설정 (첫 로그인 시 필수)
-     * - 임시 비밀번호 검증 후 새 비밀번호로 변경
-     * - isFirstLogin 플래그 해제
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
-    @Operation(summary = "비밀번호 재설정",
-            description = "첫 로그인 시 임시 비밀번호를 새 비밀번호로 변경합니다.")
     @PatchMapping("/password/reset")
     public BaseResponse<AdminDto.PasswordResetResponse> resetPassword(
             @RequestBody @Valid AdminDto.PasswordResetRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike 변경
 
-        AdminDto.PasswordResetResponse response = adminService.resetPassword(userId, request);
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        AdminDto.PasswordResetResponse response = adminService.resetPassword(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
     /**
      * 내 프로필 조회
-     * - UserService의 공통 프로필 조회 로직 사용
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
-    @Operation(summary = "내 프로필 조회",
-            description = "현재 로그인한 관리자의 프로필 정보를 조회합니다.")
     @GetMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> getMyProfile(
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin,  // ← AuthAdmin → AdminLike
+            HttpServletRequest request) {
 
-        UserDto.ProfileResponse response = userService.getMyProfile(userId);
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.ProfileResponse response = userService.getMyProfile(admin.getId());
         return BaseResponse.success(response);
     }
 
     /**
      * 내 프로필 수정
-     * - UserService의 공통 프로필 수정 로직 사용
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @Operation(summary = "내 프로필 수정",
             description = "현재 로그인한 관리자의 프로필 정보를 수정합니다.")
     @PatchMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> updateMyProfile(
             @RequestBody @Valid UserDto.ProfileUpdateRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike
 
-        UserDto.ProfileResponse response = userService.updateMyProfile(userId, request);
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.ProfileResponse response = userService.updateMyProfile(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
     /**
      * 회원 탈퇴
-     * - UserService의 공통 회원 탈퇴 로직 사용
+     * - ADMIN 및 MANAGER 모두 사용 가능
      */
     @Operation(summary = "회원 탈퇴",
             description = "현재 로그인한 관리자의 계정을 탈퇴 처리합니다.")
     @DeleteMapping("/me")
     public BaseResponse<UserDto.WithdrawResponse> withdraw(
             @RequestBody @Valid UserDto.WithdrawRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {  // ← AuthAdmin → AdminLike
 
-        UserDto.WithdrawResponse response = userService.withdraw(userId, request);
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        UserDto.WithdrawResponse response = userService.withdraw(admin.getId(), request);
         return BaseResponse.success(response);
     }
 
@@ -204,9 +219,13 @@ public class AdminController {
     public BaseResponse<ManagerDto.ManagerListResponse> getManagers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.ManagerListResponse response = adminService.getManagers(userId, page, size);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.ManagerListResponse response = adminService.getManagers(authAdmin.getId(), page, size);
         return BaseResponse.success(response);
     }
 
@@ -220,9 +239,13 @@ public class AdminController {
     @PostMapping("/managers")
     public BaseResponse<ManagerDto.CreateResponse> createManager(
             @RequestBody @Valid ManagerDto.CreateRequest request,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.CreateResponse response = adminService.createManager(request, userId);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.CreateResponse response = adminService.createManager(request, authAdmin.getId());
         return BaseResponse.success(response);
     }
 
@@ -236,9 +259,34 @@ public class AdminController {
     @DeleteMapping("/managers/{managerId}")
     public BaseResponse<ManagerDto.ManagerDeleteResponse> deleteManager(
             @PathVariable Long managerId,
-            @AuthenticationPrincipal Long userId) {
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
 
-        ManagerDto.ManagerDeleteResponse response = adminService.deleteManager(managerId, userId);
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.ManagerDeleteResponse response = adminService.deleteManager(managerId, authAdmin.getId());
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 매니저 정보 수정
+     * - ADMIN 권한 필요
+     */
+    @Operation(summary = "매니저 정보 수정",
+            description = "관리자가 매니저 정보를 수정합니다. (ADMIN 권한 필요)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/managers/{managerId}")
+    public BaseResponse<ManagerDto.UpdateResponse> updateManager(
+            @PathVariable Long managerId,
+            @RequestBody @Valid ManagerDto.UpdateRequest request,
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        ManagerDto.UpdateResponse response = adminService.updateManager(managerId, request, authAdmin.getId());
         return BaseResponse.success(response);
     }
 

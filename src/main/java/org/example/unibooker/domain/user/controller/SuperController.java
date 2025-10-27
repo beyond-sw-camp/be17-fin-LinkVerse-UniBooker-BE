@@ -2,15 +2,16 @@ package org.example.unibooker.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.SuperDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
+import org.example.unibooker.domain.user.service.AuthService;
 import org.example.unibooker.domain.user.service.SuperService;
-import org.example.unibooker.domain.user.service.UserService;
+import org.example.unibooker.utils.CookieUtil;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,54 +27,55 @@ import org.springframework.web.bind.annotation.*;
 public class SuperController {
 
     private final SuperService superService;
-    private final UserService userService;
+    private final AuthService authService;  // ← 추가
 
     // ========== 슈퍼 관리자 로그인/로그아웃 ==========
 
     /**
      * 슈퍼 관리자 로그인
-     * - Refresh Token은 HttpOnly Cookie에 저장
+     * - 단일 세션 정책: 기존 모든 역할의 쿠키 삭제 후 새 쿠키 생성
+     * - Access Token과 Refresh Token을 모두 HttpOnly Cookie에 저장
      */
-    @Operation(summary = "슈퍼 관리자 로그인",
-            description = "슈퍼 관리자 이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid SuperDto.SuperLoginRequest request,
             HttpServletResponse response) {
 
-        UserDto.LoginResponse loginResponse = superService.superLogin(request);
+        // 1. 로그인 처리 (토큰 포함)
+        UserDto.LoginResponseWithToken loginResponseWithToken = superService.superLogin(request);
 
-        // Access Token을 HttpOnly Cookie에 저장
-        Cookie accessTokenCookie = new Cookie("accessToken", loginResponse.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(false);  // 개발: false, 운영: true
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(30 * 60);  // 30분
-        response.addCookie(accessTokenCookie);
+        // 2. 단일 세션 정책: 모든 역할의 기존 쿠키 삭제
+        CookieUtil.deleteAllRolesCookies(response);
 
-        // Refresh Token을 HttpOnly Cookie에 저장
-        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);  // 개발: false, 운영: true
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7일
-        response.addCookie(refreshTokenCookie);
+        // 3. 현재 역할의 토큰을 HttpOnly Cookie에 저장
+        response.addCookie(CookieUtil.createAccessTokenCookie(
+                loginResponseWithToken.getAccessToken(),
+                loginResponseWithToken.getRole()
+        ));
+        response.addCookie(CookieUtil.createRefreshTokenCookie(
+                loginResponseWithToken.getRefreshToken(),
+                loginResponseWithToken.getRole()
+        ));
 
-        return BaseResponse.success(loginResponse);
+        // 4. 클라이언트 응답 생성 (토큰 제외)
+        return BaseResponse.success(loginResponseWithToken.toResponse());
     }
 
     /**
      * 슈퍼 관리자 로그아웃
-     * - Refresh Token 무효화
+     * - Refresh Token 삭제
+     * - Access Token과 Refresh Token 쿠키 삭제
      */
-    @Operation(summary = "슈퍼 관리자 로그아웃",
-            description = "현재 로그인 세션을 종료하고 Refresh Token을 무효화합니다.")
     @PostMapping("/logout")
-    public BaseResponse<UserDto.LogoutResponse> logout(
-            @RequestBody @Valid UserDto.LogoutRequest request,
-            @AuthenticationPrincipal Long userId) {
+    public BaseResponse<AuthDto.LogoutResponse> logout(
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,  // 타입 변경: Long → AuthDto.AuthAdmin
+            HttpServletResponse response) {
 
-        UserDto.LogoutResponse response = userService.logout(userId, request);
-        return BaseResponse.success(response);
+        // Refresh Token 삭제
+        AuthDto.LogoutResponse logoutResponse = authService.logout(authAdmin.getId());  // authAdmin.getId() 사용
+
+        CookieUtil.deleteAllTokenCookies(response, authAdmin.getRole());  // 권한 파라미터 추가
+
+        return BaseResponse.success(logoutResponse);
     }
 }

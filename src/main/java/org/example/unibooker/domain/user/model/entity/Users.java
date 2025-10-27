@@ -69,9 +69,10 @@ public class Users extends BaseEntity {
      * User 생성자 (Builder 패턴)
      */
     @Builder
-    public Users(String email, String password, String name, String phone,
+    public Users(Long id, String email, String password, String name, String phone,
                  String birthDate, Gender gender,
                  UserRole role, UserStatus status, Long companyId, Boolean isFirstLogin) {
+        super.setId(id);
         this.email = email;
         this.password = password;
         this.name = name;
@@ -121,6 +122,13 @@ public class Users extends BaseEntity {
      */
     public void updateGender(Gender newGender) {
         this.gender = newGender;
+    }
+
+    /**
+     * 기업 ID 변경
+     */
+    public void updateCompanyId(Long newCompanyId) {
+        this.companyId = newCompanyId;
     }
 
     /**

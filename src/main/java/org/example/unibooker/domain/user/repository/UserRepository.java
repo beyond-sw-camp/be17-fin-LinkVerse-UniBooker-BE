@@ -53,7 +53,12 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     /**
      * 이메일과 기업 ID로 사용자 조회
      */
-    Optional<Users> findByEmailAndCompanyId(String email, Long companyId);
+    Optional<Users> findByEmailAndCompanyIdAndRoleAndStatusNot(
+            String email,
+            Long companyId,
+            UserRole role,
+            UserStatus status
+    );
 
     /**
      * 특정 기업 내에서 이메일 존재 여부 확인
@@ -99,4 +104,57 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * 권한 목록으로 사용자 페이징 조회
      */
     Page<Users> findByRoleIn(List<UserRole> roles, Pageable pageable);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일 존재 여부 확인
+     */
+    boolean existsByEmailAndStatusNot(String email, UserStatus status);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일과 기업 ID, 권한으로 존재 여부 확인
+     */
+    boolean existsByEmailAndCompanyIdAndRoleAndStatusNot(String email, Long companyId, UserRole role, UserStatus status);
+
+    /**
+     * DELETED 상태가 아닌 사용자 중 이메일과 권한 목록으로 존재 여부 확인
+     */
+    boolean existsByEmailAndRoleInAndStatusNot(String email, List<UserRole> roles, UserStatus status);
+
+    /**
+     * 이메일과 상태로 사용자 조회 (재가입 시 탈퇴 계정 찾기용)
+     */
+    Optional<Users> findByEmailAndStatus(String email, UserStatus status);
+
+    /**
+     * 이메일, 기업 ID, 권한, 상태로 사용자 조회 (재가입 시 탈퇴 계정 찾기용)
+     */
+    Optional<Users> findByEmailAndCompanyIdAndRoleAndStatus(String email, Long companyId, UserRole role, UserStatus status);
+
+    /**
+     * 이름 + 기업ID + 전화번호로 사용자 조회 (USER 역할, DELETED 제외)
+     */
+    Optional<Users> findByNameAndCompanyIdAndPhoneAndRoleAndStatusNot(
+            String name,
+            Long companyId,
+            String phone,
+            UserRole role,
+            UserStatus status
+    );
+
+    /**
+     * 이름 + 기업ID + 생년월일로 사용자 조회 (USER 역할, DELETED 제외)
+     */
+    Optional<Users> findByNameAndCompanyIdAndBirthDateAndRoleAndStatusNot(
+            String name,
+            Long companyId,
+            String birthDate,
+            UserRole role,
+            UserStatus status
+    );
+
+    /**
+     * 이메일과 권한 목록으로 사용자 조회 (DELETED 제외)
+     * - ADMIN/MANAGER/SUPER 로그인 시 사용
+     */
+    List<Users> findByEmailAndRoleInAndStatusNot(String email, List<UserRole> roles, UserStatus status);
 }

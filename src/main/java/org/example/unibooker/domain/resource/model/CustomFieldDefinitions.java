@@ -26,6 +26,10 @@ public class CustomFieldDefinitions extends BaseEntity {
     private CustomDataType dataType;
     private Boolean isRequired;
 
+    // 커스텀 필드 선택 항목
+    @OneToMany(mappedBy = "customFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CustomFieldSelectDefinitions> customFieldSelectDefinitions = new ArrayList<>();
+
     // 서비스 커스텀 필드 값
     @OneToMany(mappedBy = "customFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResourceCustomFieldValues> resourceCustomFieldValues = new ArrayList<>();

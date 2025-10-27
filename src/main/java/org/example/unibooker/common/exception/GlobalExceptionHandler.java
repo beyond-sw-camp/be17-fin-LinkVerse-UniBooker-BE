@@ -30,6 +30,45 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Refresh Token 만료 예외 처리
+     */
+    @ExceptionHandler(RefreshTokenException.RefreshTokenExpiredException.class)
+    public ResponseEntity<BaseResponse<Void>> handleRefreshTokenExpiredException(
+            RefreshTokenException.RefreshTokenExpiredException e) {
+        log.error("RefreshTokenExpiredException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(BaseResponse.error(e.getCode(), e.getMessage()));
+    }
+
+    /**
+     * Refresh Token 없음 예외 처리
+     */
+    @ExceptionHandler(RefreshTokenException.RefreshTokenNotFoundException.class)
+    public ResponseEntity<BaseResponse<Void>> handleRefreshTokenNotFoundException(
+            RefreshTokenException.RefreshTokenNotFoundException e) {
+        log.error("RefreshTokenNotFoundException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(BaseResponse.error(e.getCode(), e.getMessage()));
+    }
+
+    /**
+     * 잘못된 Refresh Token 예외 처리
+     */
+    @ExceptionHandler(RefreshTokenException.InvalidRefreshTokenException.class)
+    public ResponseEntity<BaseResponse<Void>> handleInvalidRefreshTokenException(
+            RefreshTokenException.InvalidRefreshTokenException e) {
+        log.error("InvalidRefreshTokenException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(BaseResponse.error(e.getCode(), e.getMessage()));
+    }
+
+    /**
      * Validation 예외 처리 (@Valid)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)

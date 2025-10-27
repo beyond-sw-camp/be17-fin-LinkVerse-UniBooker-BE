@@ -45,6 +45,16 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         return renderTemplate("email/AdminApproval", variables);
     }
 
+    @Override
+    public String renderPasswordResetTemplate(String name, String companyName, String tempPassword) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", name);
+        variables.put("companyName", companyName);
+        variables.put("tempPassword", tempPassword);
+
+        return renderTemplate("email/password-reset-template", variables);
+    }
+
     /**
      * Thymeleaf 템플릿 렌더링 공통 메서드
      *

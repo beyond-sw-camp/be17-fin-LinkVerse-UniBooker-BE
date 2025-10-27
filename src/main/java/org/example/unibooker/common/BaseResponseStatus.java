@@ -28,6 +28,8 @@ public enum BaseResponseStatus {
     SUSPENDED_USER(30009, "정지된 계정입니다."),
     SAME_PASSWORD(30010, "새 비밀번호는 현재 비밀번호와 달라야 합니다."),
     CURRENT_PASSWORD_INCORRECT(30011, "현재 비밀번호가 일치하지 않습니다."),
+    ROLE_CONFLICT_IN_COMPANY(30012, "같은 기업 내에서 관리자와 매니저 역할을 동시에 가질 수 없습니다."),
+    MANAGER_ALREADY_EXISTS(30013, "해당 이메일로 이미 매니저가 등록되어 있습니다."),
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),
@@ -63,7 +65,29 @@ public enum BaseResponseStatus {
     FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다."),
 
     // ========== 70000: Email 관련 ==========
-    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다.");
+    EMAIL_SEND_FAILED(70000, "이메일 발송에 실패했습니다."),
+
+    // ========== 80000: Refresh Token 관련 ==========
+    REFRESH_TOKEN_EXPIRED(80000, "Refresh Token이 만료되었습니다. 다시 로그인해주세요."),
+    REFRESH_TOKEN_NOT_FOUND(80001, "Refresh Token을 찾을 수 없습니다."),
+    INVALID_REFRESH_TOKEN(80002, "유효하지 않은 Refresh Token입니다."),
+
+    // ========== 90000: Reservation 관련 ==========
+    RESERVATION_NOT_FOUND(90000, "예약 정보를 찿을 수 없습니다."),
+    RESERVATION_CANCEL_FAILED(90001, "예약 취소 실패했습니다."),
+    RESERVATION_DATE_RANGE_OVER(90002, "예약할 수 있는 날짜의 범위를 벗어났습니다."),
+    RESERVATION_DUPLICATED(90003, "중복된 예약이 있습니다."),
+    RESERVATION_ALREADY_CANCELED(90004, "이미 취소된 예약입니다."),
+
+    // ========== 100000: ResourceGroup 관련 ==========
+    RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다."),
+    INVALID_SERVICE_CATEGORY(100002, "유효하지 않는 카테고리입니다."),
+
+    // ========== 200000: Resource 관련 ==========
+    RESOURCE_NOT_FOUND(200000, "리소스 정보를 찾을 수 없습니다."),
+    RESOURCE_OVER_CAPACITY(200001, "정원이 초과되어 예약 불가합니다."),
+    RESOURCE_NOT_ACTIVE(200002, "활성화 되지 않은 리소스입니다.");
+
 
     private final int code;
     private final String message;

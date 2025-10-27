@@ -3,7 +3,6 @@ package org.example.unibooker.domain.resource.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.unibooker.common.BaseEntity;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalTime;
 
@@ -34,10 +33,21 @@ public class ResourceTimeSlots extends BaseEntity {
     // 운영 여부
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isActive = true;
+    private Boolean isActive = false;
 
-    // 예약 여부
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean isReserved = false;
+    @PrePersist
+    @PreUpdate
+    private void upperCaseDayOfWeek() {
+        if (this.dayOfWeek != null) {
+            this.dayOfWeek = DayOfWeek.valueOf(this.dayOfWeek.name().toUpperCase());
+        }
+    }
+
+    public void setResources(Resources resources) {
+        this.resources = resources;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }

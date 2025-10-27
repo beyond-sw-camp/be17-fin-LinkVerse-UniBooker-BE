@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,17 @@ public class AdminService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
-        this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder, emailService, baseUrl);
+
+        // ✅ 수정: authService와 emailService 순서 변경
+        this.approvalService = new Approval(
+                companyRepository,
+                userRepository,
+                passwordEncoder,
+                authService,       // authService가 먼저
+                emailService,      // emailService가 나중
+                baseUrl
+        );
+
         this.managerManagement = new ManagerManagement(userRepository, companyRepository, passwordEncoder, emailService);
         this.authService = authService;
     }
@@ -99,29 +110,63 @@ public class AdminService {
 
         /**
          * 관리자 회원가입 처리
-         * - 사업자등록번호, Slug, 이메일 중복 검증
-         * - Company 및 Admin User 생성 (PENDING/INACTIVE 상태)
+         * - 탈퇴 계정 재가입 허용
          */
         @Transactional
         public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
+            // 1. 사업자등록번호, Slug 중복 검증
             validateDuplicateBusinessNumber(request.getBusinessNumber());
             validateCompanySlug(request.getCompanySlug());
-            validateDuplicateEmail(request.getEmail());
 
-            Companies company = createCompany(request, logoFile);
-            Companies savedCompany = companyRepository.save(company);
+            // 2. 탈퇴한 ADMIN 계정이 있는지 확인
+            Optional<Users> deletedAdmin = userRepository.findByEmailAndStatus(
+                    request.getEmail(),
+                    UserStatus.DELETED
+            );
 
-            String temporaryPassword = generateTemporaryPassword();
-            String encodedPassword = passwordEncoder.encode(temporaryPassword);
+            Companies company;
+            Users admin;
 
-            Users admin = createAdmin(request, savedCompany, encodedPassword);
+            if (deletedAdmin.isPresent() && deletedAdmin.get().isAdmin()) {
+                // 2-1. 탈퇴 ADMIN 계정 복구
+                admin = deletedAdmin.get();
+                admin.restore(); // DELETED → INACTIVE 변경
+
+                // 2-2. 신규 Company 생성
+                company = createCompany(request, logoFile);
+                company = companyRepository.save(company);
+
+                // 2-3. 임시 비밀번호 생성 및 정보 업데이트
+                String temporaryPassword = generateTemporaryPassword();
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+                admin.updatePassword(encodedPassword);
+                admin.updateName(request.getName());
+                admin.updatePhone(request.getPhone());
+                admin.updateCompanyId(company.getId()); // 새 Company로 연결
+                admin.deactivate(); // INACTIVE 상태로 설정 (승인 대기)
+
+            } else {
+                // 2-4. DELETED 아닌 상태에서 이메일 중복 확인
+                validateDuplicateEmail(request.getEmail());
+
+                // 2-5. 신규 Company 및 Admin 생성
+                company = createCompany(request, logoFile);
+                company = companyRepository.save(company);
+
+                String temporaryPassword = generateTemporaryPassword();
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+                admin = createAdmin(request, company, encodedPassword);
+            }
+
             userRepository.save(admin);
 
             return AdminDto.SignUpResponse.builder()
                     .message("관리자 회원가입 신청이 완료되었습니다. 승인까지 최대 " + ESTIMATED_APPROVAL_DAYS + "일이 소요될 수 있습니다.")
                     .email(request.getEmail())
-                    .companyName(savedCompany.getCompanyName())
-                    .companySlug(savedCompany.getCompanySlug())
+                    .companyName(company.getCompanyName())
+                    .companySlug(company.getCompanySlug())
                     .serviceUrl(null)
                     .estimatedDays(ESTIMATED_APPROVAL_DAYS)
                     .build();
@@ -129,10 +174,19 @@ public class AdminService {
 
         /**
          * 회원가입 신청 상태 조회
+         * - ADMIN/MANAGER 권한만 조회
          */
         public AdminDto.StatusResponse checkSignUpStatus(String email) {
-            Users user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+            List<Users> users = userRepository.findByEmailAndRoleIn(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER)
+            );
+
+            if (users.isEmpty()) {
+                throw new BaseException(BaseResponseStatus.USER_NOT_FOUND);
+            }
+
+            Users user = users.get(0);
 
             Companies company = companyRepository.findById(user.getCompanyId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
@@ -240,10 +294,13 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * ADMIN/MANAGER 이메일 중복 검증 (DELETED 제외)
          */
         private void validateDuplicateEmail(String email) {
-            if (userRepository.findByEmail(email).isPresent()) {
+            if (userRepository.existsByEmailAndRoleInAndStatusNot(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER),
+                    UserStatus.DELETED)) {
                 throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
             }
         }
@@ -270,6 +327,7 @@ public class AdminService {
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
         private final EmailService emailService;
+        private final AuthService authService;
         private final String baseUrl;
 
         private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -282,12 +340,14 @@ public class AdminService {
         public Approval(CompanyRepository companyRepository,
                         UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
+                        AuthService authService,
                         EmailService emailService,
                         String baseUrl) {
             this.companyRepository = companyRepository;
             this.userRepository = userRepository;
             this.passwordEncoder = passwordEncoder;
             this.emailService = emailService;
+            this.authService = authService;
             this.baseUrl = baseUrl;
         }
 
@@ -443,6 +503,7 @@ public class AdminService {
          * - 임시 비밀번호 검증
          * - 새 비밀번호 유효성 검증
          * - 비밀번호 변경 및 isFirstLogin 플래그 해제
+         * - 모든 Refresh Token 삭제 (보안 강화)  ← 추가
          */
         @Transactional
         public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
@@ -452,17 +513,17 @@ public class AdminService {
 
             // 2. 현재 비밀번호 검증 (임시 비밀번호 확인)
             if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-                throw new BaseException(BaseResponseStatus.CURRENT_PASSWORD_INCORRECT); // 30011
+                throw new BaseException(BaseResponseStatus.CURRENT_PASSWORD_INCORRECT);
             }
 
             // 3. 새 비밀번호와 확인 비밀번호 일치 여부 확인
             if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-                throw new BaseException(BaseResponseStatus.PASSWORD_MISMATCH); // ← 30003 사용!
+                throw new BaseException(BaseResponseStatus.PASSWORD_MISMATCH);
             }
 
             // 4. 새 비밀번호가 현재 비밀번호와 동일한지 확인
             if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
-                throw new BaseException(BaseResponseStatus.SAME_PASSWORD); // 30010
+                throw new BaseException(BaseResponseStatus.SAME_PASSWORD);
             }
 
             // 5. 비밀번호 암호화
@@ -472,10 +533,13 @@ public class AdminService {
             user.updatePassword(encodedPassword);
             user.completeFirstLogin();
 
-            // 7. 명시적 저장
+            // 7. 비밀번호 변경 후 모든 Refresh Token 삭제 (보안 강화) ← 추가
+            authService.invalidateAllTokens(userId);
+
+            // 8. 명시적 저장
             userRepository.save(user);
 
-            // 8. 응답 생성
+            // 9. 응답 생성
             return AdminDto.PasswordResetResponse.builder()
                     .message("비밀번호가 성공적으로 변경되었습니다.")
                     .passwordChangeRequired(false)
@@ -508,6 +572,7 @@ public class AdminService {
         private CompanyDto.DetailResponse convertToDetailResponse(Companies company, Users admin) {
             return CompanyDto.DetailResponse.builder()
                     .companyId(company.getId())
+                    .businessNumber(company.getBusinessNumber())
                     .companyName(company.getCompanyName())
                     .companySlug(company.getCompanySlug())
                     .logoUrl(company.getLogoUrl())
@@ -557,18 +622,51 @@ public class AdminService {
 
         /**
          * 매니저 계정 생성
+         * - 같은 기업의 DELETED MANAGER 계정이 있으면 재활용
+         * - 없으면 신규 생성
          */
         @Transactional
         public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long currentUserId) {
+            // 1. Admin 권한 검증
             Users admin = validateAdminAuthority(currentUserId);
+
+            // 2. Company 승인 상태 검증
             Companies company = validateCompanyStatus(admin.getCompanyId());
-            validateEmailDuplicate(request.getEmail());
 
+            // 3. 이메일 중복 검증 (같은 기업 내)
+            validateEmailDuplicate(request.getEmail(), admin.getCompanyId());
+
+            // 4. 같은 기업의 DELETED MANAGER 계정 찾기
+            Optional<Users> deletedManager = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
+                    request.getEmail(),
+                    admin.getCompanyId(),
+                    UserRole.MANAGER,
+                    UserStatus.DELETED
+            );
+
+            Users manager;
             String temporaryPassword = generateTemporaryPassword();
-            Users manager = createManagerUser(request, company.getId(), temporaryPassword);
 
+            if (deletedManager.isPresent()) {
+                // 5-1. DELETED MANAGER 재활용
+                manager = deletedManager.get();
+                manager.restore(); // DELETED → ACTIVE
+
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+                manager.updatePassword(encodedPassword);
+                manager.updateName(request.getName());
+                manager.updatePhone(request.getPhone());
+
+                userRepository.save(manager);
+            } else {
+                // 5-2. 신규 MANAGER 생성
+                manager = createManagerUser(request, company.getId(), temporaryPassword);
+            }
+
+            // 6. 이메일 발송
             sendManagerCreationEmail(request, company, temporaryPassword);
 
+            // 7. 응답 생성
             return buildCreateResponse(manager, company);
         }
 
@@ -708,16 +806,28 @@ public class AdminService {
         }
 
         /**
-         * 이메일 중복 검증
+         * MANAGER 이메일 중복 검증 (같은 기업 내에서만)
+         * - 같은 기업 내 MANAGER 중복 체크 (DELETED 제외)
+         * - 같은 기업 내 ADMIN 역할 충돌 체크 (DELETED 제외)
+         * - 다른 기업의 계정은 체크하지 않음 (멀티테넌트)
          */
-        private void validateEmailDuplicate(String email) {
-            if (userRepository.existsByEmail(email)) {
-                throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
+        private void validateEmailDuplicate(String email, Long companyId) {
+            // 1. 같은 기업 내 MANAGER 중복 체크 (DELETED 제외)
+            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                    email, companyId, UserRole.MANAGER, UserStatus.DELETED)) {
+                throw new BaseException(BaseResponseStatus.MANAGER_ALREADY_EXISTS);
+            }
+
+            // 2. 같은 기업 내 ADMIN 역할 충돌 체크 (DELETED 제외)
+            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+                    email, companyId, UserRole.ADMIN, UserStatus.DELETED)) {
+                throw new BaseException(BaseResponseStatus.ROLE_CONFLICT_IN_COMPANY);
             }
         }
 
         /**
          * Manager User 엔티티 생성
+         * - 즉시 사용 가능하도록 ACTIVE 상태로 생성
          */
         private Users createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
             String encodedPassword = passwordEncoder.encode(temporaryPassword);
@@ -728,7 +838,7 @@ public class AdminService {
                     .name(request.getName())
                     .phone(request.getPhone())
                     .role(UserRole.MANAGER)
-                    .status(UserStatus.INACTIVE)
+                    .status(UserStatus.ACTIVE)
                     .companyId(companyId)
                     .isFirstLogin(true)
                     .build();
@@ -784,6 +894,46 @@ public class AdminService {
                     .name(manager.getName())
                     .email(manager.getEmail())
                     .deletedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        /**
+         * 매니저 정보 수정
+         */
+        @Transactional
+        public ManagerDto.UpdateResponse updateManager(Long managerId, ManagerDto.UpdateRequest request, Long adminUserId) {
+            // 1. Admin 권한 검증
+            Users admin = validateAdminAuthority(adminUserId);
+
+            // 2. 매니저 조회
+            Users manager = userRepository.findById(managerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 3. 매니저 권한 확인
+            if (!manager.isManager()) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 4. 같은 회사 소속인지 확인
+            if (!manager.getCompanyId().equals(admin.getCompanyId())) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 5. 정보 업데이트
+            manager.updateName(request.getName());
+            manager.updatePhone(request.getPhone());
+
+            // 6. 명시적 저장
+            userRepository.save(manager);
+
+            // 7. 응답 생성
+            return ManagerDto.UpdateResponse.builder()
+                    .message("매니저 정보가 성공적으로 수정되었습니다.")
+                    .managerId(manager.getId())
+                    .name(manager.getName())
+                    .email(manager.getEmail())
+                    .phone(manager.getPhone())
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
 
@@ -909,7 +1059,7 @@ public class AdminService {
      * 관리자/매니저 로그인
      * - AuthService에 위임
      */
-    public UserDto.LoginResponse adminLogin(AdminDto.AdminLoginRequest request) {
+    public UserDto.LoginResponseWithToken adminLogin(AdminDto.AdminLoginRequest request) {
         return authService.loginWithRoles(
                 request.getEmail(),
                 request.getPassword(),
@@ -926,6 +1076,13 @@ public class AdminService {
 
     public ManagerDto.ManagerDeleteResponse deleteManager(Long managerId, Long currentUserId) {
         return managerManagement.deleteManager(managerId, currentUserId);
+    }
+
+    /**
+     * 매니저 정보 수정
+     */
+    public ManagerDto.UpdateResponse updateManager(Long managerId, ManagerDto.UpdateRequest request, Long currentUserId) {
+        return managerManagement.updateManager(managerId, request, currentUserId);
     }
 
     /**
