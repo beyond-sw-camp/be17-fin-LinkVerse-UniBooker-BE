@@ -173,6 +173,7 @@ public class Users extends BaseEntity {
     public void restore() {
         this.setDeletedAt(null);
         this.status = UserStatus.ACTIVE;
+        this.isFirstLogin = true;
     }
 
     /**

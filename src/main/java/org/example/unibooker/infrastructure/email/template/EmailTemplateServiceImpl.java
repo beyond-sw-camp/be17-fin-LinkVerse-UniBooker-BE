@@ -1,6 +1,7 @@
 package org.example.unibooker.infrastructure.email.template;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.domain.user.model.UserRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -67,5 +68,17 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         context.setVariables(variables);
 
         return templateEngine.process(templateName, context);
+    }
+
+    @Override
+    public String renderAccountDeletionTemplate(String name, UserRole role) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", name);
+        variables.put("role", role.name());  // "ADMIN" 또는 "MANAGER"
+
+        String roleKorean = role == UserRole.ADMIN ? "관리자" : "매니저";
+        variables.put("roleKorean", roleKorean);
+
+        return renderTemplate("email/AccountDeletion", variables);
     }
 }

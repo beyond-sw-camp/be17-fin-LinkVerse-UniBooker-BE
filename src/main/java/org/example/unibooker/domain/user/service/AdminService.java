@@ -815,17 +815,15 @@ public class AdminService {
          * - 다른 기업의 계정은 체크하지 않음 (멀티테넌트)
          */
         private void validateEmailDuplicate(String email, Long companyId) {
-            // 1. 같은 기업 내 MANAGER 중복 체크 (DELETED 제외)
-            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
-                    email, companyId, UserRole.MANAGER, UserStatus.DELETED)) {
-                throw new BaseException(BaseResponseStatus.MANAGER_ALREADY_EXISTS);
+            // 1. 전체 시스템에서 ADMIN/MANAGER 이메일 중복 체크 (DELETED 제외)
+            if (userRepository.existsByEmailAndRoleInAndStatusNot(
+                    email,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER),
+                    UserStatus.DELETED)) {
+                throw new BaseException(BaseResponseStatus.ADMIN_MANAGER_EMAIL_EXISTS);
             }
 
-            // 2. 같은 기업 내 ADMIN 역할 충돌 체크 (DELETED 제외)
-            if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
-                    email, companyId, UserRole.ADMIN, UserStatus.DELETED)) {
-                throw new BaseException(BaseResponseStatus.ROLE_CONFLICT_IN_COMPANY);
-            }
+            // 2. USER 역할과는 공존 가능하므로 별도 체크 불필요
         }
 
         /**
