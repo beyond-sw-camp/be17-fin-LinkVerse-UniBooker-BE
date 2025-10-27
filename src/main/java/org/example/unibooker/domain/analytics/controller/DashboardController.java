@@ -20,7 +20,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @Operation(summary = "대시보드 요약")
-    @GetMapping
+    @GetMapping("/admin")
     public BaseResponse<DashboardDto.DashboardResponse> getCompanyDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
         DashboardDto.DashboardResponse response = dashboardService.getCompanyDashboard(authUser.getCompanyId());
         return BaseResponse.success(response);
