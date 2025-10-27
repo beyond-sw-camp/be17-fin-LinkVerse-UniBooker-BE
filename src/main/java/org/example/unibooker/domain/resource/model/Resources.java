@@ -99,7 +99,7 @@ public class Resources extends BaseEntity {
 
 
     // 서비스 수정 함수
-    public void update(ResourceDto.ResourceUpdateReq dto) {
+    public void update(ResourceDto.ResourceUpdateReq dto, Users updatedBy) {
 
         // 종료일 체크
         if (dto.getEndDate() != null && dto.getEndDate().isBefore(LocalDate.now())) {
@@ -135,6 +135,7 @@ public class Resources extends BaseEntity {
         if (dto.getCapacity() != null) this.capacity = dto.getCapacity();
         if (dto.getRow() != null) this.row = dto.getRow();
         if (dto.getCol() != null) this.col = dto.getCol();
+        this.updatedBy = updatedBy;
     }
 
     public void setIsActive(Boolean isActive) {
@@ -143,6 +144,10 @@ public class Resources extends BaseEntity {
 
     public void setUpdateStatus(ResourceStatus resourceStatus) {
         this.status = resourceStatus;
+    }
+
+    public void setUpdatedBy(Users user) {
+        this.updatedBy = user;
     }
 
     public void addTimeSlot(ResourceTimeSlots slot) {

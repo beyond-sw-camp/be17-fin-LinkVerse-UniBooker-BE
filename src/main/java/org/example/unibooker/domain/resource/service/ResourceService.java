@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.*;
+import org.example.unibooker.domain.user.model.entity.Users;
+import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ResourceService {
     private final ResourceRepository resourceRepository;
+    private final UserRepository userRepository;
     private final ResourceGroupRepository resourceGroupRepository;
     private final CustomFieldDefinitionRepository customFieldDefinitionRepository;
     private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
@@ -29,13 +32,17 @@ public class ResourceService {
 
     // -------------------- 리소스 등록 --------------------
     @Transactional
-    public void register(ResourceDto.ResourceRegisterReq dto) {
+    public void register(ResourceDto.ResourceRegisterReq dto, Long userId) {
         dto.validate();
 
         ResourceGroups group = resourceGroupRepository.findById(dto.getResourceGroupId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
-        Resources resource = dto.toEntity(group);
+        // 사용자 조회
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자 ID입니다."));
+
+        Resources resource = dto.toEntity(group, user);
         resourceRepository.save(resource);
 
         // 시간 슬롯 생성
@@ -126,8 +133,8 @@ public class ResourceService {
         List<Resources> resources = resourceRepository
                 .findAllByResourceGroupIdAndIsActiveTrueAndDeletedAtIsNull(serviceGroupId);
 
-        List<ResourceDto.ResourceListInfo> resourceInfos = resources.stream()
-                .map(ResourceDto.ResourceListInfo::fromEntity)
+        List<ResourceDto.ResourceDetailInfo> resourceInfos = resources.stream()
+                .map(ResourceDto.ResourceDetailInfo::fromEntity)
                 .collect(Collectors.toList());
 
         return ResourceDto.ResourceListRes.fromEntity(resourceInfos);
@@ -135,32 +142,35 @@ public class ResourceService {
 
 
     // -------------------- 리소스 상세 조회 (수정용) --------------------
-    public ResourceDto.ResourceUpdateRes getResourceDetailForUpdate(Long resourceId) {
+    public ResourceDto.ResourceDetailInfo getResourceDetailForUpdate(Long resourceId) {
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
 
-        return ResourceDto.ResourceUpdateRes.fromEntity(resource);
+        return ResourceDto.ResourceDetailInfo.fromEntity(resource);
     }
 
 
     // -------------------- 리소스 상세 조회 (목록 조회용) --------------------
-    public ResourceDto.ResourceListInfo getResourceById(Long resourceId) {
+    public ResourceDto.ResourceDetailInfo getResourceById(Long resourceId) {
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
 
-        return ResourceDto.ResourceListInfo.fromEntity(resource);
+        return ResourceDto.ResourceDetailInfo.fromEntity(resource);
     }
 
 
     // -------------------- 리소스 수정 --------------------
     @Transactional
-    public void update(Long resourceId, ResourceDto.ResourceUpdateReq dto) {
+    public void update(Long userId, Long resourceId, ResourceDto.ResourceUpdateReq dto) {
 
         Resources resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스가 존재하지 않습니다."));
 
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
         // 리소스 기본 정보 업데이트
-        resource.update(dto);
+        resource.update(dto, user);
 
         // 정규 시간 슬롯 업데이트
         List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
@@ -218,10 +228,13 @@ public class ResourceService {
 
     // -------------------- 리소스 삭제 --------------------
     @Transactional
-    public void deleteResource(Long resourceId) {
+    public void deleteResource(Long resourceId, Long userId) {
         try {
             Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스가 존재하지 않습니다."));
+
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
             if (!Boolean.TRUE.equals(resource.getIsActive())) {
                 throw new IllegalArgumentException("이미 비활성화 또는 삭제된 리소스입니다.");
@@ -229,6 +242,7 @@ public class ResourceService {
 
             // 리소스 비활성화 및 소프트 삭제
             resource.setIsActive(false);
+            resource.setUpdatedBy(user);
             resource.softDelete();
 
             // 연관 정규 시간 슬롯 소프트 삭제

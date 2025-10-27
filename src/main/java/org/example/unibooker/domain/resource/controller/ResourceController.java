@@ -8,6 +8,8 @@ import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.resource.model.ResourceDto;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
 import org.example.unibooker.domain.resource.service.ResourceService;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "리소스 관리", description = "리소스에 대한 값들을 관리합니다.")
@@ -20,8 +22,9 @@ public class ResourceController {
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 생성", description = "예약/신청 서비스를 생성합니다.")
     @PostMapping
-    public BaseResponse register(@RequestBody ResourceDto.ResourceRegisterReq dto) {
-        resourceService.register(dto);
+    public BaseResponse register(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                 @RequestBody ResourceDto.ResourceRegisterReq dto) {
+        resourceService.register(dto, authUser.getId());
         return BaseResponse.success("서비스가 생성되었습니다.");
     }
 
@@ -38,8 +41,8 @@ public class ResourceController {
     // ---------------- 단건 조회 ----------------
     @Operation(summary = "서비스 상세 조회", description = "서비스를 상세 조회합니다.")
     @GetMapping("/{resourceId}")
-    public BaseResponse<ResourceDto.ResourceListInfo> getResourceById(@PathVariable Long resourceId) {
-        ResourceDto.ResourceListInfo response = resourceService.getResourceById(resourceId);
+    public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceById(@PathVariable Long resourceId) {
+        ResourceDto.ResourceDetailInfo response = resourceService.getResourceById(resourceId);
         return BaseResponse.success(response);
     }
 
@@ -47,8 +50,8 @@ public class ResourceController {
     // ---------------- 수정용 상세 조회 ----------------
     @Operation(summary = "서비스 상세 조회(수정용)", description = "서비스 생성할 때 입력한 데이터 전체를 조회합니다.")
     @GetMapping("/{resourceId}/edit")
-    public BaseResponse<ResourceDto.ResourceUpdateRes> getResourceDetailById(@PathVariable Long resourceId) {
-        ResourceDto.ResourceUpdateRes response = resourceService.getResourceDetailForUpdate(resourceId);
+    public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceDetailById(@PathVariable Long resourceId) {
+        ResourceDto.ResourceDetailInfo response = resourceService.getResourceDetailForUpdate(resourceId);
         return BaseResponse.success(response);
     }
 
@@ -56,9 +59,10 @@ public class ResourceController {
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 수정", description = "기존의 예약/신청 서비스를 수정합니다.")
     @PutMapping("/{resourceId}")
-    public BaseResponse update(@PathVariable Long resourceId,
+    public BaseResponse update(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                               @PathVariable Long resourceId,
                                @RequestBody @Valid ResourceDto.ResourceUpdateReq dto) {
-        resourceService.update(resourceId, dto);
+        resourceService.update(authUser.getId(), resourceId, dto);
         return BaseResponse.success("서비스가 수정되었습니다.");
     }
 
@@ -66,8 +70,9 @@ public class ResourceController {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 삭제", description = "기존의 예약/신청 서비스를 삭제합니다.")
     @DeleteMapping("/{resourceId}")
-    public BaseResponse delete(@PathVariable Long resourceId) {
-        resourceService.deleteResource(resourceId);
+    public BaseResponse delete(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                               @PathVariable Long resourceId) {
+        resourceService.deleteResource(resourceId, authUser.getId());
         return BaseResponse.success("서비스가 삭제되었습니다.");
     }
 

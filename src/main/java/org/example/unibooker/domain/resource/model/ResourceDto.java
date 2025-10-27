@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -75,7 +76,7 @@ public class ResourceDto {
             }
         }
 
-        public Resources toEntity(ResourceGroups group) {
+        public Resources toEntity(ResourceGroups group, Users authUser) {
             LocalDate today = LocalDate.now();
 
             // status 결정
@@ -102,6 +103,8 @@ public class ResourceDto {
                     .row(row)
                     .col(col)
                     .status(status)
+                    .createdBy(authUser)
+                    .updatedBy(authUser)
                     .build();
         }
     }
@@ -110,7 +113,10 @@ public class ResourceDto {
     @Getter
     @Builder
     @Schema(description = "서비스 상세 조회 응답 DTO (리소스 수정용 & 상세 조회용)")
-    public static class ResourceUpdateRes {
+    public static class ResourceDetailInfo {
+
+        @Schema(description = "서비스 아이디", example = "1")
+        private Long id;
 
         @Schema(description = "서비스 이름", example = "회의실 101")
         private String name;
@@ -120,6 +126,15 @@ public class ResourceDto {
 
         @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
         private String resourceImage;
+
+        @Schema(description = "서비스 상태", example = "PROGRESS_BEFORE/PROGRESS_BEFORE/CLOSE")
+        private ResourceStatus status;
+
+        @Schema(description = "생성자 이름", example = "김한화")
+        private String createdByName;
+
+        @Schema(description = "업데이트 날짜", example = "2025.10.20")
+        private String updatedAt;
 
         @Schema(description = "시작 날짜", example = "2025.10.16", nullable = true)
         private LocalDate startDate;
@@ -139,52 +154,6 @@ public class ResourceDto {
         @Schema(description = "열", example = "4", nullable = true)
         private Integer col;
 
-
-        public static ResourceUpdateRes fromEntity(Resources resource) {
-            return new ResourceUpdateRes(
-                    resource.getName(),
-                    resource.getDescription(),
-                    resource.getResourceImage(),
-                    resource.getStartDate(),
-                    resource.getEndDate(),
-                    resource.getTimeInterval(),
-                    resource.getCapacity(),
-                    resource.getRow(),
-                    resource.getCol()
-            );
-        }
-    }
-
-
-    @Getter
-    @Builder
-    @Schema(description = "리소스 목록 조회 정보 DTO")
-    public static class ResourceListInfo {
-
-        @Schema(description = "서비스 아이디", example = "회의실 101")
-        private Long id;
-
-        @Schema(description = "서비스 이름", example = "회의실 101")
-        private String name;
-
-        @Schema(description = "서비스 설명", example = "회의실 101 예약용")
-        private String description;
-
-        @Schema(description = "서비스 이미지 URL", example = "https://example.com/img1.jpg")
-        private String resourceImage;
-
-        @Schema(description = "서비스 상태", example = "PROGRESS_BEFORE/PROGRESS_BEFORE/CLOSE")
-        private ResourceStatus status;
-
-        @Schema(description = "생성자 이름", example = "김한화")
-        private String createdByName;
-
-        @Schema(description = "생성일자", example = "2025.10.20")
-        private String updatedAt;
-
-        @Schema(description = "인원수", example = "7")
-        private String capacity;
-
         @Schema(description = "서비스 카테고리", example = "RESERVATION(예약형)/SEAT(좌석형)/EVENT(신청형)")
         private ServiceCategory category;
 
@@ -193,8 +162,8 @@ public class ResourceDto {
 
         private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
-        public static ResourceListInfo fromEntity(Resources resource) {
-            return new ResourceListInfo(
+        public static ResourceDetailInfo fromEntity(Resources resource) {
+            return new ResourceDetailInfo(
                     resource.getId(),
                     resource.getName(),
                     resource.getDescription(),
@@ -202,7 +171,12 @@ public class ResourceDto {
                     resource.getStatus(),
                     resource.getCreatedBy() != null ? resource.getCreatedBy().getName() : null,
                     resource.getUpdatedAt() != null ? resource.getUpdatedAt().format(DATE_FORMATTER) : null,
-                    resource.getCapacity() != null ? resource.getCapacity().toString() : null,
+                    resource.getStartDate(),
+                    resource.getEndDate(),
+                    resource.getTimeInterval(),
+                    resource.getCapacity() != null ? resource.getCapacity() : null,
+                    resource.getRow(),
+                    resource.getCol(),
                     resource.getResourceGroup() != null ? resource.getResourceGroup().getCategory() : null,
                     resource.getResourceGroup() != null ? resource.getResourceGroup().getIsAlwaysAvailable() : null
             );
@@ -216,9 +190,9 @@ public class ResourceDto {
     public static class ResourceListRes {
 
         @Schema(description = "리소스 목록")
-        private List<ResourceListInfo> resources;
+        private List<ResourceDetailInfo> resources;
 
-        public static ResourceListRes fromEntity(List<ResourceListInfo> resourceList) {
+        public static ResourceListRes fromEntity(List<ResourceDetailInfo> resourceList) {
             return ResourceListRes.builder()
                     .resources(resourceList)
                     .build();
