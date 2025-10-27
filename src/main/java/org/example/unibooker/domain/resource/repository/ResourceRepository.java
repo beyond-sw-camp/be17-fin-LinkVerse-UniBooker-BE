@@ -1,6 +1,8 @@
 package org.example.unibooker.domain.resource.repository;
 
+import org.example.unibooker.domain.resource.model.ResourceStatus;
 import org.example.unibooker.domain.resource.model.Resources;
+import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -24,4 +26,8 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
 
 
     int countByResourceGroupIdAndIsActiveTrueAndDeletedAtIsNull(Long id);
+
+    int countAllByIsActiveIsTrueAndResourceGroup_Category(ServiceCategory category);
+
+    int countAllByIsActive(Boolean isActive);
 }

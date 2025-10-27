@@ -1,5 +1,6 @@
 package org.example.unibooker.domain.analytics.controller;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class DashboardController {
     private final DashboardService dashboardService;
 
-    @Operation(summary = "대시보드 요약")
+    @Operation(summary = "관리자 대시보드")
     @GetMapping("/admin")
-    public BaseResponse<DashboardDto.DashboardResponse> getCompanyDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
-        DashboardDto.DashboardResponse response = dashboardService.getCompanyDashboard(authUser.getCompanyId());
+    public BaseResponse<DashboardDto.AdminDashboardResponse> getCompanyDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
+        DashboardDto.AdminDashboardResponse response = dashboardService.getCompanyDashboard(authUser.getCompanyId());
+        return BaseResponse.success(response);
+    }
+
+    @Operation(summary = "플랫폼 관리자 대시보드")
+    @GetMapping("/super")
+    public BaseResponse<DashboardDto.SuperDashboardResponse> getPlatformDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
+        DashboardDto.SuperDashboardResponse response = dashboardService.getPlatformDashboard(authUser);
         return BaseResponse.success(response);
     }
 

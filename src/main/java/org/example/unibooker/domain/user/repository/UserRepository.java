@@ -181,4 +181,9 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             UserStatus status,
             Pageable pageable
     );
+
+    // 월별 누적 가입자 수 조회
+    int countAllByRoleAndCreatedAtBefore(UserRole role, LocalDateTime before);
+    // 활성 상태인 특정 Role의 계정 수 조회
+    int countAllByRoleAndStatus(UserRole userRole, UserStatus status);
 }
