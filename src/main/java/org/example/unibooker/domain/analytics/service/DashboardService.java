@@ -1,23 +1,29 @@
 package org.example.unibooker.domain.analytics.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.common.BaseResponseStatus;
+import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.common.exception.GlobalExceptionHandler;
 import org.example.unibooker.domain.analytics.model.DashboardDto;
-import org.example.unibooker.domain.company.model.entity.Companies;
+import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
-import org.example.unibooker.domain.reservation.model.entity.Reservations;
 import org.example.unibooker.domain.reservation.repository.ReservationRepository;
 import org.example.unibooker.domain.resource.model.ResourceGroups;
+import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.resource.repository.ResourceRepository;
 import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.UserStatus;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.repository.UserRepository;
+import org.hibernate.usertype.UserType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -29,8 +35,9 @@ public class DashboardService {
     private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
     private final ReservationRepository reservationRepository;
+    private final CompanyRepository companyRepository;
 
-    public DashboardDto.DashboardResponse getCompanyDashboard(Long companyId) {
+    public DashboardDto.AdminDashboardResponse getCompanyDashboard(Long companyId) {
         // 해당 회사(companyId)에 속한 리소스 그룹 목록 조회
         List<ResourceGroups> resourceGroups = resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
 
@@ -108,10 +115,91 @@ public class DashboardService {
 
 
         // DashboardResponse DTO 빌드 및 반환
-        return DashboardDto.DashboardResponse.builder()
+        return DashboardDto.AdminDashboardResponse.builder()
                 .summary(summary)
                 .serviceGroups(groupStats)
                 .reservationTrends(reservationTrends)
                 .build();
     }
+
+    public DashboardDto.SuperDashboardResponse getPlatformDashboard(AuthDto.AuthenticatedUser authUser) {
+        if (authUser.getRole() != UserRole.SUPER) { // 권한 검증
+            throw new BaseException(BaseResponseStatus.FORBIDDEN);
+        }
+
+        // 현재 날짜 기준 설정
+        LocalDate now = LocalDate.now();
+        LocalDate startOfYear = now.withDayOfYear(1);
+
+        /** ------------------ 기업 통계 ------------------ **/
+        List<Integer> monthlyNewCompanies = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            LocalDate monthStart = startOfYear.withMonth(month).withDayOfMonth(1);
+            LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+
+            int count = companyRepository.countAllByStatusAndApprovedAtBetween(
+                    CompanyStatus.APPROVED,
+                    monthStart.atStartOfDay(),
+                    monthEnd.atTime(LocalTime.MAX)
+            );
+            monthlyNewCompanies.add(count);
+        }
+
+        DashboardDto.CompanyStats companyStats = DashboardDto.CompanyStats.builder()
+                .currentCompanyCount(companyRepository.findByStatus(CompanyStatus.APPROVED).size())
+                .monthlyNewRegistrations(monthlyNewCompanies)
+                .build();
+
+        /** ------------------ 고객 통계 ------------------ **/
+        List<Integer> cumulativeRegistrations = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            LocalDate monthEnd = startOfYear.withMonth(month).withDayOfMonth(
+                    startOfYear.withMonth(month).lengthOfMonth()
+            );
+
+            int monthlyCount = userRepository.countAllByRoleAndCreatedAtBefore(
+                    UserRole.USER,
+                    monthEnd.atTime(LocalTime.MAX)
+            );
+            cumulativeRegistrations.add(monthlyCount);
+        }
+
+        DashboardDto.CustomerStats customerStats = DashboardDto.CustomerStats.builder()
+                .currentCustomerCount(
+                        userRepository.countAllByRoleAndStatus(UserRole.USER, UserStatus.ACTIVE)
+                )
+                .cumulativeRegistrations(cumulativeRegistrations)
+                .build();
+
+        /** ------------------ 서비스 통계 ------------------ **/
+        ServiceCategory[] categories = Arrays.stream(ServiceCategory.values())
+                .filter(category -> category != ServiceCategory.ALL) // ALL 제외
+                .toArray(ServiceCategory[]::new);
+
+        List<String> categoryLabels = Arrays.stream(categories)
+                .map(ServiceCategory::getLabel)
+                .toList();
+
+        List<Integer> categoryCounts = Arrays.stream(categories)
+                .map(resourceRepository::countAllByIsActiveIsTrueAndResourceGroup_Category)
+                .toList();
+
+        DashboardDto.ServiceStats serviceStats = DashboardDto.ServiceStats.builder()
+                .totalServiceCount(resourceRepository.countAllByIsActive(true)) // 전체 활성 리소스 수
+                .categoryCounts(categoryCounts)
+                .categoryLabels(categoryLabels)
+                .build();
+
+        /** ------------------ 에러 로그 (임시) ------------------ **/
+        List<DashboardDto.ErrorLogs> errorLogs = new ArrayList<>(); // 추후 로깅 서비스 연동 예정
+
+        /** ------------------ 전체 응답 조립 ------------------ **/
+        return DashboardDto.SuperDashboardResponse.builder()
+                .companyStats(companyStats)
+                .customerStats(customerStats)
+                .serviceStats(serviceStats)
+                .errorLogs(errorLogs)
+                .build();
+    }
+
 }

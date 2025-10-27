@@ -5,6 +5,7 @@ import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,4 +46,7 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
      * companySlug 존재 여부 확인
      */
     boolean existsByCompanySlug(String companySlug);
+
+    // 기간별 가입한 기업의 수 조회
+    int countAllByStatusAndApprovedAtBetween(CompanyStatus status, LocalDateTime start, LocalDateTime end);
 }

@@ -14,8 +14,8 @@ public class DashboardDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    @Schema(description = "대시보드 전체 응답 데이터")
-    public static class DashboardResponse {
+    @Schema(description = "관리자 대시보드 전체 응답 데이터")
+    public static class AdminDashboardResponse {
 
         @Schema(description = "요약 통계 데이터 (총 예약 수, 활성 그룹 수 등)")
         private Summary summary;
@@ -32,7 +32,7 @@ public class DashboardDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    @Schema(description = "대시보드 요약 통계 정보")
+    @Schema(description = "관리자 대시보드 요약 통계 정보")
     public static class Summary {
 
         @Schema(description = "총 예약 수", example = "1284")
@@ -86,4 +86,58 @@ public class DashboardDto {
         @Schema(description = "그룹별 예약 수 (key: 그룹명, value: 예약 수)", example = "{\"회의실 예약\":50, \"스터디룸 예약\":30}")
         private Map<String, Integer> groups; // 그룹명 → 예약 수
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "플랫폼 관리자 대시보드 전체 응답 데이터")
+    public static class SuperDashboardResponse {
+        private CompanyStats companyStats;
+        private CustomerStats customerStats;
+        private ServiceStats serviceStats;
+        private List<ErrorLogs> errorLogs;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CompanyStats {
+        private int currentCompanyCount; // 현재 가입 수
+        private List<Integer> monthlyNewRegistrations; // 월별 신규 가입
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CustomerStats {
+        private int currentCustomerCount; // 현재 가입 수
+        private List<Integer> cumulativeRegistrations; // 누적 가입
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ServiceStats {
+        private int totalServiceCount; // 총 서비스 수
+        private List<Integer> categoryCounts; // 예약, 좌석 예매, 이벤트 신청 순
+        private List<String> categoryLabels; // ["예약", "좌석 예매", "이벤트 신청"]
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ErrorLogs {
+        private String code;
+        private String message;
+        private String time; // 나중에 LocalDateTime 타입으로 변경 가능
+    }
+
 }
