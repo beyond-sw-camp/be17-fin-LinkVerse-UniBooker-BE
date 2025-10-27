@@ -76,8 +76,8 @@ public class AuthService {
      * - 이메일로만 조회, ADMIN 또는 MANAGER 권한
      */
     public UserDto.LoginResponseWithToken loginWithRoles(String email, String password, List<UserRole> roles) {
-        // 1. 사용자 조회
-        Users user = userRepository.findByEmailAndRoleIn(email, roles)
+        // 1. 사용자 조회 (DELETED 제외)
+        Users user = userRepository.findByEmailAndRoleInAndStatusNot(email, roles, UserStatus.DELETED)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
@@ -105,8 +105,8 @@ public class AuthService {
      * - 이메일로만 조회, SUPER 권한만
      */
     public UserDto.LoginResponseWithToken loginWithRole(String email, String password, UserRole role) {
-        // 1. 사용자 조회
-        Users user = userRepository.findByEmailAndRoleIn(email, List.of(role))
+        // 1. 사용자 조회 (DELETED 제외)
+        Users user = userRepository.findByEmailAndRoleInAndStatusNot(email, List.of(role), UserStatus.DELETED)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));

@@ -146,4 +146,10 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             UserRole role,
             UserStatus status
     );
+
+    /**
+     * 이메일과 권한 목록으로 사용자 조회 (DELETED 제외)
+     * - ADMIN/MANAGER/SUPER 로그인 시 사용
+     */
+    List<Users> findByEmailAndRoleInAndStatusNot(String email, List<UserRole> roles, UserStatus status);
 }

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
@@ -220,6 +221,7 @@ public class AdminDto {
      * 비밀번호 재설정 요청 DTO
      */
     @Getter
+    @Setter
     @NoArgsConstructor
     @Schema(description = "비밀번호 재설정 요청")
     public static class PasswordResetRequest {
