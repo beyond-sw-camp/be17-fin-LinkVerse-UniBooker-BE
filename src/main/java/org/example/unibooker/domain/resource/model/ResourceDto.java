@@ -185,6 +185,12 @@ public class ResourceDto {
         @Schema(description = "인원수", example = "7")
         private String capacity;
 
+        @Schema(description = "서비스 카테고리", example = "RESERVATION(예약형)/SEAT(좌석형)/EVENT(신청형)")
+        private ServiceCategory category;
+
+        @Schema(description = "상시 모집 여부", example = "true")
+        private Boolean isAlwaysAvailable;
+
         private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
         public static ResourceListInfo fromEntity(Resources resource) {
@@ -196,7 +202,9 @@ public class ResourceDto {
                     resource.getStatus(),
                     resource.getCreatedBy() != null ? resource.getCreatedBy().getName() : null,
                     resource.getUpdatedAt() != null ? resource.getUpdatedAt().format(DATE_FORMATTER) : null,
-                    resource.getCapacity() != null ? resource.getCapacity().toString() : null
+                    resource.getCapacity() != null ? resource.getCapacity().toString() : null,
+                    resource.getResourceGroup() != null ? resource.getResourceGroup().getCategory() : null,
+                    resource.getResourceGroup() != null ? resource.getResourceGroup().getIsAlwaysAvailable() : null
             );
         }
     }
