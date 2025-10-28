@@ -6,6 +6,8 @@ import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -197,4 +199,16 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * 기업 ID와 권한으로 사용자 수 조회
      */
     long countByCompanyIdAndRole(Long companyId, UserRole role);
+
+    /**
+     * 특정 기업의 일반 사용자(USER) 수 조회
+     */
+    @Query("SELECT COUNT(u) FROM Users u WHERE u.companyId = :companyId AND u.role = 'USER'")
+    Long countUsersByCompanyId(@Param("companyId") Long companyId);
+
+    /**
+     * 특정 기업의 최근 로그인 일시 조회
+     */
+    @Query("SELECT MAX(u.updatedAt) FROM Users u WHERE u.companyId = :companyId AND u.role = 'USER'")
+    LocalDateTime findLastLoginByCompanyId(@Param("companyId") Long companyId);
 }
