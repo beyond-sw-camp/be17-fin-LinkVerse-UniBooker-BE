@@ -6,7 +6,7 @@ WORKDIR /app
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 
-# 종속성 캐시만 (한 번만)
+# 종속성 캐시만 (한 번만) #
 RUN ./gradlew dependencies --no-daemon --configure-on-demand
 
 # 코드 복사 후 빌드
