@@ -41,7 +41,7 @@ public class JwtUtil {
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole().name());
 
-        if (user.getCompany().getId() != null) {
+        if (user.getCompany() != null && user.getCompany().getId() != null) {
             claims.put("companyId", user.getCompany().getId());
         }
 

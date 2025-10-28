@@ -211,4 +211,8 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     @Query("SELECT MAX(u.updatedAt) FROM Users u WHERE u.company.id = :companyId AND u.role = 'USER'")
     LocalDateTime findLastLoginByCompanyId(@Param("companyId") Long companyId);
+
+    @Query("SELECT u FROM Users u LEFT JOIN FETCH u.company WHERE u.id = :userId")
+    Optional<Users> findByIdWithCompany(@Param("userId") Long userId);
+
 }

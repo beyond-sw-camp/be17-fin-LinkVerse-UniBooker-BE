@@ -175,8 +175,8 @@ public class AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole())
-                .companyId(user.getCompany().getId())
-                .companySlug(company != null ? company.getCompanySlug() : null)
+                .companyId(user.getCompany() != null ? user.getCompany().getId() : null)
+                .companySlug(user.getCompany() != null ? user.getCompany().getCompanySlug() : null)
                 .passwordChangeRequired(user.getIsFirstLogin())
                 .build();
     }

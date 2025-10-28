@@ -459,6 +459,12 @@ public class AuthDto {
          * Users 엔티티 → AuthAdmin 변환
          */
         public static AuthAdmin from(Users user) {
+
+            Long companyId = null;
+            if (user.getCompany() != null) {
+                companyId = user.getCompany().getId();
+            }
+
             return new AuthAdmin(
                     user.getId(),
                     user.getCreatedAt(),
@@ -472,7 +478,7 @@ public class AuthDto {
                     user.getGender(),
                     user.getRole(),
                     user.getStatus(),
-                    user.getCompany().getId(),
+                    companyId,
                     user.getIsFirstLogin()
             );
         }
