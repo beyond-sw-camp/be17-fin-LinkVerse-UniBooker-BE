@@ -111,6 +111,20 @@ public class NotificationService {
         return NotificationDto.NotificationRes.fromEntityList(notifications);
     }
 
+
+    // -------------------- 알림 읽음 처리 --------------------
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
+        Notifications notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 알림이 존재하지 않습니다. id=" + notificationId));
+
+        if (!notification.getIsRead()) {
+            notification.setIsRead(true);
+            notification.setReadAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
+    }
+
     /**
      * 리소스의 시간 변경 시 해당 리소스를 예약한 고객들에게 알림 전송
      */
