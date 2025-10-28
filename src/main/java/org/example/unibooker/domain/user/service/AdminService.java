@@ -7,6 +7,7 @@ import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
+import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
 import org.example.unibooker.domain.user.model.*;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
@@ -47,6 +48,7 @@ public class AdminService {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ResourceGroupRepository resourceGroupRepository;
 
     /**
      * AdminService 생성자 (DI)
@@ -57,10 +59,12 @@ public class AdminService {
                         FileUploadUtil fileUploadUtil,
                         EmailService emailService,
                         AuthService authService,
+                        ResourceGroupRepository resourceGroupRepository,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.resourceGroupRepository = resourceGroupRepository;
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
 
         // ✅ 수정: authService와 emailService 순서 변경
@@ -68,8 +72,9 @@ public class AdminService {
                 companyRepository,
                 userRepository,
                 passwordEncoder,
-                authService,       // authService가 먼저
-                emailService,      // emailService가 나중
+                authService,
+                emailService,
+                resourceGroupRepository,
                 baseUrl
         );
 
@@ -331,6 +336,7 @@ public class AdminService {
         private final PasswordEncoder passwordEncoder;
         private final EmailService emailService;
         private final AuthService authService;
+        private final ResourceGroupRepository resourceGroupRepository;
         private final String baseUrl;
 
         private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -345,12 +351,14 @@ public class AdminService {
                         PasswordEncoder passwordEncoder,
                         AuthService authService,
                         EmailService emailService,
+                        ResourceGroupRepository resourceGroupRepository,
                         String baseUrl) {
             this.companyRepository = companyRepository;
             this.userRepository = userRepository;
             this.passwordEncoder = passwordEncoder;
             this.emailService = emailService;
             this.authService = authService;
+            this.resourceGroupRepository = resourceGroupRepository;
             this.baseUrl = baseUrl;
         }
 
@@ -367,15 +375,49 @@ public class AdminService {
 
         /**
          * 기업 상세 정보 조회
+         * - 기업 정보 + 관리자 정보 + 플랫폼 이용 현황
          */
         public CompanyDto.DetailResponse getCompanyDetail(Long companyId) {
+            // 1. 기업 조회
             Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
+            // 2. 관리자 조회
             Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-            return convertToDetailResponse(company, admin);
+            // 3. 플랫폼 이용 현황 데이터 조회
+            Long serviceGroupCount = resourceGroupRepository.countByCompanyId(companyId);
+            Long userCount = userRepository.countUsersByCompanyId(companyId);
+            LocalDateTime lastLoginAt = userRepository.findLastLoginByCompanyId(companyId);
+
+            // 4. DTO 변환 및 반환
+            return CompanyDto.DetailResponse.builder()
+                    // 기업 정보
+                    .companyId(company.getId())
+                    .businessNumber(company.getBusinessNumber())
+                    .companyName(company.getCompanyName())
+                    .companySlug(company.getCompanySlug())
+                    .logoUrl(company.getLogoUrl())
+                    .status(company.getStatus())
+                    .createdAt(company.getCreatedAt())
+                    .approvedAt(company.getApprovedAt())
+                    .approvedBy(company.getApprovedBy())
+                    .rejectionReason(company.getRejectionReason())
+
+                    // 관리자 정보
+                    .adminId(admin.getId())
+                    .adminName(admin.getName())
+                    .email(admin.getEmail())
+                    .phone(admin.getPhone())
+                    .userStatus(admin.getStatus())
+
+                    // 플랫폼 이용 현황
+                    .serviceGroupCount(serviceGroupCount != null ? serviceGroupCount : 0L)
+                    .userCount(userCount != null ? userCount : 0L)
+                    .lastLoginAt(lastLoginAt)
+
+                    .build();
         }
 
         /**
@@ -566,29 +608,6 @@ public class AdminService {
                     .phone(admin != null ? admin.getPhone() : null)
                     .status(company.getStatus())
                     .createdAt(company.getCreatedAt())
-                    .build();
-        }
-
-        /**
-         * Company + User -> DetailResponse DTO 변환
-         */
-        private CompanyDto.DetailResponse convertToDetailResponse(Companies company, Users admin) {
-            return CompanyDto.DetailResponse.builder()
-                    .companyId(company.getId())
-                    .businessNumber(company.getBusinessNumber())
-                    .companyName(company.getCompanyName())
-                    .companySlug(company.getCompanySlug())
-                    .logoUrl(company.getLogoUrl())
-                    .status(company.getStatus())
-                    .createdAt(company.getCreatedAt())
-                    .approvedAt(company.getApprovedAt())
-                    .approvedBy(company.getApprovedBy())
-                    .rejectionReason(company.getRejectionReason())
-                    .adminId(admin.getId())
-                    .adminName(admin.getName())
-                    .email(admin.getEmail())
-                    .phone(admin.getPhone())
-                    .userStatus(admin.getStatus())
                     .build();
         }
     }
