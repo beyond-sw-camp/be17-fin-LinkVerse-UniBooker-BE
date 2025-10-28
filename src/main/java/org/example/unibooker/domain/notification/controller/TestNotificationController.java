@@ -38,8 +38,7 @@ public class TestNotificationController {
             messagingTemplate.convertAndSendToUser(
                 String.valueOf(userId),
                 "/queue/notifications",
-                data,
-                createHeaders(String.valueOf(userId))
+                data
         );
     }
 
@@ -47,7 +46,7 @@ public class TestNotificationController {
     public void send() {
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String message = "웹소켓 알림입니다!";
-        messagingTemplate.convertAndSend("/user/queue/noti", "[" + now + "] " + message);
+        messagingTemplate.convertAndSend("/user/queue/notifications", "[" + now + "] " + message);
     }
 }
 

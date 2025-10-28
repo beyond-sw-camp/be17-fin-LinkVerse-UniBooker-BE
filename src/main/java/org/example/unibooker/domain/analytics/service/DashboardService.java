@@ -98,7 +98,7 @@ public class DashboardService {
 
         // 실제 예약 데이터로 덮어쓰기
         for (Object[] row : trendRaw) {
-            LocalDate date = ((java.sql.Timestamp) row[0]).toLocalDateTime().toLocalDate();
+            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
             String groupName = (String) row[1];
             int count = ((Number) row[2]).intValue();
             trendMap.get(date).put(groupName, count);

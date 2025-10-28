@@ -17,6 +17,7 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
             return null;
         }
 
+        System.out.println(userId.toString());
         return () -> userId.toString();
     }
 }
