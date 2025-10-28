@@ -5,11 +5,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.notification.model.dto.NotificationDto;
+import org.example.unibooker.domain.notification.service.NotificationService;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
+import org.springframework.data.domain.Page;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 알림 API 컨트롤러
@@ -18,23 +24,20 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "Notification API", description = "알림 관리 API")
 @RestController
-@RequestMapping("/api/ub")
+@RequestMapping("/api/notify")
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
-    // 클라이언트가 "/pub/message"로 보낸 메시지를 처리
-    @MessageMapping("/message")
-    public void handleMessage(NotificationDto.notificationReq message) {
-        // 받은 메시지를 /sub/notifications 구독자에게 전달
-        messagingTemplate.convertAndSend("/sub/notifications", message);
-    }
 
-    @MessageMapping("/hello")
-    public void handleHelloMessage(String message) {
-        // 로그인한 사용자에게만 알림 보내기 (예시)
-        String userId = "1"; // 실제는 JWT 기반으로 사용자 식별 필요
-        messagingTemplate.convertAndSendToUser(userId, "/queue/notifications", "Welcome, " + message + "!");
+    // -------------------- 알림 목록 조회 --------------------
+    @GetMapping
+    public BaseResponse<Page<NotificationDto.NotificationRes>> getNotifications(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                                                                @RequestParam(defaultValue = "0") int page,
+                                                                                @RequestParam(defaultValue = "10") int size) {
+
+        Page<NotificationDto.NotificationRes> response = notificationService.getUserNotifications(authUser.getId(), page, size);
+        return BaseResponse.success(response);
     }
 }

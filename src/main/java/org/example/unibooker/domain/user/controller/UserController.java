@@ -80,10 +80,6 @@ public class UserController {
                 loginResponseWithToken.getRole()
         ));
 
-        // 로그인 성공 후
-        notificationService.sendLoginNotification(loginResponseWithToken.getUserId());
-
-
         // 4. 클라이언트 응답 생성 (토큰 제외)
         return BaseResponse.success(loginResponseWithToken.toResponse());
     }

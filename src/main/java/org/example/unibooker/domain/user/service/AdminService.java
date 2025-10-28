@@ -97,7 +97,7 @@ public class AdminService {
      * 관리자 회원가입 처리 내부 클래스
      */
     @Transactional(readOnly = true)
-    public static class SignUp {
+    public class SignUp {
 
         private final UserRepository userRepository;
         private final CompanyRepository companyRepository;
@@ -178,6 +178,11 @@ public class AdminService {
             }
 
             userRepository.save(admin);
+
+            notificationService.sendNotificationToRole(
+                    NotificationType.NEW_COMPANY_REQUEST,
+                    UserRole.SUPER
+            );
 
             return AdminDto.SignUpResponse.builder()
                     .message("관리자 회원가입 신청이 완료되었습니다. 승인까지 최대 " + ESTIMATED_APPROVAL_DAYS + "일이 소요될 수 있습니다.")
@@ -587,17 +592,10 @@ public class AdminService {
             user.updatePassword(encodedPassword);
 
             if (user.getIsFirstLogin()) {
-                // 첫 로그인 알림 전송
-                notificationService.sendNotificationToUser(
-                        NotificationType.WELCOME,  // 첫 로그인/가입 환영용 타입
-                        Map.of(
-                                "userName", user.getName(),
-                                "companyName", user.getCompany().getCompanyName()
-                        ),
-                        user
-                );
+                // ADMIN 관리자에게 환영 메시지 전송
+                notificationService.sendNotificationToRole(NotificationType.WELCOME, UserRole.ADMIN);
 
-                // 첫 로그인 플래그 초기화 (DB 반영)
+                // 첫 로그인 플래그 false로 변경
                 user.completeFirstLogin();
             }
 

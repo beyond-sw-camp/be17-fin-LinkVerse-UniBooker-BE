@@ -2,8 +2,17 @@ package org.example.unibooker.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.unibooker.domain.notification.model.NotificationStatus;
 import org.example.unibooker.domain.notification.model.NotificationType;
+import org.example.unibooker.domain.notification.model.entity.Notifications;
+import org.example.unibooker.domain.notification.repository.NotificationRepository;
+import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.model.entity.Users;
+import org.example.unibooker.domain.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 //import org.example.unibooker.domain.notification.controller.NotificationHandler;
@@ -11,7 +20,11 @@ import org.example.unibooker.domain.notification.model.dto.NotificationDto;
 import org.example.unibooker.domain.reservation.repository.ReservationRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -27,30 +40,75 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationService {
     private final SimpMessagingTemplate messagingTemplate;
-//    private final NotificationHandler notificationHandler;
-    private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
-    public void sendLoginNotification(Long userId) {
-        // userId는 STOMP 세션에서 username으로 인식되는 값이어야 함
-        String message = "로그인 성공! 알림 테스트입니다.";
-        messagingTemplate.convertAndSendToUser(
-                userId.toString(),       // username
-                "/queue/notifications",  // 프론트 구독 경로
-                message
-        );
+
+    // -------------------- 알림 대상 타입 조회 --------------------
+    @Transactional
+    public void sendNotificationToRole(NotificationType type, UserRole role) {
+        // 1️⃣ 해당 역할 유저 전부 조회
+        List<Users> users = userRepository.findByRoleAndStatus(role, UserStatus.ACTIVE, Pageable.unpaged()).getContent();
+
+        // 2️⃣ 각 유저에게 알림 생성 및 전송
+        for (Users user : users) {
+            sendNotificationToUser(type, user);
+        }
     }
 
-    public void sendResourceUpdate(Long userId, String message) {
-        NotificationDto.notificationReq dto = NotificationDto.notificationReq.fromMessage("정규 시간이 변경되었습니다.");
 
-        messagingTemplate.convertAndSendToUser(
-                userId.toString(), // username or userId
-                "/queue/notifications", // 프론트에서 구독한 경로
-                dto // 메시지 객체 전달
-        );
+    // -------------------- 특정 대상에게 알림 전송 --------------------
+    @Transactional
+    public void sendNotificationToUser(NotificationType type, Users targetUser) {
+        // 1. DTO 생성
+        NotificationDto.NotificationReq req = NotificationDto.NotificationReq.builder()
+                .category(type)
+                .title(type.getTitle())
+                .message(type.getMessage())
+                .build();
+
+        // 2. 엔티티 변환
+        Notifications notification = req.toEntity(targetUser);
+
+        // 3. DB 저장 (ID 확보용)
+        notificationRepository.save(notification);
+
+        try {
+            // 4. WebSocket 실시간 전송
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(targetUser.getId()),
+                    "/queue/notifications",
+                    Map.of(
+                            "title", req.getTitle(),
+                            "message", req.getMessage(),
+                            "category", req.getCategory().name()
+                    )
+            );
+
+            // 5. 전송 성공 상태 반영
+            notification.setStatus(NotificationStatus.SENT);
+            notificationRepository.save(notification);
+
+            log.info("✅ 알림 전송 성공 - userId: {}, type: {}", targetUser.getId(), type);
+
+        } catch (Exception e) {
+            // 6. 실패 처리
+            notification.setStatus(NotificationStatus.FAILED);
+            notification.setFailedReason(e.getMessage());
+            notification.setRetryCount(notification.getRetryCount() + 1);
+            notificationRepository.save(notification);
+
+            log.error("❌ 알림 전송 실패 - userId: {}, type: {}, reason: {}", targetUser.getId(), type, e.getMessage());
+        }
     }
 
-    public void sendNotificationToUser(NotificationType notificationType, Map<String, String> userName, Users user) {
+
+    // -------------------- 알림 목록 조회 --------------------
+    public Page<NotificationDto.NotificationRes> getUserNotifications(Long userId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Notifications> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return NotificationDto.NotificationRes.fromEntityList(notifications);
     }
 
     /**

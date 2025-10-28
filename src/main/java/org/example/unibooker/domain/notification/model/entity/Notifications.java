@@ -43,21 +43,26 @@ public class Notifications extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     @Comment("발송 상태")
+    @Setter
     private NotificationStatus status;
 
     @Column(name = "is_read", nullable = false)
     @Comment("읽음 여부")
+    @Setter
     private Boolean isRead = false;
 
     @Column(name = "read_at")
     @Comment("읽은 시각")
+    @Setter
     private LocalDateTime readAt;
-
 
     @Column(name = "failed_reason", columnDefinition = "TEXT")
     @Comment("실패 사유")
+    @Setter
     private String failedReason;
+
     @Comment("재시도 횟수")
+    @Setter
     private Integer retryCount = 0;
 
 }
