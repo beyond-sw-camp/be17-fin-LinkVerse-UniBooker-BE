@@ -138,7 +138,7 @@ public class DashboardService {
             LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
 
             int count = companyRepository.countAllByStatusAndApprovedAtBetween(
-                    CompanyStatus.APPROVED,
+                    CompanyStatus.ACTIVE,
                     monthStart.atStartOfDay(),
                     monthEnd.atTime(LocalTime.MAX)
             );
@@ -146,7 +146,7 @@ public class DashboardService {
         }
 
         DashboardDto.CompanyStats companyStats = DashboardDto.CompanyStats.builder()
-                .currentCompanyCount(companyRepository.findByStatus(CompanyStatus.APPROVED).size())
+                .currentCompanyCount(companyRepository.findByStatus(CompanyStatus.ACTIVE).size())
                 .monthlyNewRegistrations(monthlyNewCompanies)
                 .build();
 

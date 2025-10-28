@@ -2,7 +2,11 @@ package org.example.unibooker.domain.company.repository;
 
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.model.CompanyStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -49,4 +53,21 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
 
     // 기간별 가입한 기업의 수 조회
     int countAllByStatusAndApprovedAtBetween(CompanyStatus status, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * 여러 상태로 기업 조회 (페이징)
+     */
+    Page<Companies> findByStatusIn(List<CompanyStatus> statuses, Pageable pageable);
+
+    /**
+     * 기업 검색 (상태 + 키워드 + 페이징)
+     */
+    @Query("SELECT c FROM Companies c WHERE " +
+            "(:status IS NULL OR c.status = :status) AND " +
+            "(:keyword IS NULL OR c.companyName LIKE %:keyword% OR c.companySlug LIKE %:keyword%)")
+    Page<Companies> searchCompanies(
+            @Param("status") CompanyStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

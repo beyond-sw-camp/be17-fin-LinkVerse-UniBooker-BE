@@ -63,7 +63,7 @@ public class AuthService {
         Companies company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        if (company.getStatus() != CompanyStatus.APPROVED) {
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
         }
 
@@ -92,7 +92,7 @@ public class AuthService {
         Companies company = companyRepository.findById(user.getCompanyId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        if (company.getStatus() != CompanyStatus.APPROVED) {
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
         }
 

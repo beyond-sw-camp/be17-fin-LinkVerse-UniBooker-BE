@@ -7,10 +7,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.common.BaseResponseStatus;
+import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.company.service.CompanyService;
 import org.example.unibooker.domain.user.service.AdminService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,6 +98,52 @@ public class CompanyController {
             @PathVariable @Schema(description = "Company Slug", example = "company-a") String companySlug) {
 
         CompanyDto.PublicInfoResponse response = companyService.getCompanyBySlug(companySlug);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 전체 기업 목록 조회 (페이징 + 필터링)
+     */
+    @Operation(summary = "전체 기업 목록 조회",
+            description = "플랫폼의 전체 기업 목록을 조회합니다. (SUPER 권한 필요)")
+    @PreAuthorize("hasRole('SUPER')")
+    @GetMapping
+    public BaseResponse<CompanyDto.CompanyListResponse> getAllCompanies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword) {
+
+        CompanyStatus companyStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                companyStatus = CompanyStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BaseException(
+                        BaseResponseStatus.INVALID_COMPANY_STATUS);
+            }
+        }
+
+        CompanyDto.CompanyListResponse response =
+                companyService.getAllCompanies(page, size, companyStatus, keyword);
+
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 기업 상태 변경 (ACTIVE ↔ SUSPENDED)
+     */
+    @Operation(summary = "기업 상태 변경",
+            description = "기업의 서비스 상태를 변경합니다. (SUPER 권한 필요)")
+    @PreAuthorize("hasRole('SUPER')")
+    @PatchMapping("/{companyId}/status")
+    public BaseResponse<CompanyDto.StatusUpdateResponse> updateCompanyStatus(
+            @PathVariable Long companyId,
+            @RequestBody @Valid CompanyDto.StatusUpdateRequest request) {
+
+        CompanyDto.StatusUpdateResponse response =
+                companyService.updateCompanyStatus(companyId, request.getStatus());
+
         return BaseResponse.success(response);
     }
 }

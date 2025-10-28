@@ -391,7 +391,7 @@ public class AdminService {
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             // 2. 중복 승인 방지
-            if (company.getStatus() == CompanyStatus.APPROVED) {
+            if (company.getStatus() == CompanyStatus.ACTIVE) {
                 throw new BaseException(BaseResponseStatus.ALREADY_APPROVED);
             }
 
@@ -802,7 +802,7 @@ public class AdminService {
             Companies company = companyRepository.findById(companyId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-            if (company.getStatus() != CompanyStatus.APPROVED) {
+            if (company.getStatus() != CompanyStatus.ACTIVE) {
                 throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
             }
 
@@ -889,7 +889,10 @@ public class AdminService {
             // 5. 매니저 삭제 처리
             manager.delete();
 
-            // 6. 응답 생성
+            // 6. 명시적 저장 (추가 필요)
+            userRepository.save(manager);
+
+            // 7. 응답 생성
             return ManagerDto.ManagerDeleteResponse.builder()
                     .message("매니저 계정이 삭제되었습니다.")
                     .managerId(manager.getId())

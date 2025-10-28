@@ -46,6 +46,11 @@ public enum BaseResponseStatus {
     RESERVED_SLUG(40008, "사용할 수 없는 예약어입니다."),
     DUPLICATE_SLUG(40009, "이미 사용 중인 Company Slug입니다."),
 
+    // ========== 기업 상태 관련 (신규 추가) ==========
+    INVALID_COMPANY_STATUS(40010, "유효하지 않은 기업 상태입니다."),
+    INVALID_STATUS_CHANGE(40011, "변경할 수 없는 상태입니다. PENDING과 REJECTED 상태는 변경할 수 없습니다."),
+    COMPANY_NOT_ACTIVE(40012, "활성 상태의 기업만 정지할 수 있습니다."),
+
     // ========== 50000: Auth 관련 (향후 로그인 구현 시 사용) ==========
     UNAUTHORIZED(50000, "인증되지 않은 사용자입니다."),
     FORBIDDEN(50001, "접근 권한이 없습니다."),

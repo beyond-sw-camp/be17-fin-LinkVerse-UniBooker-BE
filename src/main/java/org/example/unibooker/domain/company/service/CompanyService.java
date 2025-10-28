@@ -4,13 +4,24 @@ import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.constants.ReservedSlugs;
 import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
+import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.entity.Users;
+import org.example.unibooker.domain.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 기업 관련 비즈니스 로직 처리 서비스
@@ -23,6 +34,7 @@ import java.util.regex.Pattern;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
 
     /** Company Slug 유효성 검증 패턴: 소문자, 숫자, 하이픈만 허용 (3-30자) */
     private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9-]{3,30}$");
@@ -115,6 +127,117 @@ public class CompanyService {
                 .companyName(company.getCompanyName())
                 .companySlug(company.getCompanySlug())
                 .logoUrl(company.getLogoUrl())
+                .build();
+    }
+
+    /**
+     * 전체 기업 목록 조회 (페이징 + 필터링)
+     * - SUPER 권한 필요
+     */
+    @Transactional(readOnly = true)
+    public CompanyDto.CompanyListResponse getAllCompanies(
+            int page, int size, CompanyStatus status, String keyword) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Companies> companyPage = companyRepository.searchCompanies(
+                status, keyword, pageable);
+
+        List<CompanyDto.CompanyInfo> companies = companyPage.getContent()
+                .stream()
+                .map(this::convertToCompanyInfo)
+                .collect(Collectors.toList());
+
+        return CompanyDto.CompanyListResponse.builder()
+                .companies(companies)
+                .totalElements(companyPage.getTotalElements())
+                .totalPages(companyPage.getTotalPages())
+                .currentPage(page)
+                .pageSize(size)
+                .build();
+    }
+
+    /**
+     * 기업 상태 변경 (ACTIVE ↔ SUSPENDED)
+     * - 기업 정지 시 소속 ADMIN/MANAGER 자동 정지
+     */
+    @Transactional
+    public CompanyDto.StatusUpdateResponse updateCompanyStatus(
+            Long companyId, CompanyStatus newStatus) {
+
+        // 1. Company 조회
+        Companies company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new BaseException(
+                        BaseResponseStatus.COMPANY_NOT_FOUND));
+
+        // 2. PENDING, REJECTED는 이 API로 변경 불가
+        if (newStatus == CompanyStatus.PENDING ||
+                newStatus == CompanyStatus.REJECTED) {
+            throw new BaseException(
+                    BaseResponseStatus.INVALID_STATUS_CHANGE);
+        }
+
+        // 3. ACTIVE가 아니면 SUSPENDED로 변경 불가
+        if (newStatus == CompanyStatus.SUSPENDED &&
+                company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new BaseException(
+                    BaseResponseStatus.COMPANY_NOT_ACTIVE);
+        }
+
+        CompanyStatus oldStatus = company.getStatus();
+
+        // 4. 상태 변경
+        if (newStatus == CompanyStatus.ACTIVE) {
+            company.activate();
+        } else if (newStatus == CompanyStatus.SUSPENDED) {
+            company.suspend();
+
+            // 5. 소속 ADMIN/MANAGER 자동 정지
+            List<Users> admins = userRepository.findByCompanyIdAndRoleIn(
+                    companyId,
+                    List.of(UserRole.ADMIN, UserRole.MANAGER)
+            );
+            admins.forEach(Users::suspend);
+        }
+
+        companyRepository.save(company);
+
+        return CompanyDto.StatusUpdateResponse.builder()
+                .message("기업 상태가 변경되었습니다.")
+                .companyId(companyId)
+                .companyName(company.getCompanyName())
+                .oldStatus(oldStatus)
+                .newStatus(newStatus)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * Companies -> CompanyInfo DTO 변환
+     */
+    private CompanyDto.CompanyInfo convertToCompanyInfo(Companies company) {
+        Users admin = userRepository.findByCompanyIdAndRole(
+                company.getId(), UserRole.ADMIN).orElse(null);
+
+        long managerCount = userRepository.countByCompanyIdAndRole(
+                company.getId(), UserRole.MANAGER);
+
+        long userCount = userRepository.countByCompanyIdAndRole(
+                company.getId(), UserRole.USER);
+
+        return CompanyDto.CompanyInfo.builder()
+                .companyId(company.getId())
+                .companyName(company.getCompanyName())
+                .companySlug(company.getCompanySlug())
+                .logoUrl(company.getLogoUrl())
+                .status(company.getStatus())
+                .adminName(admin != null ? admin.getName() : null)
+                .adminEmail(admin != null ? admin.getEmail() : null)
+                .managerCount(managerCount)
+                .userCount(userCount)
+                .createdAt(company.getCreatedAt())
+                .approvedAt(company.getApprovedAt())
                 .build();
     }
 }

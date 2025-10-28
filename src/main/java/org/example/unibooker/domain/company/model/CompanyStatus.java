@@ -2,7 +2,8 @@ package org.example.unibooker.domain.company.model;
 
 public enum CompanyStatus {
     PENDING("승인 대기", "Pending"),
-    APPROVED("승인 완료", "Approved"),
+    ACTIVE("활성", "Active"),           // APPROVED → ACTIVE로 변경
+    SUSPENDED("정지", "Suspended"),      // 신규 추가
     REJECTED("승인 거절", "Rejected");
 
     private final String koreanName;
