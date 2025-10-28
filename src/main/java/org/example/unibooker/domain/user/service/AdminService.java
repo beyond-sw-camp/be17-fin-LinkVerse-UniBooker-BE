@@ -392,7 +392,7 @@ public class AdminService {
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             // 2. 관리자 조회
-            Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
+            Users admin = userRepository.findByCompany_IdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             // 3. 플랫폼 이용 현황 데이터 조회
@@ -447,7 +447,7 @@ public class AdminService {
             }
 
             // 3. Admin User 조회
-            Users admin = userRepository.findByCompanyIdAndRole(companyId, UserRole.ADMIN)
+            Users admin = userRepository.findByCompany_IdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
             // 4. 새로운 임시 비밀번호 생성
@@ -619,7 +619,7 @@ public class AdminService {
          * Company -> PendingResponse DTO 변환
          */
         private CompanyDto.PendingResponse convertToPendingResponse(Companies company) {
-            Users admin = userRepository.findByCompanyIdAndRole(company.getId(), UserRole.ADMIN)
+            Users admin = userRepository.findByCompany_IdAndRole(company.getId(), UserRole.ADMIN)
                     .orElse(null);
 
             return CompanyDto.PendingResponse.builder()
@@ -683,7 +683,7 @@ public class AdminService {
             validateEmailDuplicate(request.getEmail(), admin.getCompany().getId());
 
             // 4. 같은 기업의 DELETED MANAGER 계정 찾기
-            Optional<Users> deletedManager = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
+            Optional<Users> deletedManager = userRepository.findByEmailAndCompany_IdAndRoleAndStatus(
                     request.getEmail(),
                     admin.getCompany().getId(),
                     UserRole.MANAGER,
@@ -727,7 +727,7 @@ public class AdminService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
             // 3. 같은 기업의 매니저 조회 (DELETED 제외)
-            Page<Users> managerPage = userRepository.findByCompanyIdAndRoleAndStatusNot(
+            Page<Users> managerPage = userRepository.findByCompany_IdAndRoleAndStatusNot(
                     admin.getCompany().getId(),
                     UserRole.MANAGER,
                     UserStatus.DELETED,

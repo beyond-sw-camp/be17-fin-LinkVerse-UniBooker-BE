@@ -53,7 +53,7 @@ public class SuperService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
         // 해당 기업의 ADMIN, MANAGER 조회
-        List<Users> managers = userRepository.findByCompanyIdAndRoleIn(
+        List<Users> managers = userRepository.findByCompany_IdAndRoleIn(
                 companyId,
                 List.of(UserRole.ADMIN, UserRole.MANAGER)
         );

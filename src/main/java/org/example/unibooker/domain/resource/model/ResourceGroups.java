@@ -19,12 +19,17 @@ import java.util.List;
 @AllArgsConstructor
 public class ResourceGroups extends BaseEntity {
     private String name;
+    private String groupCode;  // 서비스 그룹 목록 프론트 구조에 맞춘 추가사항
     private String description;
     private String thumbnail;
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private ServiceCategory category;
+
+    @Column(name = "is_always_available")
     private Boolean isAlwaysAvailable; // 상시모집 여부
+
+    @Column(name = "is_active")
     private Boolean isActive; // 활성화 여부
 
     // 낙관적 락 버전 관리 필드
@@ -61,8 +66,9 @@ public class ResourceGroups extends BaseEntity {
 
 
     // 서비스 그룹 수정 함수
-    public void update(String name, String description, String thumbnail, String category, Boolean isAlwaysAvailable, Users updatedBy) {
+    public void update(String name, String groupCode, String description, String thumbnail, String category, Boolean isAlwaysAvailable, Users updatedBy) {
         if (name != null) this.name = name;
+        if (groupCode != null) this.groupCode = groupCode;  // 서비스 그룹 목록 프론트 구조에 맞춘 추가사항
         if (description != null) this.description = description;
         if (thumbnail != null) this.thumbnail = thumbnail;
         if (category != null) this.category = ServiceCategory.valueOf(category);
