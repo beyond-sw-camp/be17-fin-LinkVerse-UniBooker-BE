@@ -12,6 +12,7 @@ import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.common.exception.RefreshTokenException;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.service.CompanyService;
+import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.dto.UserDto;
 import org.example.unibooker.domain.user.service.UserService;
@@ -34,6 +35,7 @@ public class UserController {
 
     private final UserService userService;
     private final AuthService authService;
+    private final NotificationService notificationService;
 
     // ========== 회원가입 ==========
 
@@ -77,6 +79,10 @@ public class UserController {
                 loginResponseWithToken.getRefreshToken(),
                 loginResponseWithToken.getRole()
         ));
+
+        // 로그인 성공 후
+        notificationService.sendLoginNotification(loginResponseWithToken.getUserId());
+
 
         // 4. 클라이언트 응답 생성 (토큰 제외)
         return BaseResponse.success(loginResponseWithToken.toResponse());

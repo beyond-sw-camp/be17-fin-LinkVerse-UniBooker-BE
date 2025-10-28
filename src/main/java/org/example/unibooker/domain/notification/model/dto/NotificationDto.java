@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.unibooker.domain.notification.model.NotificationCategory;
 import org.example.unibooker.domain.notification.model.NotificationStatus;
 
@@ -14,6 +12,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class NotificationDto {
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class notificationReq {
+        private String message;
+//        private String type;
+
+        public static notificationReq fromMessage(String message) {
+            return notificationReq.builder()
+                    .message(message)
+//                    .type("INFO")
+                    .build();
+        }
+    }
+
 
     // ========== 알림 생성 Request (시스템 내부 호출용) ==========
 

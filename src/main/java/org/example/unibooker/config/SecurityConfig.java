@@ -125,6 +125,8 @@ public class SecurityConfig {
                         // ===== 이미지 업로드 관련 경로 =====
                         .requestMatchers("/api/image-upload").authenticated()
 
+                        .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
+
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
                         .anyRequest().authenticated()
