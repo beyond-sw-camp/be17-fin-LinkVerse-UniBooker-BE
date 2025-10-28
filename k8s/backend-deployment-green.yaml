@@ -21,7 +21,7 @@ spec:
         version: green
     spec:
       nodeSelector:
-        kubernetes.io/hostname: k8s-worker5
+        kubernetes.io/hostname: NODE_PLACEHOLDER
       containers:
         - name: backend
           image: linkverseunibooker/backend:latest
