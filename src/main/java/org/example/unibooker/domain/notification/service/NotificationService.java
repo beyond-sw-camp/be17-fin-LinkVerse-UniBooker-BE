@@ -2,6 +2,8 @@ package org.example.unibooker.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.unibooker.domain.notification.model.NotificationType;
+import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 //import org.example.unibooker.domain.notification.controller.NotificationHandler;
@@ -11,6 +13,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -45,6 +48,9 @@ public class NotificationService {
                 "/queue/notifications", // 프론트에서 구독한 경로
                 dto // 메시지 객체 전달
         );
+    }
+
+    public void sendNotificationToUser(NotificationType notificationType, Map<String, String> userName, Users user) {
     }
 
     /**

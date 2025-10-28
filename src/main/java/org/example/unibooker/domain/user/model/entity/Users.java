@@ -1,11 +1,9 @@
 package org.example.unibooker.domain.user.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.unibooker.common.BaseEntity;
+import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.UserStatus;
@@ -17,8 +15,10 @@ import org.hibernate.annotations.Comment;
  */
 @Entity
 @Table(name = "users")
+@Builder
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
+@AllArgsConstructor
 @Comment("사용자")
 public class Users extends BaseEntity {
 
@@ -57,33 +57,13 @@ public class Users extends BaseEntity {
     @Comment("상태")
     private UserStatus status;
 
-    @Column(name = "company_id")
     @Comment("기업 ID")
-    private Long companyId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Companies company;
 
     @Column(nullable = false)
     @Comment("첫 로그인 여부")
     private Boolean isFirstLogin = false;
-
-    /**
-     * User 생성자 (Builder 패턴)
-     */
-    @Builder
-    public Users(Long id, String email, String password, String name, String phone,
-                 String birthDate, Gender gender,
-                 UserRole role, UserStatus status, Long companyId, Boolean isFirstLogin) {
-        super.setId(id);
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.phone = phone;
-        this.birthDate = birthDate;
-        this.gender = gender;
-        this.role = role != null ? role : UserRole.USER;
-        this.status = status != null ? status : UserStatus.ACTIVE;
-        this.companyId = companyId;
-        this.isFirstLogin = isFirstLogin != null ? isFirstLogin : false;
-    }
 
     // ========== 비즈니스 로직 메서드 ==========
 
@@ -127,8 +107,8 @@ public class Users extends BaseEntity {
     /**
      * 기업 ID 변경
      */
-    public void updateCompanyId(Long newCompanyId) {
-        this.companyId = newCompanyId;
+    public void updateCompany(Companies newCompany) {
+        this.company = newCompany;
     }
 
     /**

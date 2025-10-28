@@ -89,7 +89,7 @@ public class AuthService {
         validatePassword(password, user.getPassword());
 
         // 4. 기업 승인 상태 확인
-        Companies company = companyRepository.findById(user.getCompanyId())
+        Companies company = companyRepository.findById(user.getCompany().getId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
         if (company.getStatus() != CompanyStatus.ACTIVE) {
@@ -175,7 +175,7 @@ public class AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole())
-                .companyId(user.getCompanyId())
+                .companyId(user.getCompany().getId())
                 .companySlug(company != null ? company.getCompanySlug() : null)
                 .passwordChangeRequired(user.getIsFirstLogin())
                 .build();

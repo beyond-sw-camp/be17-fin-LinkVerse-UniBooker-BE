@@ -1,5 +1,6 @@
 package org.example.unibooker.domain.user.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.constants.ReservedSlugs;
 import org.example.unibooker.common.exception.BaseException;
@@ -8,6 +9,10 @@ import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.resource.repository.ResourceGroupRepository;
+import org.example.unibooker.domain.notification.model.NotificationType;
+import org.example.unibooker.domain.notification.service.NotificationService;
+import org.example.unibooker.domain.notification.model.NotificationType;
+import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.user.model.*;
 import org.example.unibooker.domain.user.model.dto.AdminDto;
 import org.example.unibooker.domain.user.model.dto.ManagerDto;
@@ -29,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -48,6 +54,7 @@ public class AdminService {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
     private final ResourceGroupRepository resourceGroupRepository;
 
     /**
@@ -59,6 +66,7 @@ public class AdminService {
                         FileUploadUtil fileUploadUtil,
                         EmailService emailService,
                         AuthService authService,
+                        NotificationService notificationService,
                         ResourceGroupRepository resourceGroupRepository,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
 
@@ -66,6 +74,7 @@ public class AdminService {
         this.passwordEncoder = passwordEncoder;
         this.resourceGroupRepository = resourceGroupRepository;
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, fileUploadUtil);
+        this.notificationService = notificationService;
 
         // ✅ 수정: authService와 emailService 순서 변경
         this.approvalService = new Approval(
@@ -151,7 +160,7 @@ public class AdminService {
                 admin.updatePassword(encodedPassword);
                 admin.updateName(request.getName());
                 admin.updatePhone(request.getPhone());
-                admin.updateCompanyId(company.getId()); // 새 Company로 연결
+                admin.updateCompany(company); // 새 Company로 연결
                 admin.deactivate(); // INACTIVE 상태로 설정 (승인 대기)
 
             } else {
@@ -196,7 +205,7 @@ public class AdminService {
 
             Users user = users.get(0);
 
-            Companies company = companyRepository.findById(user.getCompanyId())
+            Companies company = companyRepository.findById(user.getCompany().getId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
             return AdminDto.StatusResponse.builder()
@@ -263,7 +272,7 @@ public class AdminService {
                     .phone(request.getPhone())
                     .role(UserRole.ADMIN)
                     .status(UserStatus.INACTIVE)
-                    .companyId(company.getId())
+                    .company(company)
                     .isFirstLogin(true)
                     .build();
         }
@@ -329,7 +338,7 @@ public class AdminService {
      * 기업 승인/거절 처리 내부 클래스
      */
     @Transactional(readOnly = true)
-    public static class Approval {
+    public class Approval {
 
         private final CompanyRepository companyRepository;
         private final UserRepository userRepository;
@@ -576,7 +585,22 @@ public class AdminService {
 
             // 6. 비밀번호 업데이트 + isFirstLogin 플래그 해제
             user.updatePassword(encodedPassword);
-            user.completeFirstLogin();
+
+            if (user.getIsFirstLogin()) {
+                // 첫 로그인 알림 전송
+                notificationService.sendNotificationToUser(
+                        NotificationType.WELCOME,  // 첫 로그인/가입 환영용 타입
+                        Map.of(
+                                "userName", user.getName(),
+                                "companyName", user.getCompany().getCompanyName()
+                        ),
+                        user
+                );
+
+                // 첫 로그인 플래그 초기화 (DB 반영)
+                user.completeFirstLogin();
+            }
+
 
             // 7. 비밀번호 변경 후 모든 Refresh Token 삭제 (보안 강화) ← 추가
             authService.invalidateAllTokens(userId);
@@ -653,15 +677,15 @@ public class AdminService {
             Users admin = validateAdminAuthority(currentUserId);
 
             // 2. Company 승인 상태 검증
-            Companies company = validateCompanyStatus(admin.getCompanyId());
+            Companies company = validateCompanyStatus(admin.getCompany().getId());
 
             // 3. 이메일 중복 검증 (같은 기업 내)
-            validateEmailDuplicate(request.getEmail(), admin.getCompanyId());
+            validateEmailDuplicate(request.getEmail(), admin.getCompany().getId());
 
             // 4. 같은 기업의 DELETED MANAGER 계정 찾기
             Optional<Users> deletedManager = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
                     request.getEmail(),
-                    admin.getCompanyId(),
+                    admin.getCompany().getId(),
                     UserRole.MANAGER,
                     UserStatus.DELETED
             );
@@ -682,7 +706,7 @@ public class AdminService {
                 userRepository.save(manager);
             } else {
                 // 5-2. 신규 MANAGER 생성
-                manager = createManagerUser(request, company.getId(), temporaryPassword);
+                manager = createManagerUser(request, company, temporaryPassword);
             }
 
             // 6. 이메일 발송
@@ -704,7 +728,7 @@ public class AdminService {
 
             // 3. 같은 기업의 매니저 조회 (DELETED 제외)
             Page<Users> managerPage = userRepository.findByCompanyIdAndRoleAndStatusNot(
-                    admin.getCompanyId(),
+                    admin.getCompany().getId(),
                     UserRole.MANAGER,
                     UserStatus.DELETED,
                     pageable
@@ -850,7 +874,7 @@ public class AdminService {
          * Manager User 엔티티 생성
          * - 즉시 사용 가능하도록 ACTIVE 상태로 생성
          */
-        private Users createManagerUser(ManagerDto.CreateRequest request, Long companyId, String temporaryPassword) {
+        private Users createManagerUser(ManagerDto.CreateRequest request, Companies company, String temporaryPassword) {
             String encodedPassword = passwordEncoder.encode(temporaryPassword);
 
             Users manager = Users.builder()
@@ -860,7 +884,7 @@ public class AdminService {
                     .phone(request.getPhone())
                     .role(UserRole.MANAGER)
                     .status(UserStatus.ACTIVE)
-                    .companyId(companyId)
+                    .company(company)
                     .isFirstLogin(true)
                     .build();
 
@@ -901,7 +925,7 @@ public class AdminService {
             }
 
             // 4. 같은 회사 소속인지 확인
-            if (!manager.getCompanyId().equals(admin.getCompanyId())) {
+            if (!manager.getCompany().getId().equals(admin.getCompany().getId())) {
                 throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
             }
 
@@ -939,7 +963,7 @@ public class AdminService {
             }
 
             // 4. 같은 회사 소속인지 확인
-            if (!manager.getCompanyId().equals(admin.getCompanyId())) {
+            if (!manager.getCompany().getId().equals(admin.getCompany().getId())) {
                 throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
             }
 
@@ -996,8 +1020,8 @@ public class AdminService {
          */
         private AdminDto.AdminListResponse.AdminInfo convertToAdminInfo(Users admin) {
             Companies company = null;
-            if (admin.getCompanyId() != null) {
-                company = companyRepository.findById(admin.getCompanyId()).orElse(null);
+            if (admin.getCompany().getId() != null) {
+                company = companyRepository.findById(admin.getCompany().getId()).orElse(null);
             }
 
             return AdminDto.AdminListResponse.AdminInfo.builder()
@@ -1007,7 +1031,7 @@ public class AdminService {
                     .phone(admin.getPhone())
                     .role(admin.getRole())
                     .status(admin.getStatus())
-                    .companyId(admin.getCompanyId())
+                    .companyId(admin.getCompany().getId())
                     .companyName(company != null ? company.getCompanyName() : null)
                     .companySlug(company != null ? company.getCompanySlug() : null)
                     .createdAt(admin.getCreatedAt())

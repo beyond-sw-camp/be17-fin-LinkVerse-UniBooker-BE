@@ -262,7 +262,7 @@ public class AuthDto {
                     user.getGender(),
                     user.getRole(),
                     user.getStatus(),
-                    user.getCompanyId(),
+                    user.getCompany().getId(),
                     user.getIsFirstLogin()
             );
         }
@@ -331,7 +331,7 @@ public class AuthDto {
          * Users 엔티티 → AuthManager 변환
          */
         public static AuthManager from(Users user) {
-            if (user.getCompanyId() == null) {
+            if (user.getCompany().getId() == null) {
                 throw new IllegalStateException("매니저는 반드시 기업에 소속되어야 합니다.");
             }
 
@@ -348,7 +348,7 @@ public class AuthDto {
                     user.getGender(),
                     user.getRole(),
                     user.getStatus(),
-                    user.getCompanyId(),
+                    user.getCompany().getId(),
                     user.getIsFirstLogin()
             );
         }
@@ -472,7 +472,7 @@ public class AuthDto {
                     user.getGender(),
                     user.getRole(),
                     user.getStatus(),
-                    user.getCompanyId(),
+                    user.getCompany().getId(),
                     user.getIsFirstLogin()
             );
         }
