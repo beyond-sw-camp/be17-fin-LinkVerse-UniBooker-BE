@@ -13,7 +13,9 @@ import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.company.service.CompanyService;
+import org.example.unibooker.domain.user.model.dto.SuperDto;
 import org.example.unibooker.domain.user.service.AdminService;
+import org.example.unibooker.domain.user.service.SuperService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,7 @@ public class CompanyController {
     private final AdminService adminService;
     private final CompanyRepository companyRepository;
     private final CompanyService companyService;
+    private final SuperService superService;
 
     @Operation(summary = "Company Slug 중복 확인",
             description = "회원가입 시 사용할 Company Slug의 사용 가능 여부를 확인합니다.")
@@ -144,6 +147,20 @@ public class CompanyController {
         CompanyDto.StatusUpdateResponse response =
                 companyService.updateCompanyStatus(companyId, request.getStatus());
 
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 특정 기업의 관리자 목록 조회
+     */
+    @Operation(summary = "기업 관리자 목록 조회",
+            description = "특정 기업의 관리자(ADMIN, MANAGER) 목록을 조회합니다. (SUPER 권한 필요)")
+    @PreAuthorize("hasRole('SUPER')")
+    @GetMapping("/{companyId}/managers")
+    public BaseResponse<SuperDto.CompanyManagerListResponse> getCompanyManagers(
+            @PathVariable Long companyId) {
+
+        SuperDto.CompanyManagerListResponse response = superService.getCompanyManagers(companyId);
         return BaseResponse.success(response);
     }
 }

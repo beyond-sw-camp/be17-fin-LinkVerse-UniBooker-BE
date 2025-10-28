@@ -72,6 +72,11 @@ public class CompanyDto {
         private String email;
         private String phone;
         private UserStatus userStatus;
+
+        // ===== 플랫폼 이용 현황 =====
+        private Long serviceGroupCount;  // 서비스 그룹 수
+        private Long userCount;           // 고객(일반 사용자) 수
+        private LocalDateTime lastLoginAt; // 최근 로그인 일시
     }
 
     // ========== 승인/거절 Response ==========
