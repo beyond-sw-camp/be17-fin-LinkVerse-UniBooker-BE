@@ -78,4 +78,22 @@ public class SuperController {
 
         return BaseResponse.success(logoutResponse);
     }
+
+    // ========== 관리자 관리 ==========
+
+    /**
+     * 관리자 상태 변경 (ACTIVE ↔ SUSPENDED)
+     */
+    @Operation(summary = "관리자 상태 변경",
+            description = "관리자(ADMIN, MANAGER)의 상태를 변경합니다. (SUPER 권한 필요)")
+    @PatchMapping("/managers/{userId}/status")
+    public BaseResponse<SuperDto.ManagerStatusUpdateResponse> updateManagerStatus(
+            @PathVariable Long userId,
+            @RequestBody @Valid SuperDto.ManagerStatusUpdateRequest request) {
+
+        SuperDto.ManagerStatusUpdateResponse response =
+                superService.updateManagerStatus(userId, request.getStatus());
+
+        return BaseResponse.success(response);
+    }
 }

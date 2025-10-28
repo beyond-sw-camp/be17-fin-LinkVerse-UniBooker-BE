@@ -4,6 +4,7 @@ import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,4 +29,10 @@ public interface ResourceGroupRepository extends JpaRepository<ResourceGroups, L
     @Modifying
     @Query("UPDATE ResourceGroups rg SET rg.viewCount = rg.viewCount + 1 WHERE rg.id = :groupId")
     void incrementViewCount(Long groupId);
+
+    /**
+     * 특정 기업의 리소스 그룹 수 조회 (삭제되지 않은 것만)
+     */
+    @Query("SELECT COUNT(rg) FROM ResourceGroups rg WHERE rg.company.id = :companyId AND rg.deletedAt IS NULL")
+    Long countByCompanyId(@Param("companyId") Long companyId);
 }
