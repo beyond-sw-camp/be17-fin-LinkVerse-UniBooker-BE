@@ -1,6 +1,7 @@
 package org.example.unibooker.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.unibooker.utils.JwtHandshakeHandler;
 import org.example.unibooker.utils.JwtHandshakeInterceptor;
 import org.example.unibooker.utils.JwtUtil;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*") // CORS 허용
                 .addInterceptors(new HttpSessionHandshakeInterceptor(), new JwtHandshakeInterceptor(jwtUtil))
+                .setHandshakeHandler(new JwtHandshakeHandler())
                 .withSockJS(); // SockJS fallback
     }
 
@@ -46,7 +48,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/pub");
 
         // 서버 → 클라이언트
-        registry.enableSimpleBroker("/sub", "/queue", "/topic", "/user");
+        registry.enableSimpleBroker("/sub", "/queue", "/topic");
         registry.setUserDestinationPrefix("/user"); // 특정 유저에게 전송
+
+
+//         /sub/** → 일반 브로드캐스트용 토픽. 누구든 구독하면 다 받는 토픽(ex. 사이트 전체 공지)
+//         /topic/** → 주로 다중 사용자 브로드캐스트용. 채팅방처럼 방 단위로 다수에게 보내는 용도(ex. 채팅방 알림)
+//         /queue/** → 주로 1:1 큐용. 경로 정확히 맞춰야 메시지 수신(convertAndSend("/queue/notifications/5", msg))
+//         /user/** → convertAndSendToUser() 사용 시 1:1 사용자 전용. 서버가 userId ↔ 세션 자동 매핑, 브라우저 경로 고정 (convertAndSendToUser("5", "/queue/notifications", msg))
     }
 }

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.example.unibooker.domain.notification.model.NotificationCategory;
+import org.example.unibooker.domain.notification.model.NotificationType;
 import org.example.unibooker.domain.notification.model.NotificationStatus;
 
 import java.time.LocalDateTime;
@@ -50,7 +50,7 @@ public class NotificationDto {
         @Schema(description = "알림 카테고리 (category)",
                 example = "RESERVATION_CONFIRMED",
                 required = true)
-        private NotificationCategory category;
+        private NotificationType category;
 
         @NotBlank(message = "알림 메시지는 필수입니다")
         @Size(max = 500, message = "알림 메시지는 500자를 초과할 수 없습니다")
@@ -60,7 +60,7 @@ public class NotificationDto {
         private String message;
 
         @Builder
-        public CreateRequest(Long userId, NotificationCategory category, String message) {
+        public CreateRequest(Long userId, NotificationType category, String message) {
             this.userId = userId;
             this.category = category;
             this.message = message;
@@ -81,7 +81,7 @@ public class NotificationDto {
         private Long notificationId;
 
         @Schema(description = "알림 카테고리 (category)", example = "RESERVATION_CONFIRMED")
-        private NotificationCategory category;
+        private NotificationType category;
 
         @Schema(description = "알림 카테고리 한글명", example = "예약 확정")
         private String categoryName;
@@ -122,7 +122,7 @@ public class NotificationDto {
         private Long userId;
 
         @Schema(description = "알림 카테고리 (category)", example = "RESERVATION_CONFIRMED")
-        private NotificationCategory category;
+        private NotificationType category;
 
         @Schema(description = "알림 카테고리 한글명", example = "예약 확정")
         private String categoryName;

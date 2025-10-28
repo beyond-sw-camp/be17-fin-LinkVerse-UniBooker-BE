@@ -38,10 +38,10 @@ public class TimeSlotDto {
         @Schema(description = "예외 날짜", example = "2025.10.25")
         private LocalDate date;
 
-        @Schema(description = "시작 시간", example = "00:00")
+        @Schema(description = "시작 시간", example = "00:00", nullable = true)
         private LocalTime startTime; // 휴무이면 null 가능
 
-        @Schema(description = "종료 시간", example = "12:00")
+        @Schema(description = "종료 시간", example = "12:00", nullable = true)
         private LocalTime endTime;   // 휴무이면 null 가능
 
         @Schema(description = "휴무 여부", example = "false")

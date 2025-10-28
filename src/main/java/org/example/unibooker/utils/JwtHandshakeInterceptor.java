@@ -7,9 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -17,6 +20,7 @@ import java.util.Map;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtUtil jwtUtil;
+
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
@@ -31,6 +35,15 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             if (jwt != null && jwtUtil.validateToken(jwt)) {
                 Long userId = jwtUtil.getUserId(jwt);
                 attributes.put("userId", userId);
+
+                // ✅ Principal 등록
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                        userId, // principal
+                        null,
+                        List.of() // 권한 없으면 빈 리스트
+                );
+                attributes.put("SPRING_SECURITY_CONTEXT", auth);
+
                 log.info("✅ WebSocket 인증 성공 - userId={}", userId);
                 return true;
             } else {
@@ -51,8 +64,12 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private String extractTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
+
         for (Cookie cookie : request.getCookies()) {
-            if ("accessToken".equals(cookie.getName())) {
+            String name = cookie.getName();
+
+            // accessToken으로 끝나는 모든 쿠키 허용
+            if (name.endsWith("AccessToken")) {
                 return cookie.getValue();
             }
         }
