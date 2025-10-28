@@ -111,10 +111,12 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // ===== 슈퍼 관리자 전용 경로 (인증 필요) =====
-                        .requestMatchers("/api/companies/pending").hasRole("SUPER")
-                        .requestMatchers("/api/companies/{companyId}").hasRole("SUPER")
-                        .requestMatchers("/api/companies/{companyId}/approve").hasRole("SUPER")
-                        .requestMatchers("/api/companies/{companyId}/reject").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.GET, "/api/companies").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.GET, "/api/companies/pending").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.GET, "/api/companies/{companyId}").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.POST, "/api/companies/{companyId}/approve").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.POST, "/api/companies/{companyId}/reject").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/companies/{companyId}/status").hasRole("SUPER")
 
                         // ===== 리소스 관련 경로 =====
                         .requestMatchers("/api/resource-group/**").authenticated()

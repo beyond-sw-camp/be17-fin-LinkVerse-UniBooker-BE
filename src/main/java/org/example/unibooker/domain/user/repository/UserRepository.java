@@ -186,4 +186,15 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     int countAllByRoleAndCreatedAtBefore(UserRole role, LocalDateTime before);
     // 활성 상태인 특정 Role의 계정 수 조회
     int countAllByRoleAndStatus(UserRole userRole, UserStatus status);
+
+    /**
+     * 기업 ID와 여러 권한으로 사용자 목록 조회
+     * - 기업 정지 시 소속 ADMIN/MANAGER 일괄 정지용
+     */
+    List<Users> findByCompanyIdAndRoleIn(Long companyId, List<UserRole> roles);
+
+    /**
+     * 기업 ID와 권한으로 사용자 수 조회
+     */
+    long countByCompanyIdAndRole(Long companyId, UserRole role);
 }

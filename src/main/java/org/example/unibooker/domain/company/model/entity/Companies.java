@@ -59,12 +59,29 @@ public class Companies extends BaseEntity {
         this.status = status != null ? status : CompanyStatus.PENDING;
     }
 
-    // 비즈니스 로직 메서드
+    /**
+     * 기업 승인 처리
+     * - 상태를 ACTIVE로 변경
+     */
     public void approve(Long approvedBy) {
-        this.status = CompanyStatus.APPROVED;
+        this.status = CompanyStatus.ACTIVE;
         this.approvedAt = LocalDateTime.now();
         this.approvedBy = approvedBy;
         this.rejectionReason = null;
+    }
+
+    /**
+     * 기업 서비스 정지
+     */
+    public void suspend() {
+        this.status = CompanyStatus.SUSPENDED;
+    }
+
+    /**
+     * 기업 서비스 재개
+     */
+    public void activate() {
+        this.status = CompanyStatus.ACTIVE;
     }
 
     public void reject(String rejectionReason) {
@@ -88,10 +105,23 @@ public class Companies extends BaseEntity {
         return this.status == CompanyStatus.PENDING;
     }
 
+    /**
+     * 승인(활성) 상태 확인
+     */
     public boolean isApproved() {
-        return this.status == CompanyStatus.APPROVED;
+        return this.status == CompanyStatus.ACTIVE;
     }
 
+    /**
+     * 정지 상태 확인
+     */
+    public boolean isSuspended() {
+        return this.status == CompanyStatus.SUSPENDED;
+    }
+
+    /**
+     * 거절 상태 확인
+     */
     public boolean isRejected() {
         return this.status == CompanyStatus.REJECTED;
     }

@@ -9,6 +9,7 @@ import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.user.model.UserStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class CompanyDto {
 
@@ -108,5 +109,112 @@ public class CompanyDto {
 
         @Schema(description = "로고 URL", example = "https://example.com/logo.png")
         private String logoUrl;
+    }
+
+    // ========== 기업 목록 조회 Response (신규) ==========
+
+    /**
+     * 기업 목록 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "기업 목록 응답")
+    public static class CompanyListResponse {
+        @Schema(description = "기업 목록")
+        private List<CompanyInfo> companies;
+
+        @Schema(description = "전체 개수")
+        private long totalElements;
+
+        @Schema(description = "전체 페이지 수")
+        private int totalPages;
+
+        @Schema(description = "현재 페이지")
+        private int currentPage;
+
+        @Schema(description = "페이지 크기")
+        private int pageSize;
+    }
+
+    /**
+     * 기업 기본 정보 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "기업 기본 정보")
+    public static class CompanyInfo {
+        @Schema(description = "기업 ID")
+        private Long companyId;
+
+        @Schema(description = "기업명")
+        private String companyName;
+
+        @Schema(description = "Company Slug")
+        private String companySlug;
+
+        @Schema(description = "로고 URL")
+        private String logoUrl;
+
+        @Schema(description = "상태")
+        private CompanyStatus status;
+
+        @Schema(description = "관리자 이름")
+        private String adminName;
+
+        @Schema(description = "관리자 이메일")
+        private String adminEmail;
+
+        @Schema(description = "매니저 수")
+        private long managerCount;
+
+        @Schema(description = "일반 사용자 수")
+        private long userCount;
+
+        @Schema(description = "생성일")
+        private LocalDateTime createdAt;
+
+        @Schema(description = "승인일")
+        private LocalDateTime approvedAt;
+    }
+
+    // ========== 기업 상태 변경 Request (신규) ==========
+
+    /**
+     * 기업 상태 변경 요청 DTO
+     */
+    @Getter
+    @NoArgsConstructor
+    @Schema(description = "기업 상태 변경 요청")
+    public static class StatusUpdateRequest {
+        @Schema(description = "변경할 상태 (ACTIVE or SUSPENDED만 허용)")
+        private CompanyStatus status;
+    }
+
+    // ========== 기업 상태 변경 Response (신규) ==========
+
+    /**
+     * 기업 상태 변경 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "기업 상태 변경 응답")
+    public static class StatusUpdateResponse {
+        @Schema(description = "메시지")
+        private String message;
+
+        @Schema(description = "기업 ID")
+        private Long companyId;
+
+        @Schema(description = "기업명")
+        private String companyName;
+
+        @Schema(description = "이전 상태")
+        private CompanyStatus oldStatus;
+
+        @Schema(description = "새로운 상태")
+        private CompanyStatus newStatus;
+
+        @Schema(description = "변경 일시")
+        private LocalDateTime updatedAt;
     }
 }
