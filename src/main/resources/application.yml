@@ -32,7 +32,7 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
 
   # =================================================================
-  # 이메일 설정 (Gmail SMTP)
+  # 이메일 설정 (Gmail SMTP) - 여기로 이동!
   # =================================================================
   mail:
     host: smtp.gmail.com
@@ -56,10 +56,10 @@ spring:
     suffix: .html
     mode: HTML
     encoding: UTF-8
-    cache: false
+    cache: false  # 개발: false, 프로덕션: true
 
   # =================================================================
-  # AWS 클라우드 설정 (S3) - (여기로 모두 병합)
+  # AWS 클라우드 설정 (S3)
   # =================================================================
   cloud:
     aws:
@@ -70,7 +70,6 @@ spring:
         bucket: ${MY_BUCKET}
       region:
         static: ${AWS_REGION}
-# ===== (주의: 중복되었던 cloud: 블록은 삭제됨) =====
 
 # =================================================================
 # 파일 업로드 설정
@@ -82,12 +81,25 @@ file:
     max-size: 5242880
 
 # =================================================================
+# AWS 클라우드 설정 (S3)
+# =================================================================
+cloud:
+  aws:
+    credentials:
+      access-key: ${S3_ACCESS_KEY}
+      secret-key: ${S3_SECRET_KEY}
+    s3:
+      bucket: ${MY_BUCKET}
+    region:
+      static: ${AWS_REGION}
+
+# =================================================================
 # JWT 토큰 설정
 # =================================================================
 jwt:
   secret: ${JWT_SECRET}
-  access-token-validity: 86400000       # 1일
-  refresh-token-validity: 604800000   # 7일
+  access-token-validity: 86400000       # 1일 (24 * 60 * 60 * 1000)
+  refresh-token-validity: 604800000   # 7일 (7 * 24 * 60 * 60 * 1000)
 
 # =================================================================
 # 앱 설정
@@ -98,9 +110,9 @@ app:
     login-url: https://unibooker.com/login
 
   account-cleanup:
-    enabled: true
-    inactive-minutes: 4320
-    cron: "0 0 2  * * *"
+    enabled: true                    # 자동 삭제 기능 활성화 여부
+    inactive-minutes: 4320               # 미활성 기준 시간 (72시간 = 3일)
+    cron: "0 0 2  * * *"             # 매일 새벽 2시 실행
 
 # =================================================================
 # 서버 설정
@@ -110,7 +122,7 @@ server:
     session:
       cookie:
         same-site: strict
-        secure: false
+        secure: false  # 개발: false, 운영: true (HTTPS 필수)
         http-only: true
 
 # =================================================================
@@ -122,4 +134,4 @@ server:
 #       host: localhost
 #       port: 6379
 #       password: ${REDIS_PASSWORD}
-#       database: 0
+#       database: 0  # Refresh Token용
