@@ -26,7 +26,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",
                         "http://localhost:5173",  // ← 이 줄 추가!
-                        "http://localhost:8080"
+                        "http://localhost:8080",
+                        "https://unibooker.local:31211",
+                        "https://unibooker.local"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
