@@ -83,6 +83,9 @@ public class AdminDto {
                 example = "010-1234-5678", required = true)
         private String phone;
 
+        @Schema(description = "기업 로고 이미지")
+        private String logoUrl;
+
         // 관리자도 생년월일, 성별 필요 시 추가
 //        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$",
 //                message = "생년월일 형식이 올바르지 않습니다 (YYYY-MM-DD)")

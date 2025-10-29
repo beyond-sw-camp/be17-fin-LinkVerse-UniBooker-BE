@@ -54,10 +54,9 @@ public class AdminController {
             description = "기업 관리자 회원가입을 신청합니다. 슈퍼 관리자의 승인이 필요합니다.")
     @PostMapping("/signup")
     public BaseResponse<AdminDto.SignUpResponse> adminSignUp(
-            @RequestPart("data") @Valid AdminDto.SignUpRequest request,
-            @RequestPart(value = "logoFile", required = false) MultipartFile logoFile) {
+            @RequestPart("data") @Valid AdminDto.SignUpRequest request) {
 
-        AdminDto.SignUpResponse response = adminService.signUpAdmin(request, logoFile);
+        AdminDto.SignUpResponse response = adminService.signUpAdmin(request);
         return BaseResponse.success(response);
     }
 

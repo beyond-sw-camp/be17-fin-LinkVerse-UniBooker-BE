@@ -127,7 +127,7 @@ public class AdminService {
          * - 탈퇴 계정 재가입 허용
          */
         @Transactional
-        public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
+        public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request) {
             // 1. 사업자등록번호, Slug 중복 검증
             validateDuplicateBusinessNumber(request.getBusinessNumber());
             validateCompanySlug(request.getCompanySlug());
@@ -150,7 +150,7 @@ public class AdminService {
                 admin.restore(); // DELETED → INACTIVE 변경
 
                 // 2-2. 신규 Company 생성
-                company = createCompany(request, logoFile);
+                company = createCompany(request);
                 company = companyRepository.save(company);
 
                 // 2-3. 임시 비밀번호 생성 및 정보 업데이트
@@ -168,7 +168,7 @@ public class AdminService {
                 validateDuplicateEmail(request.getEmail());
 
                 // 2-5. 신규 Company 및 Admin 생성
-                company = createCompany(request, logoFile);
+                company = createCompany(request);
                 company = companyRepository.save(company);
 
                 String temporaryPassword = generateTemporaryPassword();
@@ -251,17 +251,13 @@ public class AdminService {
         /**
          * Company 엔티티 생성
          */
-        private Companies createCompany(AdminDto.SignUpRequest request, MultipartFile logoFile) {
-            String logoUrl = null;
-            if (logoFile != null && !logoFile.isEmpty()) {
-                logoUrl = fileUploadUtil.uploadCompanyLogo(logoFile);
-            }
+        private Companies createCompany(AdminDto.SignUpRequest request) {
 
             return Companies.builder()
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
-                    .logoUrl(logoUrl)
+                    .logoUrl(request.getLogoUrl())
                     .status(CompanyStatus.PENDING)
                     .build();
         }
@@ -1073,8 +1069,8 @@ public class AdminService {
 
     // ========== 퍼블릭 메서드 (컨트롤러에서 호출) ==========
 
-    public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request, MultipartFile logoFile) {
-        return signUpService.signUpAdmin(request, logoFile);
+    public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request) {
+        return signUpService.signUpAdmin(request);
     }
 
     public AdminDto.StatusResponse checkSignUpStatus(String email) {
