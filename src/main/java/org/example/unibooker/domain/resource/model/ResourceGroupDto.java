@@ -126,6 +126,9 @@ public class ResourceGroupDto {
         @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
         private String thumbnail;
 
+        @Schema(description = "서비스 그룹의 카테고리", example = "RESERVATION/SEAT/EVENT")
+        private String serviceCategory;
+
         public static ResourceGroupDetailRes fromEntity(ResourceGroups entity) {
             int activeServiceCount = (int) entity.getResources().stream()
                     .filter(Resources::getIsActive)
@@ -141,6 +144,7 @@ public class ResourceGroupDto {
                     .serviceCount(entity.getResources().size())
                     .activeServiceCount(activeServiceCount)
                     .isActive(entity.getIsActive())
+                    .serviceCategory(entity.getCategory().name())
                     .build();
         }
     }
