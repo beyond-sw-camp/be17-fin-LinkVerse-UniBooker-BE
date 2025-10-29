@@ -203,12 +203,16 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     /**
      * 특정 기업의 일반 사용자(USER) 수 조회
      */
-    @Query("SELECT COUNT(u) FROM Users u WHERE u.companyId = :companyId AND u.role = 'USER'")
+    @Query("SELECT COUNT(u) FROM Users u WHERE u.company.id = :companyId AND u.role = 'USER'")
     Long countUsersByCompanyId(@Param("companyId") Long companyId);
 
     /**
      * 특정 기업의 최근 로그인 일시 조회
      */
-    @Query("SELECT MAX(u.updatedAt) FROM Users u WHERE u.companyId = :companyId AND u.role = 'USER'")
+    @Query("SELECT MAX(u.updatedAt) FROM Users u WHERE u.company.id = :companyId AND u.role = 'USER'")
     LocalDateTime findLastLoginByCompanyId(@Param("companyId") Long companyId);
+
+    @Query("SELECT u FROM Users u LEFT JOIN FETCH u.company WHERE u.id = :userId")
+    Optional<Users> findByIdWithCompany(@Param("userId") Long userId);
+
 }

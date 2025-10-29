@@ -77,7 +77,7 @@ public class InactiveAccountCleanupScheduler {
                 log.info("- {} (Role: {}, Company ID: {}, Created: {})",
                         account.getEmail(),
                         account.getRole(),
-                        account.getCompanyId(),
+                        account.getCompany().getId(),
                         account.getCreatedAt());
 
                 // 감사 추적용 상세 로그
@@ -85,7 +85,7 @@ public class InactiveAccountCleanupScheduler {
                         account.getId(),
                         account.getEmail(),
                         account.getRole(),
-                        account.getCompanyId(),
+                        account.getCompany().getId(),
                         account.getName(),
                         account.getCreatedAt());
 

@@ -85,7 +85,7 @@ public class UserService {
                     .phone(request.getPhone())
                     .birthDate(request.getBirthDate())
                     .gender(request.getGender())
-                    .companyId(request.getCompanyId())
+                    .company(company)
                     .role(UserRole.USER)
                     .status(UserStatus.ACTIVE)
                     .build();
@@ -97,7 +97,7 @@ public class UserService {
                 .id(savedUser.getId())
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
-                .companyId(savedUser.getCompanyId())
+                .companyId(savedUser.getCompany().getId())
                 .role(savedUser.getRole())
                 .status(savedUser.getStatus())
                 .createdAt(savedUser.getCreatedAt())
@@ -152,8 +152,8 @@ public class UserService {
                 .map(user -> {
                     // 기업 정보 조회
                     String companyName = null;
-                    if (user.getCompanyId() != null) {
-                        Companies company = companyRepository.findById(user.getCompanyId())
+                    if (user.getCompany().getId() != null) {
+                        Companies company = companyRepository.findById(user.getCompany().getId())
                                 .orElse(null);
                         if (company != null) {
                             companyName = company.getCompanyName();
@@ -164,7 +164,7 @@ public class UserService {
                             .userId(user.getId())
                             .email(user.getEmail())
                             .name(user.getName())
-                            .companyId(user.getCompanyId())
+                            .companyId(user.getCompany().getId())
                             .companyName(companyName)
                             .role(user.getRole())
                             .status(user.getStatus())
@@ -198,8 +198,8 @@ public class UserService {
 
         // 2. 기업 정보 조회
         Companies company = null;
-        if (user.getCompanyId() != null) {
-            company = companyRepository.findById(user.getCompanyId())
+        if (user.getCompany().getId() != null) {
+            company = companyRepository.findById(user.getCompany().getId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
         }
 
@@ -295,8 +295,8 @@ public class UserService {
         String businessNumber = null;
         String logoUrl = null;  // ← 추가
 
-        if (user.getCompanyId() != null) {
-            Companies company = companyRepository.findById(user.getCompanyId())
+        if (user.getCompany().getId() != null) {
+            Companies company = companyRepository.findById(user.getCompany().getId())
                     .orElse(null);
             if (company != null) {
                 companyName = company.getCompanyName();
@@ -315,7 +315,7 @@ public class UserService {
                 .gender(user.getGender())
                 .role(user.getRole())
                 .status(user.getStatus())
-                .companyId(user.getCompanyId())
+                .companyId(user.getCompany().getId())
                 .companyName(companyName)
                 .businessNumber(businessNumber)
                 .logoUrl(logoUrl)  // ← 추가

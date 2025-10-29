@@ -1,6 +1,8 @@
 package org.example.unibooker.domain.reservation.repository;
 
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
+import org.example.unibooker.domain.resource.model.Resources;
+import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -68,4 +70,5 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
             "GROUP BY DATE(r.startDate), rg.name " +
             "ORDER BY DATE(r.startDate) ASC")
     List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
+
 }

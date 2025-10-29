@@ -8,52 +8,29 @@ import lombok.Getter;
  * - targetRole로 권한별 알림 구분
  */
 @Getter
-public enum NotificationCategory {
+public enum NotificationType {
 
     // ========== 예약 관련 (Reservation) ==========
 
     RESERVATION_CONFIRMED(
-            "예약 확정",
+            "[%s] 예약 확정",
             "Reservation Confirmed",
             "USER",
             "예약이 정상적으로 확정되었습니다."
     ),
 
     RESERVATION_CANCELLED(
-            "예약 취소",
+            "[%s] 예약 취소",
             "Reservation Cancelled",
             "USER",
             "예약이 취소되었습니다."
     ),
 
     RESERVATION_REMINDER(
-            "예약 알림",
+            "[%s] 예약 알림",
             "Reservation Reminder",
             "USER",
-            "예약 시간이 곧 도래합니다."
-    ),
-
-    // ========== 대기열 관련 (Waitlist) ==========
-
-    WAITLIST_REGISTERED(
-            "대기열 등록",
-            "Waitlist Registered",
-            "USER",
-            "대기열에 등록되었습니다."
-    ),
-
-    WAITLIST_PROMOTED(
-            "대기열 승격",
-            "Waitlist Promoted",
-            "USER",
-            "대기열에서 승격되어 예약이 가능합니다."
-    ),
-
-    WAITLIST_EXPIRED(
-            "대기열 만료",
-            "Waitlist Expired",
-            "USER",
-            "대기 시간이 만료되었습니다."
+            "예약하신 %s 일정이 곧 시작됩니다."
     ),
 
     // ========== 사용자 관련 (User) ==========
@@ -62,7 +39,7 @@ public enum NotificationCategory {
             "가입 환영",
             "Welcome",
             "USER",
-            "UniBooker에 가입하신 것을 환영합니다."
+            "%s에 가입하신 것을 환영합니다."
     ),
 
     PASSWORD_CHANGED(
@@ -89,40 +66,26 @@ public enum NotificationCategory {
     // ========== 기업 관리 (Company - ADMIN용) ==========
 
     COMPANY_APPROVED(
-            "기업 승인",
+            "[%s] 가입 승인 완료",
             "Company Approved",
             "ADMIN",
-            "기업 가입이 승인되었습니다."
-    ),
-
-    COMPANY_REJECTED(
-            "기업 거절",
-            "Company Rejected",
-            "ADMIN",
-            "기업 가입이 거절되었습니다."
+            "%s 가입 신청이 승인되었습니다. 서비스 이용을 환영합니다!"
     ),
 
     MANAGER_CREATED(
-            "매니저 생성",
+            "매니저 계정 생성",
             "Manager Created",
-            "ADMIN",
-            "새로운 매니저 계정이 생성되었습니다."
+            "MANAGER",
+            "매니저 계정이 등록되어 관리 기능을 사용할 수 있습니다."
     ),
 
     // ========== 리소스 관리 (Resource - ADMIN용) ==========
 
-    RESOURCE_LOW_STOCK(
-            "리소스 부족",
-            "Resource Low Stock",
-            "ADMIN",
-            "리소스 잔여량이 부족합니다."
-    ),
-
     RESOURCE_FULLY_BOOKED(
-            "리소스 만석",
+            "[%s] 예약 마감 안내",
             "Resource Fully Booked",
             "ADMIN",
-            "리소스가 완전히 예약되었습니다."
+            "서비스 %s 예약이 마감되었습니다."
     ),
 
     DAILY_REPORT(
@@ -148,13 +111,6 @@ public enum NotificationCategory {
             "시스템에 이상이 감지되었습니다."
     ),
 
-    MONTHLY_STATISTICS(
-            "월간 통계",
-            "Monthly Statistics",
-            "SUPER",
-            "월간 플랫폼 이용 통계입니다."
-    ),
-
     // ========== 공통 알림 ==========
 
     SYSTEM_NOTICE(
@@ -171,27 +127,39 @@ public enum NotificationCategory {
             "시스템 점검이 예정되어 있습니다."
     );
 
-    private final String koreanName;
-    private final String englishName;
+    private final String title;
+    private final String englishTitle;
     private final String targetRole;
-    private final String defaultMessage;
+    private final String message;
 
-    NotificationCategory(String koreanName, String englishName,
-                         String targetRole, String defaultMessage) {
-        this.koreanName = koreanName;
-        this.englishName = englishName;
+    NotificationType(String title, String englishTitle,
+                     String targetRole, String message) {
+        this.title = title;
+        this.englishTitle = englishTitle;
         this.targetRole = targetRole;
-        this.defaultMessage = defaultMessage;
+        this.message = message;
     }
+
+    // 제목, 메시지에 %s 채워주는 함수
+    public String formatTitle(Object... args) {
+        return String.format(title, args);
+    }
+
+    public String formatMessage(Object... args) {
+        return String.format(message, args);
+    }
+
+    // 사용예시
+    // NotificationType.RESERVATION_REMINDER.formatTitle("회의실 A");
 
     /**
      * 언어에 따른 카테고리명 반환
      */
     public String getLocalizedName(String language) {
         if ("ko".equalsIgnoreCase(language) || "kr".equalsIgnoreCase(language)) {
-            return koreanName;
+            return title;
         }
-        return englishName;
+        return englishTitle;
     }
 
     /**

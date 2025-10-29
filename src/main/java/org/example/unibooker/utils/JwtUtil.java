@@ -41,8 +41,8 @@ public class JwtUtil {
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole().name());
 
-        if (user.getCompanyId() != null) {
-            claims.put("companyId", user.getCompanyId());
+        if (user.getCompany() != null && user.getCompany().getId() != null) {
+            claims.put("companyId", user.getCompany().getId());
         }
 
         return createToken(claims, user.getEmail(), accessTokenValidityTime);
