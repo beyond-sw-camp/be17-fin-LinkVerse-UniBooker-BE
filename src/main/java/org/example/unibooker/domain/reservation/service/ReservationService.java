@@ -17,6 +17,7 @@ import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,10 +91,17 @@ public class ReservationService {
      * 특정 리소스의 예약 목록 조회
      */
 
-    public ReservationDto.ResponseList getResourceReservations(Long resourceId) {
+    public ReservationDto.ResponseList getResourceReservations(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
         Resources resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
-        List<Reservations> result = reservationRepository.findAllByResourcesId(resourceId);
+
+        List<Reservations> result;
+
+        if (startDate != null && endDate != null) {
+            result = reservationRepository.findAllByResourcesIdAndStartDateBetween(resourceId, startDate, endDate);
+        } else {
+            result = reservationRepository.findAllByResourcesId(resourceId);
+        }
 
         return ReservationDto.ResponseList.from(result, resource.getResourceGroup().getCategory());
 
