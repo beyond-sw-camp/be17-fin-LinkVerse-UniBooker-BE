@@ -153,7 +153,9 @@ public class SecurityConfig {
         // 허용할 Origin (프론트엔드 URL)
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "https://unibooker.local",
+                "https://unibooker.local:31211"
         ));
 
         // 허용할 HTTP 메서드
