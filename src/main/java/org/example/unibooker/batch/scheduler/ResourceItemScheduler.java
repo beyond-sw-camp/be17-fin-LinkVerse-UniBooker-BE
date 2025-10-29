@@ -20,8 +20,7 @@ public class ResourceItemScheduler {
     private final Job resourceStatusJob;
 
     // 매일 00:00:00 실행
-//    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "0 */1 * * * *") // ✅ 매 1분마다 실행
+    @Scheduled(cron = "0 0 0 * * *")
     public void runResourceStatusJob() {
         try {
             log.info("🦞 [배치 시작] 리소스 상태 업데이트 배치 실행 중...");
