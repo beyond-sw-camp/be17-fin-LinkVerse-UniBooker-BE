@@ -70,4 +70,16 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    /**
+     * 기업 검색 (PENDING 제외 + 키워드 + 페이징)
+     * - 기업관리 목록용: ACTIVE, SUSPENDED만 조회
+     */
+    @Query("SELECT c FROM Companies c WHERE " +
+            "c.status IN ('ACTIVE', 'SUSPENDED') AND " +
+            "(:keyword IS NULL OR c.companyName LIKE %:keyword% OR c.companySlug LIKE %:keyword%)")
+    Page<Companies> searchCompaniesExcludingPending(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

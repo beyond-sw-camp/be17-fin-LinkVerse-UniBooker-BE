@@ -157,6 +157,7 @@ public class ResourceGroupService {
 
         resourceGroup.update(
                 dto.getName(),
+                dto.getGroupCode(),  // 서비스 그룹 목록 프론트 구조에 맞춘 추가사항
                 dto.getDescription(),
                 dto.getThumbnail(),
                 dto.getCategory(),
@@ -202,23 +203,30 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 활성화  --------------------
     @Transactional
-    public void activate(Long resourceGroupId) {
+    public void activate(AuthDto.AuthenticatedUser authUser, Long resourceGroupId) {
 
         try {
-            // TODO : 플랫폼 관리자 권한을 가졌는지 확인
+            // 플랫폼 관리자 권한 확인
+            if (authUser.getRole() != UserRole.SUPER) {
+                throw new IllegalArgumentException("플랫폼 관리자만 서비스 그룹 상태를 변경할 수 있습니다.");
+            }
 
             ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
             if (Boolean.TRUE.equals(resourceGroup.getIsActive())) {
                 log.info("이미 활성화된 서비스 그룹입니다. id={}", resourceGroupId);
-                return;
+                throw new IllegalArgumentException("이미 활성화된 서비스 그룹입니다.");
             }
 
-            resourceGroup.setIsActive(true);
-            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+            // 수정자 조회
+            Users user = userRepository.findById(authUser.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-            log.info("서비스 그룹 활성화 완료 - id={}", resourceGroupId);
+            resourceGroup.setIsActive(true);
+            resourceGroup.setUpdatedBy(user);
+
+            log.info("서비스 그룹 활성화 완료 - id={}, updatedBy={}", resourceGroupId, user.getName());
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 다시 시도해주세요.");
         }
@@ -227,21 +235,29 @@ public class ResourceGroupService {
 
     // -------------------- 리소스 그룹 비활성화  --------------------
     @Transactional
-    public void deactivate(Long resourceGroupId) {
+    public void deactivate(AuthDto.AuthenticatedUser authUser, Long resourceGroupId) {
         try {
+            // 플랫폼 관리자 권한 확인
+            if (authUser.getRole() != UserRole.SUPER) {
+                throw new IllegalArgumentException("플랫폼 관리자만 서비스 그룹 상태를 변경할 수 있습니다.");
+            }
+
             ResourceGroups resourceGroup = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
 
-
             if (Boolean.FALSE.equals(resourceGroup.getIsActive())) {
                 log.info("이미 비활성화된 서비스 그룹입니다. id={}", resourceGroupId);
-                return;
+                throw new IllegalArgumentException("이미 비활성화된 서비스 그룹입니다.");
             }
 
-            resourceGroup.setIsActive(false);
-            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+            // 수정자 조회
+            Users user = userRepository.findById(authUser.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-            log.info("서비스 그룹 비활성화 완료 - id={}", resourceGroupId);
+            resourceGroup.setIsActive(false);
+            resourceGroup.setUpdatedBy(user);
+
+            log.info("서비스 그룹 비활성화 완료 - id={}, updatedBy={}", resourceGroupId, user.getName());
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 다시 시도해주세요.");
         }
