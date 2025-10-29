@@ -14,11 +14,17 @@ import org.hibernate.annotations.Comment;
  * - 일반 사용자, 관리자, 매니저, 슈퍼관리자 모두 포함
  */
 @Entity
-@Table(name = "users")
-@Builder
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_email_company",
+                        columnNames = {"email", "company_id"}
+                )
+        }
+)
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자")
 public class Users extends BaseEntity {
 
@@ -57,8 +63,9 @@ public class Users extends BaseEntity {
     @Comment("상태")
     private UserStatus status;
 
-    @Comment("기업 ID")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    @Comment("기업")
     private Companies company;
 
     @Column(nullable = false)
@@ -242,5 +249,61 @@ public class Users extends BaseEntity {
      */
     public boolean hasManagerAuthority() {
         return this.role == UserRole.MANAGER || hasAdminAuthority();
+    }
+
+    // ========== Builder 패턴 (정적 팩토리) ==========
+
+    /**
+     * Users 엔티티 생성자
+     */
+    @Builder
+    public Users(Long id, String email, String password, String name, String phone,
+                 String birthDate, Gender gender, UserRole role, UserStatus status,
+                 Companies company, Boolean isFirstLogin) {
+        super.setId(id);
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.phone = phone;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.role = role != null ? role : UserRole.USER;
+        this.status = status != null ? status : UserStatus.ACTIVE;
+        this.company = company; // SUPER는 null, 나머지는 반드시 설정
+        this.isFirstLogin = isFirstLogin != null ? isFirstLogin : false;
+    }
+
+    /**
+     * SUPER 사용자 생성 (company = null)
+     */
+    public static Users createSuper(String email, String password, String name) {
+        return Users.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .role(UserRole.SUPER)
+                .status(UserStatus.ACTIVE)
+                .company(null)
+                .isFirstLogin(false)
+                .build();
+    }
+
+    /**
+     * 기업 소속 사용자 생성 (ADMIN, MANAGER, USER)
+     */
+    public static Users createWithCompany(String email, String password, String name,
+                                          Companies company, UserRole role) {
+        if (company == null && role != UserRole.SUPER) {
+            throw new IllegalArgumentException("SUPER 외 역할은 반드시 기업을 지정해야 합니다.");
+        }
+        return Users.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .company(company)
+                .role(role)
+                .status(role == UserRole.ADMIN ? UserStatus.INACTIVE : UserStatus.ACTIVE)
+                .isFirstLogin(role == UserRole.ADMIN || role == UserRole.MANAGER)
+                .build();
     }
 }

@@ -30,8 +30,12 @@ public class ResourceGroupController {
     // ---------------- 목록 조회(SUPER)----------------
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("/company/{companyId}")
-    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser, Long companyId) {
-        ResourceGroupDto.ResourceGroupListRes response = resourceGroupService.getResourceGroupsByCompanyId(authUser.getRole(), companyId);
+    public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(
+            @AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+            @PathVariable Long companyId
+    ) {
+        ResourceGroupDto.ResourceGroupListRes response =
+                resourceGroupService.getResourceGroupsByCompanyId(authUser.getRole(), companyId);
         return BaseResponse.success(response);
     }
 
@@ -93,23 +97,25 @@ public class ResourceGroupController {
 
 
     // ---------------- 서비스 그룹 활성화 ----------------
-    @Operation(summary = "서비스 그룹 활성화", description = "비활성화된 서비스 그룹을 활성화합니다.")
-    @GetMapping("/active/{resourceGroupId}")
+    @Operation(summary = "서비스 그룹 활성화", description = "비활성화된 서비스 그룹을 활성화합니다. (플랫폼 관리자 전용)")
+    @PatchMapping("/{resourceGroupId}/activate")
     public BaseResponse activateResourceGroup(
+            @AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
             @PathVariable Long resourceGroupId) {
 
-        resourceGroupService.activate(resourceGroupId);
+        resourceGroupService.activate(authUser, resourceGroupId);
         return BaseResponse.success("서비스 그룹이 활성화되었습니다.");
     }
 
 
     // ---------------- 서비스 그룹 비활성화 ----------------
-    @Operation(summary = "서비스 그룹 비활성화", description = "활성화된 서비스 그룹을 비활성화합니다.")
-    @GetMapping("/inactive/{resourceGroupId}")
+    @Operation(summary = "서비스 그룹 비활성화", description = "활성화된 서비스 그룹을 비활성화합니다. (플랫폼 관리자 전용)")
+    @PatchMapping("/{resourceGroupId}/deactivate")
     public BaseResponse deactivateResourceGroup(
+            @AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
             @PathVariable Long resourceGroupId) {
 
-        resourceGroupService.deactivate(resourceGroupId);
+        resourceGroupService.deactivate(authUser, resourceGroupId);
         return BaseResponse.success("서비스 그룹이 비활성화되었습니다.");
     }
 }
