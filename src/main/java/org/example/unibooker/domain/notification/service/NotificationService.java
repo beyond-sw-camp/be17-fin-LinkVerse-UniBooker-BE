@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingFormatArgumentException;
 
 
 /**
@@ -46,53 +47,69 @@ public class NotificationService {
 
     // -------------------- 알림 대상 타입 조회 --------------------
     @Transactional
-    public void sendNotificationToRole(NotificationType type, UserRole role) {
+    public void sendNotificationToRole(NotificationType type, UserRole role, Object... args) {
         // 1️⃣ 해당 역할 유저 전부 조회
         List<Users> users = userRepository.findByRoleAndStatus(role, UserStatus.ACTIVE, Pageable.unpaged()).getContent();
 
         // 2️⃣ 각 유저에게 알림 생성 및 전송
         for (Users user : users) {
-            sendNotificationToUser(type, user);
+            sendNotificationToUser(type, user, args);
         }
     }
 
 
     // -------------------- 특정 대상에게 알림 전송 --------------------
     @Transactional
-    public void sendNotificationToUser(NotificationType type, Users targetUser) {
-        // 1. DTO 생성
-        NotificationDto.NotificationReq req = NotificationDto.NotificationReq.builder()
+    public void sendNotificationToUser(NotificationType type, Users targetUser, Object... args) {
+        String title;
+        String message;
+
+        try {
+            // 1️⃣ args 개수에 따라 %s 자동 포맷 적용
+            if (args != null && args.length > 0) {
+                title = String.format(type.getTitle(), args);
+                message = String.format(type.getMessage(), args);
+            } else {
+                title = type.getTitle();
+                message = type.getMessage();
+            }
+        } catch (MissingFormatArgumentException e) {
+            // %s 개수 안 맞을 때 fallback
+            title = type.getTitle();
+            message = type.getMessage();
+        }
+
+        // 2️⃣ DTO 생성
+            NotificationDto.NotificationReq req = NotificationDto.NotificationReq.builder()
                 .category(type)
-                .title(type.getTitle())
-                .message(type.getMessage())
+                .title(title)
+                .message(message)
                 .build();
 
-        // 2. 엔티티 변환
+        // 3️⃣ 엔티티 변환 및 저장
         Notifications notification = req.toEntity(targetUser);
-
-        // 3. DB 저장 (ID 확보용)
         notificationRepository.save(notification);
 
         try {
-            // 4. WebSocket 실시간 전송
+            // 4️⃣ WebSocket 실시간 전송
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(targetUser.getId()),
                     "/queue/notifications",
                     Map.of(
-                            "title", req.getTitle(),
-                            "message", req.getMessage(),
+                            "title", title,
+                            "message", message,
                             "category", req.getCategory().name()
                     )
             );
 
-            // 5. 전송 성공 상태 반영
+            // 5️⃣ 상태 업데이트
             notification.setStatus(NotificationStatus.SENT);
             notificationRepository.save(notification);
 
-            log.info("✅ 알림 전송 성공 - userId: {}, type: {}", targetUser.getId(), type);
+            log.info("✅ 알림 전송 성공 - userId: {}, type: {}, title: {}, message: {}", targetUser.getId(), type, title, message);
 
         } catch (Exception e) {
-            // 6. 실패 처리
+            // 6️⃣ 실패 처리
             notification.setStatus(NotificationStatus.FAILED);
             notification.setFailedReason(e.getMessage());
             notification.setRetryCount(notification.getRetryCount() + 1);
@@ -103,12 +120,27 @@ public class NotificationService {
     }
 
 
+
     // -------------------- 알림 목록 조회 --------------------
     public Page<NotificationDto.NotificationRes> getUserNotifications(Long userId, int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Notifications> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         return NotificationDto.NotificationRes.fromEntityList(notifications);
+    }
+
+
+    // -------------------- 알림 읽음 처리 --------------------
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
+        Notifications notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 알림이 존재하지 않습니다. id=" + notificationId));
+
+        if (!notification.getIsRead()) {
+            notification.setIsRead(true);
+            notification.setReadAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
     }
 
     /**

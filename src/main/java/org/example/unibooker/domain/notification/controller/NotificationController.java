@@ -40,4 +40,14 @@ public class NotificationController {
         Page<NotificationDto.NotificationRes> response = notificationService.getUserNotifications(authUser.getId(), page, size);
         return BaseResponse.success(response);
     }
+
+
+    // -------------------- 알림 읽음 처리 --------------------
+    @GetMapping("/read/{id}")
+    public BaseResponse markAsRead(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                   @PathVariable("id") Long notificationId) {
+
+        notificationService.markAsRead(notificationId, authUser.getId());
+        return BaseResponse.success("알림 읽음 처리 완료.");
+    }
 }
