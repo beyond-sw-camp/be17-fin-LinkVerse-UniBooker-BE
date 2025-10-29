@@ -46,12 +46,14 @@ public class ReservationDto {
         /** dto -> entity 변환 함수 */
         // TODO : reservationRepository 분리 필요
         public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
-            LocalDateTime startDate = null, endDate = null;
+            LocalDateTime startDate, endDate;
 
-            // 신청인지 아닌지 체크 - 신청이면 날짜/시간 저장 안함(null). 신청일은 createdAt 으로 구별
+            // 신청인지 아닌지 체크 - 신청일은 createdAt 으로 구별
             if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
                 startDate = date.atTime(time);
                 endDate = startDate.plusMinutes(resource.getTimeInterval());
+            } else {
+                startDate = null; endDate = null;
             }
 
             // 중복 예약 체크
