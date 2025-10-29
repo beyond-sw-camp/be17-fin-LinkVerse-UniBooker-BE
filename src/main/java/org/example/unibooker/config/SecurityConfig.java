@@ -154,8 +154,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
-                "https://unibooker.local",
-                "https://unibooker.local:31211"
+                "https://www.unibooker.kro.kr:4040"
         ));
 
         // 허용할 HTTP 메서드
