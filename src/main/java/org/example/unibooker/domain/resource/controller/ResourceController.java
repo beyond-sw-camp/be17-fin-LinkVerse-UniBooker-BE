@@ -71,8 +71,9 @@ public class ResourceController {
     // ---------------- 서비스 활성화 ----------------
     @Operation(summary = "서비스 활성화", description = "비활성화된 서비스를 활성화합니다.")
     @GetMapping("/active/{resourceId}")
-    public BaseResponse activateResource(@PathVariable Long resourceId) {
-        resourceService.activate(resourceId);
+    public BaseResponse activateResource(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                         @PathVariable Long resourceId) {
+        resourceService.activate(resourceId, authUser.getId());
         return BaseResponse.success("서비스가 활성화되었습니다.");
     }
 
@@ -80,8 +81,9 @@ public class ResourceController {
     // ---------------- 서비스 비활성화 ----------------
     @Operation(summary = "서비스 비활성화", description = "활성화된 서비스를 비활성화합니다.")
     @GetMapping("/inactive/{resourceId}")
-    public BaseResponse deactivateResource(@PathVariable Long resourceId) {
-        resourceService.deactivate(resourceId);
+    public BaseResponse deactivateResource(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+                                           @PathVariable Long resourceId) {
+        resourceService.deactivate(resourceId, authUser.getId());
         return BaseResponse.success("서비스가 비활성화되었습니다.");
     }
 }
