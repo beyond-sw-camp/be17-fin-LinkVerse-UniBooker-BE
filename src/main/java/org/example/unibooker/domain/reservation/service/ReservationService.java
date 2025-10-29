@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
+import org.example.unibooker.domain.notification.model.NotificationType;
+import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.reservation.model.dto.ReservationDto;
 import org.example.unibooker.domain.reservation.model.entity.ReservationStatus;
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
@@ -16,6 +18,7 @@ import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +30,7 @@ public class ReservationService {
 
     /** service */
     private final CustomFieldValueService customFieldValueService;
+    private final NotificationService notificationService;
 
     /** repository */
     private final ReservationRepository reservationRepository;
@@ -46,6 +50,7 @@ public class ReservationService {
     /**
      * 예약하기
      */
+    @Transactional
     public ReservationDto.Response reserve(ReservationDto.Request dto, Long resourceId, Long userId) {
         // 일반 사용자 체크
         Users user = userRepository.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
@@ -60,6 +65,13 @@ public class ReservationService {
         // 사용자 커스텀 필드 값 저장
         List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
         List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValuesResult = userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList());
+
+        // 예약 확정 알림 발송
+        notificationService.sendNotificationToUser(
+                NotificationType.RESERVATION_CONFIRMED,
+                user,
+                resource.getName()
+        );
 
         // 카테고리 별 알맞은 형식으로 응답
         return switch (resource.getResourceGroup().getCategory()) {
