@@ -94,7 +94,6 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
-        cookie.setDomain("unibooker.local");
         cookie.setMaxAge(ACCESS_TOKEN_MAX_AGE);
         return cookie;
     }
@@ -114,7 +113,6 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
-        cookie.setDomain("unibooker.local");
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         return cookie;
     }
@@ -133,7 +131,6 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
-        cookie.setDomain("unibooker.local");
         cookie.setMaxAge(0);
         return cookie;
     }
@@ -150,7 +147,6 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
-        cookie.setDomain("unibooker.local");
         cookie.setMaxAge(0);
         return cookie;
     }
