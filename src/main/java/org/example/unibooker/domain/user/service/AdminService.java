@@ -593,7 +593,7 @@ public class AdminService {
 
             if (user.getIsFirstLogin()) {
                 // ADMIN 관리자에게 환영 메시지 전송
-                notificationService.sendNotificationToRole(NotificationType.WELCOME, UserRole.ADMIN);
+                notificationService.sendNotificationToRole(NotificationType.COMPANY_APPROVED, UserRole.ADMIN, user.getCompany().getCompanyName());
 
                 // 첫 로그인 플래그 false로 변경
                 user.completeFirstLogin();
