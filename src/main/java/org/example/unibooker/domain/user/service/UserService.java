@@ -56,7 +56,7 @@ public class UserService {
         }
 
         // 3. 탈퇴한 계정이 있는지 확인
-        Optional<Users> deletedUser = userRepository.findByEmailAndCompanyIdAndRoleAndStatus(
+        Optional<Users> deletedUser = userRepository.findByEmailAndCompany_IdAndRoleAndStatus(
                 request.getEmail(),
                 request.getCompanyId(),
                 UserRole.USER,
@@ -77,18 +77,17 @@ public class UserService {
             // 3-2. DELETED 아닌 상태에서 중복 확인
             validateDuplicateEmailInCompany(request.getEmail(), request.getCompanyId());
 
-            // 3-3. 신규 사용자 생성
-            user = Users.builder()
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .name(request.getName())
-                    .phone(request.getPhone())
-                    .birthDate(request.getBirthDate())
-                    .gender(request.getGender())
-                    .companyId(request.getCompanyId())
-                    .role(UserRole.USER)
-                    .status(UserStatus.ACTIVE)
-                    .build();
+// 3-3. 신규 사용자 생성 (정적 팩토리 메서드 사용)
+            user = Users.createWithCompany(
+                    request.getEmail(),
+                    passwordEncoder.encode(request.getPassword()),
+                    request.getName(),
+                    company,
+                    UserRole.USER
+            );
+            user.updatePhone(request.getPhone());
+            user.updateBirthDate(request.getBirthDate());
+            user.updateGender(request.getGender());
         }
 
         Users savedUser = userRepository.save(user);
@@ -97,7 +96,7 @@ public class UserService {
                 .id(savedUser.getId())
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
-                .companyId(savedUser.getCompanyId())
+                .companyId(savedUser.getCompany().getId())
                 .role(savedUser.getRole())
                 .status(savedUser.getStatus())
                 .createdAt(savedUser.getCreatedAt())
@@ -108,8 +107,13 @@ public class UserService {
      * 특정 기업 내에서 USER 이메일 중복 확인 (DELETED 제외)
      */
     private void validateDuplicateEmailInCompany(String email, Long companyId) {
-        if (userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
-                email, companyId, UserRole.USER, UserStatus.DELETED)) {
+        boolean exists = userRepository.existsByEmailAndCompany_IdAndRoleAndStatusNot(
+                email,
+                companyId,
+                UserRole.USER,
+                UserStatus.DELETED
+        );
+        if (exists) {
             throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL_IN_COMPANY);
         }
     }
@@ -118,8 +122,7 @@ public class UserService {
      * 특정 기업 내에서 이메일 중복 여부 확인
      */
     public boolean existsByEmailAndCompany(String email, Long companyId) {
-        // USER Role만 체크하도록 수정
-        return userRepository.existsByEmailAndCompanyIdAndRoleAndStatusNot(
+        return userRepository.existsByEmailAndCompany_IdAndRoleAndStatusNot(
                 email,
                 companyId,
                 UserRole.USER,
@@ -152,19 +155,18 @@ public class UserService {
                 .map(user -> {
                     // 기업 정보 조회
                     String companyName = null;
-                    if (user.getCompanyId() != null) {
-                        Companies company = companyRepository.findById(user.getCompanyId())
-                                .orElse(null);
-                        if (company != null) {
-                            companyName = company.getCompanyName();
-                        }
+                    Long companyId = null;
+
+                    if (user.getCompany() != null) {
+                        companyId = user.getCompany().getId();
+                        companyName = user.getCompany().getCompanyName();
                     }
 
                     return UserDto.AccountInfo.builder()
                             .userId(user.getId())
                             .email(user.getEmail())
                             .name(user.getName())
-                            .companyId(user.getCompanyId())
+                            .companyId(companyId)
                             .companyName(companyName)
                             .role(user.getRole())
                             .status(user.getStatus())
@@ -197,19 +199,21 @@ public class UserService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 2. 기업 정보 조회
-        Companies company = null;
-        if (user.getCompanyId() != null) {
-            company = companyRepository.findById(user.getCompanyId())
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+        Long companyId = null;
+        String companySlug = null;
+
+        if (user.getCompany() != null) {
+            companyId = user.getCompany().getId();
+            companySlug = user.getCompany().getCompanySlug();
         }
 
-        // 3. Response 생성
+// 3. Response 생성
         return UserDto.CurrentUserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
-                .companyId(company != null ? company.getId() : null)
-                .companySlug(company != null ? company.getCompanySlug() : null)  // ← getSlug() → getCompanySlug()
+                .companyId(companyId)
+                .companySlug(companySlug)
                 .role(user.getRole())
                 .status(user.getStatus())
                 .build();
@@ -290,22 +294,20 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        // 2. 기업명 및 로고 조회
+        // 2. 기업 정보 조회
+        Long companyId = null;
         String companyName = null;
         String businessNumber = null;
-        String logoUrl = null;  // ← 추가
+        String logoUrl = null;
 
-        if (user.getCompanyId() != null) {
-            Companies company = companyRepository.findById(user.getCompanyId())
-                    .orElse(null);
-            if (company != null) {
-                companyName = company.getCompanyName();
-                businessNumber = company.getBusinessNumber();
-                logoUrl = company.getLogoUrl();  // ← 추가
-            }
+        if (user.getCompany() != null) {
+            companyId = user.getCompany().getId();
+            companyName = user.getCompany().getCompanyName();
+            businessNumber = user.getCompany().getBusinessNumber();
+            logoUrl = user.getCompany().getLogoUrl();
         }
 
-        // 3. Response 생성
+// 3. Response 생성
         return UserDto.ProfileResponse.builder()
                 .id(user.getId())
                 .name(user.getName())
@@ -315,10 +317,10 @@ public class UserService {
                 .gender(user.getGender())
                 .role(user.getRole())
                 .status(user.getStatus())
-                .companyId(user.getCompanyId())
+                .companyId(companyId)
                 .companyName(companyName)
                 .businessNumber(businessNumber)
-                .logoUrl(logoUrl)  // ← 추가
+                .logoUrl(logoUrl)
                 .isFirstLogin(user.getIsFirstLogin())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
@@ -362,44 +364,12 @@ public class UserService {
     }
 
     /**
-     * 이메일 중복 체크
-     */
-    private void validateDuplicateEmail(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new BaseException(BaseResponseStatus.DUPLICATE_EMAIL);
-        }
-    }
-
-    /**
-     * 사용자 상태 검증
-     */
-    private void validateUserStatus(Users user) {
-        // INACTIVE - 관리자는 승인 대기, 일반 사용자는 이메일 인증 대기
-        if (user.isInactive()) {
-            if (user.isManager() || user.isAdmin()) {
-                throw new BaseException(BaseResponseStatus.APPROVAL_PENDING);
-            }
-            // 일반 사용자의 INACTIVE는 현재 자동 ACTIVE 처리되므로 발생하지 않음
-        }
-
-        // SUSPENDED - 정지된 계정
-        if (user.isSuspended()) {
-            throw new BaseException(BaseResponseStatus.ACCOUNT_SUSPENDED);
-        }
-
-        // DELETED - 탈퇴한 계정
-        if (user.isDeleted()) {
-            throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
-        }
-    }
-
-    /**
      * 비밀번호 찾기 - 임시 비밀번호 발급
      */
     @Transactional
     public void resetPassword(String email, Long companyId) {
         // 1. 사용자 조회 (USER 역할만)
-        Users user = userRepository.findByEmailAndCompanyIdAndRoleAndStatusNot(
+        Users user = userRepository.findByEmailAndCompany_IdAndRoleAndStatusNot(
                 email,
                 companyId,
                 UserRole.USER,
@@ -445,7 +415,7 @@ public class UserService {
 
         // 1. 전화번호로 찾기 (우선순위 1)
         if (request.getPhone() != null && !request.getPhone().isBlank()) {
-            user = userRepository.findByNameAndCompanyIdAndPhoneAndRoleAndStatusNot(
+            user = userRepository.findByNameAndCompany_IdAndPhoneAndRoleAndStatusNot(
                     request.getName(),
                     request.getCompanyId(),
                     request.getPhone(),
@@ -454,9 +424,9 @@ public class UserService {
             ).orElse(null);
         }
 
-        // 2. 생년월일로 찾기 (우선순위 2)
+// 2. 생년월일로 찾기
         if (user == null && request.getBirthDate() != null && !request.getBirthDate().isBlank()) {
-            user = userRepository.findByNameAndCompanyIdAndBirthDateAndRoleAndStatusNot(
+            user = userRepository.findByNameAndCompany_IdAndBirthDateAndRoleAndStatusNot(
                     request.getName(),
                     request.getCompanyId(),
                     request.getBirthDate(),

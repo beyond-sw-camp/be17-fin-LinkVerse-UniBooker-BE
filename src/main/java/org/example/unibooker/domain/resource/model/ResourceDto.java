@@ -115,6 +115,12 @@ public class ResourceDto {
     @Schema(description = "서비스 상세 조회 응답 DTO (리소스 수정용 & 상세 조회용)")
     public static class ResourceDetailInfo {
 
+        @Schema(description = "서비스 그룹 아이디", example = "1")
+        private Long resourceGroupId;
+
+        @Schema(description = "서비스 그룹명", example = "회의실 예약")
+        private String resourceGroupName;
+
         @Schema(description = "서비스 아이디", example = "1")
         private Long id;
 
@@ -164,6 +170,8 @@ public class ResourceDto {
 
         public static ResourceDetailInfo fromEntity(Resources resource) {
             return new ResourceDetailInfo(
+                    resource.getResourceGroup() != null ? resource.getResourceGroup().getId() : null,
+                    resource.getResourceGroup() != null ? resource.getResourceGroup().getName() : null,
                     resource.getId(),
                     resource.getName(),
                     resource.getDescription(),

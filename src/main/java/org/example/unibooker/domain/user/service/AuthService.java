@@ -45,7 +45,7 @@ public class AuthService {
      */
     public UserDto.LoginResponseWithToken loginWithCompany(String email, String password, Long companyId) {
         // 1. 사용자 조회 (USER role 명시, DELETED 제외)
-        Users user = userRepository.findByEmailAndCompanyIdAndRoleAndStatusNot(
+        Users user = userRepository.findByEmailAndCompany_IdAndRoleAndStatusNot(
                         email,
                         companyId,
                         UserRole.USER,  // ← role 명시 추가
@@ -89,7 +89,7 @@ public class AuthService {
         validatePassword(password, user.getPassword());
 
         // 4. 기업 승인 상태 확인
-        Companies company = companyRepository.findById(user.getCompanyId())
+        Companies company = companyRepository.findById(user.getCompany().getId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
         if (company.getStatus() != CompanyStatus.ACTIVE) {
@@ -175,8 +175,8 @@ public class AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole())
-                .companyId(user.getCompanyId())
-                .companySlug(company != null ? company.getCompanySlug() : null)
+                .companyId(user.getCompany() != null ? user.getCompany().getId() : null)
+                .companySlug(user.getCompany() != null ? user.getCompany().getCompanySlug() : null)
                 .passwordChangeRequired(user.getIsFirstLogin())
                 .build();
     }

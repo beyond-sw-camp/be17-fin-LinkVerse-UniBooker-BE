@@ -133,6 +133,7 @@ public class CompanyService {
     /**
      * 전체 기업 목록 조회 (페이징 + 필터링)
      * - SUPER 권한 필요
+     * - 기업관리 목록용: PENDING 제외 (ACTIVE, SUSPENDED만)
      */
     @Transactional(readOnly = true)
     public CompanyDto.CompanyListResponse getAllCompanies(
@@ -141,8 +142,16 @@ public class CompanyService {
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<Companies> companyPage = companyRepository.searchCompanies(
-                status, keyword, pageable);
+        Page<Companies> companyPage;
+
+        // ✅ status가 null이면 ACTIVE, SUSPENDED만 조회 (PENDING 제외)
+        if (status == null) {
+            companyPage = companyRepository.searchCompaniesExcludingPending(
+                    keyword, pageable);
+        } else {
+            companyPage = companyRepository.searchCompanies(
+                    status, keyword, pageable);
+        }
 
         List<CompanyDto.CompanyInfo> companies = companyPage.getContent()
                 .stream()
@@ -194,7 +203,7 @@ public class CompanyService {
             company.suspend();
 
             // 5. 소속 ADMIN/MANAGER 자동 정지
-            List<Users> admins = userRepository.findByCompanyIdAndRoleIn(
+            List<Users> admins = userRepository.findByCompany_IdAndRoleIn(
                     companyId,
                     List.of(UserRole.ADMIN, UserRole.MANAGER)
             );
@@ -217,13 +226,13 @@ public class CompanyService {
      * Companies -> CompanyInfo DTO 변환
      */
     private CompanyDto.CompanyInfo convertToCompanyInfo(Companies company) {
-        Users admin = userRepository.findByCompanyIdAndRole(
+        Users admin = userRepository.findByCompany_IdAndRole(
                 company.getId(), UserRole.ADMIN).orElse(null);
 
-        long managerCount = userRepository.countByCompanyIdAndRole(
+        long managerCount = userRepository.countByCompany_IdAndRole(
                 company.getId(), UserRole.MANAGER);
 
-        long userCount = userRepository.countByCompanyIdAndRole(
+        long userCount = userRepository.countByCompany_IdAndRole(
                 company.getId(), UserRole.USER);
 
         return CompanyDto.CompanyInfo.builder()

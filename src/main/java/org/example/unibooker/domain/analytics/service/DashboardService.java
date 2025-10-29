@@ -45,7 +45,7 @@ public class DashboardService {
         int totalReservations = reservationRepository.countByCompanyId(companyId); // 회사 전체 예약
         int activeServiceGroups = resourceGroups.size(); // 활성화된 그룹 수
         int activeServices = resourceRepository.countActiveResourcesByCompanyId(companyId); // 활성 리소스 총합
-        int userCount = userRepository.findAllByCompanyIdAndRole(companyId, UserRole.USER).size(); // 해당 회사에 소속된 사용자 수
+        int userCount = userRepository.findAllByCompany_IdAndRole(companyId, UserRole.USER).size(); // 해당 회사에 소속된 사용자 수
 
 
         // Summary 데이터 구성
@@ -98,7 +98,7 @@ public class DashboardService {
 
         // 실제 예약 데이터로 덮어쓰기
         for (Object[] row : trendRaw) {
-            LocalDate date = ((java.sql.Timestamp) row[0]).toLocalDateTime().toLocalDate();
+            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
             String groupName = (String) row[1];
             int count = ((Number) row[2]).intValue();
             trendMap.get(date).put(groupName, count);

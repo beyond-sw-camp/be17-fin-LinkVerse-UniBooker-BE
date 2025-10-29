@@ -64,24 +64,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // 4. URL에서 companySlug 추출 및 검증
                 String requestUri = request.getRequestURI();
 
-                // 기업별 리소스 접근 검증 (/api/c/{companySlug}/... 패턴)
-                if (requestUri.matches("^/api/c/[a-z0-9-]+/.*")) {
-                    // companySlug가 URL에 포함된 경우
-                    if (tokenCompanyId == null) {
-                        log.warn("기업별 리소스 접근 시도하나 토큰에 companyId 없음 - userId: {}", userId);
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json;charset=UTF-8");
-                        response.getWriter().write("{\"code\":50010,\"message\":\"해당 기업의 리소스에 접근 권한이 없습니다.\",\"isSuccess\":false}");
-                        return;
-                    }
-
-                    // TODO: companySlug로 실제 companyId 조회하여 tokenCompanyId와 비교
-                    // CompanyRepository에서 slug로 조회 후 ID 비교 로직 추가 필요
-                    log.debug("기업별 리소스 접근 - companyId: {}", tokenCompanyId);
+                // 5. 기업별 리소스 접근 검증 (/api/c/{companySlug}/... 패턴)
+                if (requestUri.matches("^/api/c/[a-z0-9-]+/.*") && tokenCompanyId == null) {
+                    log.warn("기업별 리소스 접근 시도하나 토큰에 companyId 없음 - userId: {}", userId);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":50010,\"message\":\"해당 기업의 리소스에 접근 권한이 없습니다.\",\"isSuccess\":false}");
+                    return;
                 }
 
-                // 5. DB에서 사용자 정보 조회
-                Users user = userRepository.findById(userId).orElse(null);
+                // 6. DB에서 사용자 정보 조회 (company를 fetch join으로 같이 가져오기)
+                Users user = userRepository.findByIdWithCompany(userId).orElse(null);
 
                 if (user == null) {
                     log.warn("JWT 토큰의 userId에 해당하는 사용자 없음 - userId: {}", userId);
@@ -89,36 +82,39 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // 6. 역할에 따라 AuthDto 객체 생성
+                // 7. company null-safe 처리
+                Long companyId = null;
+                String companySlug = null;
+                if (user.getCompany() != null) {
+                    companyId = user.getCompany().getId();
+                    companySlug = user.getCompany().getCompanySlug();
+                }
+
+                // 8. 역할에 따라 AuthDto 객체 생성
                 Object principal = createPrincipal(user);
 
-                // 7. Spring Security 인증 객체 생성
+                // 9. Spring Security 인증 객체 생성
                 List<SimpleGrantedAuthority> authorities =
                         List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                principal,   // AuthDto 객체 저장
-                                null,
-                                authorities
-                        );
+                        new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 8. SecurityContext에 인증 정보 저장
+                // 10. SecurityContext에 인증 정보 저장
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("JWT 인증 성공 - userId: {}, email: {}, role: {}, companyId: {}, principalType: {}",
-                        userId, email, role, tokenCompanyId, principal.getClass().getSimpleName());
+                log.debug("JWT 인증 성공 - userId: {}, email: {}, role: {}, companyId: {}, companySlug: {}, principalType: {}",
+                        userId, email, role, companyId, companySlug, principal.getClass().getSimpleName());
             }
         } catch (Exception e) {
-            log.error("JWT 인증 실패: {}", e.getMessage());
+            log.error("JWT 인증 실패: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);
     }
+
 
     /**
      * 요청 경로를 기반으로 권한 추론
