@@ -45,7 +45,7 @@ public class AuthService {
      */
     public UserDto.LoginResponseWithToken loginWithCompany(String email, String password, Long companyId) {
         // 1. 사용자 조회 (USER role 명시, DELETED 제외)
-        Users user = userRepository.findByEmailAndCompanyIdAndRoleAndStatusNot(
+        Users user = userRepository.findByEmailAndCompany_IdAndRoleAndStatusNot(
                         email,
                         companyId,
                         UserRole.USER,  // ← role 명시 추가

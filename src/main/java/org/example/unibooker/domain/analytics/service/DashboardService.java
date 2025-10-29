@@ -45,7 +45,7 @@ public class DashboardService {
         int totalReservations = reservationRepository.countByCompanyId(companyId); // 회사 전체 예약
         int activeServiceGroups = resourceGroups.size(); // 활성화된 그룹 수
         int activeServices = resourceRepository.countActiveResourcesByCompanyId(companyId); // 활성 리소스 총합
-        int userCount = userRepository.findAllByCompanyIdAndRole(companyId, UserRole.USER).size(); // 해당 회사에 소속된 사용자 수
+        int userCount = userRepository.findAllByCompany_IdAndRole(companyId, UserRole.USER).size(); // 해당 회사에 소속된 사용자 수
 
 
         // Summary 데이터 구성

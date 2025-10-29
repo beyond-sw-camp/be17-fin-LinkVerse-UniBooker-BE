@@ -2,19 +2,16 @@ package org.example.unibooker.domain.reservation.controller;
 
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
 import org.example.unibooker.domain.reservation.model.dto.ReservationDto;
 import org.example.unibooker.domain.reservation.service.ReservationService;
-import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Tag(name = "예약 처리 기능", description = "예약 요청, 조회, 취소 등 예약 처리에 대한 전반적인 기능")
 @RestController
@@ -44,6 +41,16 @@ public class ReservationController {
     @GetMapping("/list/all/{resourceGroupId}")
     public ResponseEntity getAdminReservations(@PathVariable Long resourceGroupId) {
         return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));
+    }
+
+    // ===================
+    // 특정 서비스의 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자
+    // ===================
+    @Operation(summary = "특정 서비스의 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 리소스에 대한 예약/신청된 목록 조회를 합니다.")
+    @GetMapping("/list/{resourceId}")
+    public BaseResponse<ReservationDto.ResponseList> getResourceReservations(@PathVariable Long resourceId) {
+        ReservationDto.ResponseList result = reservationService.getResourceReservations(resourceId);
+        return BaseResponse.success(result);
     }
 
 
