@@ -80,7 +80,7 @@ public class NotificationService {
         }
 
         // 2️⃣ DTO 생성
-        NotificationDto.NotificationReq req = NotificationDto.NotificationReq.builder()
+            NotificationDto.NotificationReq req = NotificationDto.NotificationReq.builder()
                 .category(type)
                 .title(title)
                 .message(message)
