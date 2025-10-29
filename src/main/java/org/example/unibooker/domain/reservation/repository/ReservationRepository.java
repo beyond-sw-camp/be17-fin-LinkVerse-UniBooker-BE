@@ -61,6 +61,9 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Query("SELECT COUNT(r) FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
     int countByResourceGroupId(Long resourceGroupId);
 
+    // 특정 리소스의 예약 목록 조회
+    List<Reservations> findAllByResourcesId(Long resourceId);
+
     // 특정 기간 동안의 리소스 그룹별 예약수
     @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +
             "FROM Reservations r " +

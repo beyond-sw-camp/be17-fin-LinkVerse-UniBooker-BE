@@ -86,6 +86,19 @@ public class ReservationService {
         return ReservationDto.ResponseList.from(result, resourceGroups.getCategory());
     }
 
+    /**
+     * 특정 리소스의 예약 목록 조회
+     */
+
+    public ReservationDto.ResponseList getResourceReservations(Long resourceId) {
+        Resources resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+        List<Reservations> result = reservationRepository.findAllByResourcesId(resourceId);
+
+        return ReservationDto.ResponseList.from(result, resource.getResourceGroup().getCategory());
+
+    }
+
 
     /**
      * 예약 목록 조회 - 일반 사용자
