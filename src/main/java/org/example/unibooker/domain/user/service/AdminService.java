@@ -252,12 +252,11 @@ public class AdminService {
          * Company 엔티티 생성
          */
         private Companies createCompany(AdminDto.SignUpRequest request) {
-
             return Companies.builder()
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
-                    .logoUrl(request.getLogoUrl())
+                    .logoUrl(request.getLogoUrl())  // ← S3 경로 그대로 사용
                     .status(CompanyStatus.PENDING)
                     .build();
         }

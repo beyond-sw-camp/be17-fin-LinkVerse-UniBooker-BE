@@ -1,0 +1,48 @@
+[Feat] 매일 00시 00분에 리소스 상태 변경 로직 추가 (#170)
+
+* [Feat] 매일 00시 00분에 리소스 상태 변경 로직 추가
+
+* [Feat] 매일 00시 00분에 리소스 상태 변경 로직 추가
+
+* [Feat] 리소스 수정 시 수정자 업데이트
+
+* [Feat] 관리자 프로필 수정 시 로고이미지 수정 로직 추가
+
+* [Feat] 이미지 업로드 접근 권한 조정
+
+* [Feat] 관리자 회원가입 시 기업 로고 이미지 등록 로직 추가
+# Conflicts:
+#	build.gradle
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Author:    김아영 <121117339+thay123028@users.noreply.github.com>
+#
+# interactive rebase in progress; onto aaa16d9
+# Last commands done (23 commands done):
+#    pick c20968b [Feat] Actuator 추가
+#    pick a9797f8 [Feat] 매일 00시 00분에 리소스 상태 변경 로직 추가 (#170)
+# Next commands to do (9 remaining commands):
+#    pick 45602e3 [Fix] 취소된 예약의 커스텀 필드 조회도 가능하도록 수정
+#    pick 3ad1bb1 [Feat]기업로고 업로드 구현
+# You are currently rebasing branch 'feature/#159_reservation_management' on 'aaa16d9'.
+#
+# Changes to be committed:
+#	modified:   build.gradle
+#	new file:   src/main/java/org/example/unibooker/batch/config/BatchConfig.java
+#	new file:   src/main/java/org/example/unibooker/batch/processor/ResourceItemProcessor.java
+#	new file:   src/main/java/org/example/unibooker/batch/reader/ResourceItemReader.java
+#	new file:   src/main/java/org/example/unibooker/batch/scheduler/ResourceItemScheduler.java
+#	new file:   src/main/java/org/example/unibooker/batch/writer/ResourceItemWriter.java
+#	modified:   src/main/java/org/example/unibooker/config/SecurityConfig.java
+#	modified:   src/main/java/org/example/unibooker/domain/resource/controller/ResourceController.java
+#	modified:   src/main/java/org/example/unibooker/domain/resource/repository/ResourceRepository.java
+#	modified:   src/main/java/org/example/unibooker/domain/resource/service/ResourceService.java
+#	modified:   src/main/java/org/example/unibooker/domain/user/controller/AdminController.java
+#	modified:   src/main/java/org/example/unibooker/domain/user/model/dto/AdminDto.java
+#	modified:   src/main/java/org/example/unibooker/domain/user/model/dto/UserDto.java
+#	modified:   src/main/java/org/example/unibooker/domain/user/service/AdminService.java
+#	modified:   src/main/java/org/example/unibooker/domain/user/service/UserService.java
+#	modified:   src/main/resources/application.yml
+#

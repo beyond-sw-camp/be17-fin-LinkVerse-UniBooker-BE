@@ -83,7 +83,7 @@ public class AdminDto {
                 example = "010-1234-5678", required = true)
         private String phone;
 
-        @Schema(description = "기업 로고 이미지")
+        @Schema(description = "기업 로고 URL (S3 경로)", example = "/company-logo/201225844.jpg")
         private String logoUrl;
 
         // 관리자도 생년월일, 성별 필요 시 추가
