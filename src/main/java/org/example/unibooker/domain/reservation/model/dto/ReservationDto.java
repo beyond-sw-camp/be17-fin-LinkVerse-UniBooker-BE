@@ -263,9 +263,6 @@ public class ReservationDto {
         @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
         private LocalDateTime endDate;
 
-        @Schema(description = "리소스 그룹의 카테고리", example = "RESERVATION/SEAT/EVENT")
-        private ServiceCategory serviceCategory;
-
         public static UserResponse from(Reservations entity) {
             return UserResponse.builder()
                     .id(entity.getId())
@@ -274,13 +271,13 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceGroup().getThumbnail())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
                     // 아래부터는 일반 사용자 예약 목록 조회용 정보
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .build();
         }
     }
@@ -310,6 +307,9 @@ public class ReservationDto {
 
         @Schema(description = "예약한 리소스명", example = "회의실A")
         private String resourceName;
+
+        @Schema(description = "예약한 리소스의 카테고리", example = "RESERVATION/SEAT/EVENT")
+        private ServiceCategory serviceCategory;
 
         @Schema(description = "생성일시")
         private LocalDateTime createdAt;
@@ -346,6 +346,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
@@ -388,6 +389,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
@@ -418,6 +420,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
