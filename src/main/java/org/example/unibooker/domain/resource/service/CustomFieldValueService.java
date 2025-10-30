@@ -121,7 +121,7 @@ public class CustomFieldValueService {
     public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
 
         // 예약 존재 여부 검증
-        var reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId)
+        var reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
 
         // USER 커스텀 필드 값 조회 (서비스 메서드 호출)
