@@ -129,6 +129,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
 
                         // ===== actuator ====
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").authenticated()
 
 
