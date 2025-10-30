@@ -252,7 +252,6 @@ public class AdminService {
          * Company 엔티티 생성
          */
         private Companies createCompany(AdminDto.SignUpRequest request) {
-
             return Companies.builder()
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
@@ -606,6 +605,40 @@ public class AdminService {
             return AdminDto.PasswordResetResponse.builder()
                     .message("비밀번호가 성공적으로 변경되었습니다.")
                     .passwordChangeRequired(false)
+                    .build();
+        }
+        /**
+         * 기업 로고 업데이트
+         * - ADMIN 권한 필요
+         */
+        @Transactional
+        public AdminDto.LogoUpdateResponse updateCompanyLogo(Long adminId, String logoUrl) {
+            // 1. Admin 조회
+            Users admin = userRepository.findById(adminId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            // 2. ADMIN 권한 확인
+            if (!admin.hasAdminAuthority()) {
+                throw new BaseException(BaseResponseStatus.FORBIDDEN);
+            }
+
+            // 3. Company 조회
+            Companies company = admin.getCompany();
+            if (company == null) {
+                throw new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND);
+            }
+
+            // 4. 로고 URL 업데이트
+            company.updateLogoUrl(logoUrl);
+
+            // 5. 명시적 저장
+            companyRepository.save(company);
+
+            // 6. 응답 생성
+            return AdminDto.LogoUpdateResponse.builder()
+                    .message("기업 로고가 성공적으로 변경되었습니다.")
+                    .logoUrl(logoUrl)
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
 
@@ -1147,5 +1180,13 @@ public class AdminService {
      */
     public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
         return approvalService.resetPassword(userId, request);
+    }
+
+    /**
+     * 기업 로고 업데이트
+     * - Approval 클래스의 updateCompanyLogo 메서드에 위임
+     */
+    public AdminDto.LogoUpdateResponse updateCompanyLogo(Long adminId, String logoUrl) {
+        return approvalService.updateCompanyLogo(adminId, logoUrl);
     }
 }

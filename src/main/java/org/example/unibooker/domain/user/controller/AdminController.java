@@ -54,7 +54,7 @@ public class AdminController {
             description = "기업 관리자 회원가입을 신청합니다. 슈퍼 관리자의 승인이 필요합니다.")
     @PostMapping("/signup")
     public BaseResponse<AdminDto.SignUpResponse> adminSignUp(
-            @RequestPart("data") @Valid AdminDto.SignUpRequest request) {
+            @RequestBody @Valid AdminDto.SignUpRequest request) {
 
         AdminDto.SignUpResponse response = adminService.signUpAdmin(request);
         return BaseResponse.success(response);
@@ -169,6 +169,26 @@ public class AdminController {
         }
 
         UserDto.ProfileResponse response = userService.updateMyProfile(admin.getId(), request);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 기업 로고 업데이트
+     * - ADMIN 권한 필요
+     */
+    @Operation(summary = "기업 로고 업데이트",
+            description = "관리자가 자신의 기업 로고를 업데이트합니다. (ADMIN 권한 필요)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/company/logo")
+    public BaseResponse<AdminDto.LogoUpdateResponse> updateCompanyLogo(
+            @RequestParam String logoUrl,
+            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
+
+        if (authAdmin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        AdminDto.LogoUpdateResponse response = adminService.updateCompanyLogo(authAdmin.getId(), logoUrl);
         return BaseResponse.success(response);
     }
 
