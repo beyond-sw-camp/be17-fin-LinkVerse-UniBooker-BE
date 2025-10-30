@@ -20,7 +20,9 @@ public class CookieUtil {
     private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
 
     /** HTTPS 전용 여부 (개발: false, 운영: true) */
-    private static final boolean SECURE = false;
+    private static final boolean SECURE = true;
+
+    private static final String DOMAIN = "unibooker.kro.kr";
 
     // ===== 권한별 쿠키 이름 및 경로 생성 =====
 
@@ -94,6 +96,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
+        cookie.setDomain(DOMAIN);
         cookie.setMaxAge(ACCESS_TOKEN_MAX_AGE);
         return cookie;
     }
@@ -113,6 +116,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
+        cookie.setDomain(DOMAIN);
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         return cookie;
     }
@@ -131,6 +135,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
+        cookie.setDomain(DOMAIN);
         cookie.setMaxAge(0);
         return cookie;
     }
@@ -147,6 +152,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(SECURE);
         cookie.setPath(path);
+        cookie.setDomain(DOMAIN);
         cookie.setMaxAge(0);
         return cookie;
     }
