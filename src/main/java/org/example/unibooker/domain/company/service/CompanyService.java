@@ -9,6 +9,7 @@ import org.example.unibooker.domain.company.model.dto.CompanyDto;
 import org.example.unibooker.domain.company.model.entity.Companies;
 import org.example.unibooker.domain.company.repository.CompanyRepository;
 import org.example.unibooker.domain.user.model.UserRole;
+import org.example.unibooker.domain.user.model.UserStatus;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -116,12 +117,17 @@ public class CompanyService {
         Companies company = companyRepository.findByCompanySlug(companySlug)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        // 2. 승인된 기업인지 확인
+        // 2. 서비스 정지 상태 확인 (우선순위 높음)
+        if (company.isSuspended()) {
+            throw new BaseException(BaseResponseStatus.COMPANY_SUSPENDED);
+        }
+
+        // 3. 승인된 기업인지 확인
         if (!company.isApproved()) {
             throw new BaseException(BaseResponseStatus.COMPANY_NOT_APPROVED);
         }
 
-        // 3. 공개 정보 반환
+        // 4. 공개 정보 반환
         return CompanyDto.PublicInfoResponse.builder()
                 .id(company.getId())
                 .companyName(company.getCompanyName())
@@ -169,7 +175,8 @@ public class CompanyService {
 
     /**
      * 기업 상태 변경 (ACTIVE ↔ SUSPENDED)
-     * - 기업 정지 시 소속 ADMIN/MANAGER 자동 정지
+     * - 기업 정지 시 ACTIVE 관리자만 자동 정지
+     * - 기업 활성화 시 기업으로 인해 정지된 관리자만 복구
      */
     @Transactional
     public CompanyDto.StatusUpdateResponse updateCompanyStatus(
@@ -199,15 +206,27 @@ public class CompanyService {
         // 4. 상태 변경
         if (newStatus == CompanyStatus.ACTIVE) {
             company.activate();
+
+            // 기업 정지로 인해 정지된 관리자만 복구
+            List<Users> suspendedByCompany = userRepository
+                    .findByCompany_IdAndRoleInAndSuspendedByCompany(
+                            companyId,
+                            List.of(UserRole.ADMIN, UserRole.MANAGER),
+                            true
+                    );
+            suspendedByCompany.forEach(Users::restoreByCompany);
+
         } else if (newStatus == CompanyStatus.SUSPENDED) {
             company.suspend();
 
-            // 5. 소속 ADMIN/MANAGER 자동 정지
-            List<Users> admins = userRepository.findByCompany_IdAndRoleIn(
-                    companyId,
-                    List.of(UserRole.ADMIN, UserRole.MANAGER)
-            );
-            admins.forEach(Users::suspend);
+            // ACTIVE 상태의 관리자만 정지 (기존 SUSPENDED는 유지)
+            List<Users> activeAdmins = userRepository
+                    .findByCompany_IdAndRoleInAndStatus(
+                            companyId,
+                            List.of(UserRole.ADMIN, UserRole.MANAGER),
+                            UserStatus.ACTIVE
+                    );
+            activeAdmins.forEach(Users::suspendByCompany);
         }
 
         companyRepository.save(company);

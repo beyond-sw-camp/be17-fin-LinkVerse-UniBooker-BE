@@ -83,6 +83,9 @@ public class AdminDto {
                 example = "010-1234-5678", required = true)
         private String phone;
 
+        @Schema(description = "기업 로고 URL", example = "https://d2h9e9y86awp4t.cloudfront.net/company-logo/201225844.jpg")
+        private String logoUrl;
+
         // 관리자도 생년월일, 성별 필요 시 추가
 //        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$",
 //                message = "생년월일 형식이 올바르지 않습니다 (YYYY-MM-DD)")
@@ -279,5 +282,25 @@ public class AdminDto {
 
         @Schema(description = "상태 변경 사유 (선택)", example = "승인 완료")
         private String reason;
+    }
+
+    // ========== 기업 로고 업데이트 Response ==========
+
+    /**
+     * 기업 로고 업데이트 응답 DTO
+     */
+    @Getter
+    @Builder
+    @Schema(description = "기업 로고 업데이트 응답")
+    public static class LogoUpdateResponse {
+
+        @Schema(description = "응답 메시지", example = "기업 로고가 성공적으로 변경되었습니다.")
+        private String message;
+
+        @Schema(description = "업데이트된 로고 URL", example = "/company-logo/xxx.jpg")
+        private String logoUrl;
+
+        @Schema(description = "업데이트 일시")
+        private LocalDateTime updatedAt;
     }
 }

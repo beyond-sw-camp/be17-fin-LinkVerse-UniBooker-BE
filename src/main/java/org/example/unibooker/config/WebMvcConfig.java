@@ -27,6 +27,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "http://localhost:3000",
                         "http://localhost:5173",  // ← 이 줄 추가!
                         "http://localhost:8080",
+                        "https://www.unibooker.kro.kr",
                         "https://www.unibooker.kro.kr:4040"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")

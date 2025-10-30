@@ -36,4 +36,19 @@ public class ImageUploadController {
         log.info("이미지 업로드 완료: URL = {}", url);
         return BaseResponse.success(url);
     }
+
+    // ✅ 새로 추가할 엔드포인트 (companyLogo 전용)
+    @Operation(
+            summary = "기업 로고 Presigned URL 발급",
+            description = "파일명과 타입 정보만 받아 S3 업로드용 임시 URL을 반환합니다."
+    )
+    @PostMapping("/presigned-url/company-logo")
+    public BaseResponse<String> getPresignedUrlForCompanyLogo(
+            @RequestParam String fileName,
+            @RequestParam String contentType
+    ) throws IOException {
+        String presignedUrl = imageUploadService.getPresignedUrlForCompanyLogo(fileName, contentType);
+        log.info("기업 로고 Presigned URL 발급 완료: fileName = {}", fileName);
+        return BaseResponse.success(presignedUrl);
+    }
 }

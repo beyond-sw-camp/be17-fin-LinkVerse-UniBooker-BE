@@ -82,6 +82,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
 
+                // ========== 6-1. 사용자 상태 검증 (추가) ==========
+                // SUSPENDED 상태 체크 (기업 정지로 인한 관리자 정지)
+                if (user.isSuspended()) {
+                    log.warn("정지된 계정 접근 시도 - userId: {}, email: {}, role: {}",
+                            userId, user.getEmail(), user.getRole());
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":50007,\"message\":\"정지된 계정입니다.\",\"isSuccess\":false}");
+                    return;
+                }
+
+                // DELETED 상태 체크
+                if (user.isDeleted()) {
+                    log.warn("삭제된 계정 접근 시도 - userId: {}, email: {}, role: {}",
+                            userId, user.getEmail(), user.getRole());
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":50008,\"message\":\"탈퇴한 계정입니다.\",\"isSuccess\":false}");
+                    return;
+                }
+
+                // INACTIVE 상태 체크 (관리자 승인 대기)
+                if (user.isInactive() && (user.isAdmin() || user.isManager())) {
+                    log.warn("비활성 관리자 계정 접근 시도 - userId: {}, email: {}, role: {}",
+                            userId, user.getEmail(), user.getRole());
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":50005,\"message\":\"승인 대기 중입니다. 승인 후 로그인이 가능합니다.\",\"isSuccess\":false}");
+                    return;
+                }
+
                 // 7. company null-safe 처리
                 Long companyId = null;
                 String companySlug = null;
