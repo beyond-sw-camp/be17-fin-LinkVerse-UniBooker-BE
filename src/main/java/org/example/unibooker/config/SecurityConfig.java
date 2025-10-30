@@ -56,6 +56,7 @@ public class SecurityConfig {
                         // ===== 회원가입 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/image-upload").permitAll()
 
                         // ===== 로그인 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
