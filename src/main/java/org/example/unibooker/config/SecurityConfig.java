@@ -127,6 +127,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
 
+                        // ===== actuator ====
+                        .requestMatchers("/actuator/**").authenticated()
+
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
                         .anyRequest().authenticated()

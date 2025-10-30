@@ -135,3 +135,13 @@ server:
 #       port: 6379
 #       password: ${REDIS_PASSWORD}
 #       database: 0  # Refresh Token용
+
+
+# =================================================================
+# Actuator
+# =================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
