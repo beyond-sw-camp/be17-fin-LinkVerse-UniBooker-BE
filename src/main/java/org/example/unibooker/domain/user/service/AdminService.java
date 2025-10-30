@@ -256,7 +256,7 @@ public class AdminService {
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
-                    .logoUrl(request.getLogoUrl())  // ← S3 경로 그대로 사용
+                    .logoUrl(request.getLogoUrl())
                     .status(CompanyStatus.PENDING)
                     .build();
         }

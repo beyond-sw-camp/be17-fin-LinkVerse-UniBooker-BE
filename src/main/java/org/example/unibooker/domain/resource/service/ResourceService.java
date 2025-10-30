@@ -252,13 +252,14 @@ public class ResourceService {
 
     // -------------------- 리소스 활성화 --------------------
     @Transactional
-    public void activate(Long resourceId) {
+    public void activate(Long resourceId, Long userId) {
 
         try {
-            // TODO : 플랫폼 관리자 권한을 가졌는지 확인
-
             Resources resource = resourceRepository.findByIdAndDeletedAtIsNull(resourceId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
             if (Boolean.TRUE.equals(resource.getIsActive())) {
                 log.info("이미 활성화된 서비스입니다. id={}", resourceId);
@@ -266,7 +267,7 @@ public class ResourceService {
             }
 
             resource.setIsActive(true);
-            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+            resource.setUpdatedBy(user);
 
             log.info("서비스 활성화 완료 - id={}", resourceId);
         } catch (OptimisticLockException e) {
@@ -277,13 +278,14 @@ public class ResourceService {
 
     // -------------------- 리소스 비활성화 --------------------
     @Transactional
-    public void deactivate(Long resourceId) {
+    public void deactivate(Long resourceId, Long userId) {
 
         try {
-            // TODO : 플랫폼 관리자 권한을 가졌는지 확인
-
             Resources resource = resourceRepository.findByIdAndDeletedAtIsNull(resourceId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
+
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
             if (Boolean.FALSE.equals(resource.getIsActive())) {
                 log.info("이미 활성화된 서비스입니다. id={}", resourceId);
@@ -291,7 +293,7 @@ public class ResourceService {
             }
 
             resource.setIsActive(false);
-            // resourceGroup.setUpdatedBy(user); // 수정자 추후 추가
+            resource.setUpdatedBy(user);
 
             log.info("서비스 비활성화 완료 - id={}", resourceId);
         } catch (OptimisticLockException e) {
