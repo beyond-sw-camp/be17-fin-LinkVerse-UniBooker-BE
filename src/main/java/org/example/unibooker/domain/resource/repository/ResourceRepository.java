@@ -30,4 +30,6 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
     int countAllByIsActiveIsTrueAndResourceGroup_Category(ServiceCategory category);
 
     int countAllByIsActive(Boolean isActive);
+
+    List<Resources> findByDeletedAtIsNullAndStartDateIsNotNullAndEndDateIsNotNull();
 }

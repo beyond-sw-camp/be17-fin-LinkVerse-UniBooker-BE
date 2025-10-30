@@ -124,7 +124,7 @@ public class AdminService {
 
         /**
          * 관리자 회원가입 처리
-         * - 탈퇴 계정 재가입 허용
+         * - S3에 업로드된 로고 URL을 받아서 DB에 저장
          */
         @Transactional
         public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request) {
@@ -138,7 +138,6 @@ public class AdminService {
                     UserStatus.DELETED
             );
 
-            // ADMIN 역할의 탈퇴 계정만 필터링
             Optional<Users> deletedAdmin = deletedUser.filter(Users::isAdmin);
 
             Companies company;
@@ -147,9 +146,9 @@ public class AdminService {
             if (deletedAdmin.isPresent()) {
                 // 2-1. 탈퇴 ADMIN 계정 복구
                 admin = deletedAdmin.get();
-                admin.restore(); // DELETED → INACTIVE 변경
+                admin.restore();
 
-                // 2-2. 신규 Company 생성
+                // 2-2. 신규 Company 생성 (logoUrl 직접 사용)
                 company = createCompany(request);
                 company = companyRepository.save(company);
 
@@ -160,8 +159,8 @@ public class AdminService {
                 admin.updatePassword(encodedPassword);
                 admin.updateName(request.getName());
                 admin.updatePhone(request.getPhone());
-                admin.updateCompany(company); // 새 Company로 연결
-                admin.deactivate(); // INACTIVE 상태로 설정 (승인 대기)
+                admin.updateCompany(company);
+                admin.deactivate();
 
             } else {
                 // 2-4. DELETED 아닌 상태에서 이메일 중복 확인
@@ -250,13 +249,14 @@ public class AdminService {
 
         /**
          * Company 엔티티 생성
+         * - S3 logoUrl 직접 사용 (파일 업로드 로직 제거)
          */
         private Companies createCompany(AdminDto.SignUpRequest request) {
             return Companies.builder()
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
-                    .logoUrl(request.getLogoUrl())  // ← S3 경로 그대로 사용
+                    .logoUrl(request.getLogoUrl())  // ← S3 URL 직접 저장
                     .status(CompanyStatus.PENDING)
                     .build();
         }
@@ -605,40 +605,6 @@ public class AdminService {
             return AdminDto.PasswordResetResponse.builder()
                     .message("비밀번호가 성공적으로 변경되었습니다.")
                     .passwordChangeRequired(false)
-                    .build();
-        }
-        /**
-         * 기업 로고 업데이트
-         * - ADMIN 권한 필요
-         */
-        @Transactional
-        public AdminDto.LogoUpdateResponse updateCompanyLogo(Long adminId, String logoUrl) {
-            // 1. Admin 조회
-            Users admin = userRepository.findById(adminId)
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
-
-            // 2. ADMIN 권한 확인
-            if (!admin.hasAdminAuthority()) {
-                throw new BaseException(BaseResponseStatus.FORBIDDEN);
-            }
-
-            // 3. Company 조회
-            Companies company = admin.getCompany();
-            if (company == null) {
-                throw new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND);
-            }
-
-            // 4. 로고 URL 업데이트
-            company.updateLogoUrl(logoUrl);
-
-            // 5. 명시적 저장
-            companyRepository.save(company);
-
-            // 6. 응답 생성
-            return AdminDto.LogoUpdateResponse.builder()
-                    .message("기업 로고가 성공적으로 변경되었습니다.")
-                    .logoUrl(logoUrl)
-                    .updatedAt(LocalDateTime.now())
                     .build();
         }
 
@@ -1102,8 +1068,11 @@ public class AdminService {
 
     // ========== 퍼블릭 메서드 (컨트롤러에서 호출) ==========
 
+    /**
+     * 관리자 회원가입 처리 (외부 호출용)
+     */
     public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request) {
-        return signUpService.signUpAdmin(request);
+        return signUpService.signUpAdmin(request);  // ← logoFile 파라미터 제거
     }
 
     public AdminDto.StatusResponse checkSignUpStatus(String email) {
@@ -1180,13 +1149,5 @@ public class AdminService {
      */
     public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
         return approvalService.resetPassword(userId, request);
-    }
-
-    /**
-     * 기업 로고 업데이트
-     * - Approval 클래스의 updateCompanyLogo 메서드에 위임
-     */
-    public AdminDto.LogoUpdateResponse updateCompanyLogo(Long adminId, String logoUrl) {
-        return approvalService.updateCompanyLogo(adminId, logoUrl);
     }
 }

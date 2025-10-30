@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.example.unibooker.domain.company.model.CompanyStatus;
 import org.example.unibooker.domain.user.model.Gender;
 import org.example.unibooker.domain.user.model.UserRole;
@@ -43,58 +40,41 @@ public class AdminDto {
 
     // ========== 관리자 회원가입 신청 Request ==========
 
+    /**
+     * 관리자 회원가입 요청 DTO
+     */
     @Getter
+    @Builder
     @NoArgsConstructor
-    @Schema(description = "관리자 회원가입 신청 요청")
+    @AllArgsConstructor
     public static class SignUpRequest {
 
-        @NotBlank(message = "사업자등록번호는 필수입니다")
-        @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$",
-                message = "사업자등록번호 형식이 올바르지 않습니다 (XXX-XX-XXXXX)")
-        @Schema(description = "사업자등록번호 (business_number) - XXX-XX-XXXXX 형식",
-                example = "123-45-67890", required = true)
+        @NotBlank(message = "사업자등록번호는 필수입니다.")
+        @Size(min = 10, max = 12, message = "사업자등록번호는 10~12자여야 합니다.")
         private String businessNumber;
 
-        @NotBlank(message = "기업명은 필수입니다")
-        @Size(min = 2, max = 100, message = "기업명은 2~100자여야 합니다")
-        @Schema(description = "기업명 (companies.name)", example = "ABC 회사", required = true)
+        @NotBlank(message = "기업명은 필수입니다.")
+        @Size(min = 2, max = 100, message = "기업명은 2~100자여야 합니다.")
         private String companyName;
 
-        @NotBlank(message = "Company Slug는 필수입니다")
-        @Pattern(regexp = "^[a-z0-9-]{3,30}$",
-                message = "Company Slug는 소문자, 숫자, 하이픈(-)만 사용 가능하며 3~30자여야 합니다")
-        @Schema(description = "Company Slug (companies.slug) - 소문자, 숫자, 하이픈만 허용 (3-30자)",
-                example = "abc-company", required = true)
+        @NotBlank(message = "Company Slug는 필수입니다.")
+        @Size(min = 3, max = 30, message = "Slug는 3~30자여야 합니다.")
         private String companySlug;
 
-        @NotBlank(message = "이름은 필수입니다")
-        @Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다")
-        @Schema(description = "관리자 이름 (users.name)", example = "김관리", required = true)
+        @NotBlank(message = "이름은 필수입니다.")
+        @Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다.")
         private String name;
 
-        @NotBlank(message = "이메일은 필수입니다")
-        @Email(message = "올바른 이메일 형식이 아닙니다")
-        @Schema(description = "관리자 이메일 (users.email)", example = "admin@abc.com", required = true)
+        @NotBlank(message = "이메일은 필수입니다.")
+        @Email(message = "올바른 이메일 형식이 아닙니다.")
         private String email;
 
-        @NotBlank(message = "연락처는 필수입니다")
-        @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "연락처 형식이 올바르지 않습니다 (010-XXXX-XXXX)")
-        @Schema(description = "관리자 연락처 (users.phone) - 010-XXXX-XXXX 형식",
-                example = "010-1234-5678", required = true)
+        @NotBlank(message = "연락처는 필수입니다.")
+        @Size(min = 11, max = 13, message = "연락처는 11~13자여야 합니다.")
         private String phone;
 
-        @Schema(description = "기업 로고 URL (S3 경로)", example = "/company-logo/201225844.jpg")
-        private String logoUrl;
-
-        // 관리자도 생년월일, 성별 필요 시 추가
-//        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$",
-//                message = "생년월일 형식이 올바르지 않습니다 (YYYY-MM-DD)")
-//        @Schema(description = "생년월일 (birth_date) - YYYY-MM-DD 형식",
-//                example = "1990-01-15")
-//        private String birthDate;
-//
-//        @Schema(description = "성별 (gender)", example = "MALE")
-//        private Gender gender;
+        /** S3 + CloudFront URL (선택 사항) */
+        private String logoUrl;  // ← 추가
     }
 
     // ========== 관리자 회원가입 신청 Response ==========
