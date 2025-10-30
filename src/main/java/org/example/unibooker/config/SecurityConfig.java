@@ -56,6 +56,7 @@ public class SecurityConfig {
                         // ===== 회원가입 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/image-upload").permitAll()
 
                         // ===== 로그인 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
@@ -82,7 +83,7 @@ public class SecurityConfig {
                         // ===== 비밀번호 찾기 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/reset-password").permitAll()
 
-                        // ===== 아이디 찾기 ===== (추가)
+                        // ===== 아이디 찾기 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/find-email").permitAll()
 
                         // ===== 계정 조회 (아이디 찾기) =====
@@ -90,6 +91,10 @@ public class SecurityConfig {
 
                         // ===== 기업 정보 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
+
+                        // ===== 이미지 업로드 관련 경로 (회원가입시 필요) =====
+                        .requestMatchers(HttpMethod.POST, "/api/image-upload").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/image-upload/presigned-url/company-logo").permitAll()
 
                         // ===== 프로필 관리 (인증 필요) =====
                         .requestMatchers(HttpMethod.GET, "/api/admins/me").authenticated()
@@ -121,11 +126,10 @@ public class SecurityConfig {
                         // ===== 리소스 관련 경로 =====
                         .requestMatchers("/api/resource-group/**").authenticated()
 
-
-                        // ===== 이미지 업로드 관련 경로 =====
-                        .requestMatchers("/api/image-upload").authenticated()
-
                         .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
+
+                        // ===== actuator ====
+                        .requestMatchers("/actuator/**").authenticated()
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
@@ -154,9 +158,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
-                "https://www.unibooker.kro.kr:4040",
+                "https://www.unibooker.kro.kr",  
                 "https://www.unibooker.kro.kr:443",
-                "http://www.unibooker.kro.kr:80"
+                "http://www.unibooker.kro.kr:80",
+                "https://www.unibooker.kro.kr:4040"
         ));
 
         // 허용할 HTTP 메서드

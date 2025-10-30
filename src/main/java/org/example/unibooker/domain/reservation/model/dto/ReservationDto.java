@@ -46,12 +46,14 @@ public class ReservationDto {
         /** dto -> entity 변환 함수 */
         // TODO : reservationRepository 분리 필요
         public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
-            LocalDateTime startDate = null, endDate = null;
+            LocalDateTime startDate, endDate;
 
-            // 신청인지 아닌지 체크 - 신청이면 날짜/시간 저장 안함(null). 신청일은 createdAt 으로 구별
+            // 신청인지 아닌지 체크 - 신청일은 createdAt 으로 구별
             if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
                 startDate = date.atTime(time);
                 endDate = startDate.plusMinutes(resource.getTimeInterval());
+            } else {
+                startDate = null; endDate = null;
             }
 
             // 중복 예약 체크
@@ -145,6 +147,9 @@ public class ReservationDto {
         @Schema(description = "예약한 리소스")
         private String resourceName;
 
+        @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
+        private ReservationStatus status;
+
         @Schema(description = "예약 시작 일시")
         private LocalDateTime startDate;
 
@@ -156,6 +161,7 @@ public class ReservationDto {
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
                     .resourceName(entity.getResources().getName())
+                    .status(entity.getStatus())
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
                     .build();
@@ -179,6 +185,9 @@ public class ReservationDto {
         @Schema(description = "좌석 열")
         private Integer col;
 
+        @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
+        private ReservationStatus status;
+
         @Schema(description = "예약 시작 일시")
         private LocalDateTime startDate;
 
@@ -192,6 +201,7 @@ public class ReservationDto {
                     .userName(entity.getUsers().getName())
                     .row(entity.getRow())
                     .col(entity.getCol())
+                    .status(entity.getStatus())
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
                     .build();
@@ -253,9 +263,6 @@ public class ReservationDto {
         @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
         private LocalDateTime endDate;
 
-        @Schema(description = "리소스 그룹의 카테고리", example = "RESERVATION/SEAT/EVENT")
-        private ServiceCategory serviceCategory;
-
         public static UserResponse from(Reservations entity) {
             return UserResponse.builder()
                     .id(entity.getId())
@@ -264,13 +271,13 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceGroup().getThumbnail())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
                     // 아래부터는 일반 사용자 예약 목록 조회용 정보
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .build();
         }
     }
@@ -300,6 +307,9 @@ public class ReservationDto {
 
         @Schema(description = "예약한 리소스명", example = "회의실A")
         private String resourceName;
+
+        @Schema(description = "예약한 리소스의 카테고리", example = "RESERVATION/SEAT/EVENT")
+        private ServiceCategory serviceCategory;
 
         @Schema(description = "생성일시")
         private LocalDateTime createdAt;
@@ -336,6 +346,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
@@ -378,6 +389,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())
@@ -408,6 +420,7 @@ public class ReservationDto {
                     .thumbnail(entity.getResources().getResourceImage())
                     .resourceGroupName(entity.getResources().getResourceGroup().getName())
                     .resourceName(entity.getResources().getName())
+                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .deletedAt(entity.getDeletedAt())

@@ -352,6 +352,10 @@ public class UserService {
             user.updateGender(request.getGender());
         }
 
+        if (request.getLogoUrl() != null && !request.getLogoUrl().isBlank()) {
+            user.getCompany().updateLogoUrl(request.getLogoUrl());
+        }
+
         // 3. 변경 후 프로필 반환
         return getMyProfile(userId);
     }

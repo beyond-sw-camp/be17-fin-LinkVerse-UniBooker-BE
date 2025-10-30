@@ -62,7 +62,10 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     int countByResourceGroupId(Long resourceGroupId);
 
     // 특정 리소스의 예약 목록 조회
-    List<Reservations> findAllByResourcesId(Long resourceId);
+    List<Reservations> findAllByResourcesId(Long resources_id);
+
+    // 특정 리소스의 예약 목록 조회 (특정 날짜)
+    List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
 
     // 특정 기간 동안의 리소스 그룹별 예약수
     @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +
