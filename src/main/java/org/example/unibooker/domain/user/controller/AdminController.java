@@ -3,6 +3,7 @@ package org.example.unibooker.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import jakarta.validation.constraints.NotBlank;
 import org.example.unibooker.domain.user.service.AuthService;
 import org.example.unibooker.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -204,6 +205,26 @@ public class AdminController {
 
         boolean exists = userService.existsByEmailForAdmin(email);
         return BaseResponse.success(exists);
+    }
+
+    /**
+     * 기업 로고 업데이트
+     * - ADMIN 및 MANAGER 모두 사용 가능
+     * - 자신이 속한 기업의 로고만 변경 가능
+     */
+    @Operation(summary = "기업 로고 업데이트",
+            description = "현재 로그인한 관리자의 기업 로고를 업데이트합니다.")
+    @PatchMapping("/company/logo")
+    public BaseResponse<String> updateCompanyLogo(
+            @RequestParam @NotBlank(message = "로고 URL은 필수입니다") String logoUrl,
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {
+
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        adminService.updateCompanyLogo(admin.getId(), logoUrl);
+        return BaseResponse.success("기업 로고가 성공적으로 변경되었습니다.");
     }
 
     // ========== 매니저 관리 (ADMIN 권한) ==========

@@ -382,9 +382,6 @@ public class UserDto {
 
         @Schema(description = "성별 (gender)", example = "MALE")
         private Gender gender;
-
-        @Schema(description = "로고 이미지")
-        private String logoUrl;
     }
 
     // ========== 계정 정보 Response ==========

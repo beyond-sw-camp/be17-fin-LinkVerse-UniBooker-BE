@@ -1148,4 +1148,29 @@ public class AdminService {
     public AdminDto.PasswordResetResponse resetPassword(Long userId, AdminDto.PasswordResetRequest request) {
         return approvalService.resetPassword(userId, request);
     }
+
+    /**
+     * 기업 로고 업데이트
+     * - 관리자가 속한 기업의 로고만 변경
+     */
+    @Transactional
+    public void updateCompanyLogo(Long userId, String logoUrl) {
+        // 1. 사용자 조회
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 2. ADMIN 또는 MANAGER 권한 확인
+        if (!user.hasAdminAuthority() && !user.isManager()) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+        }
+
+        // 3. 기업 조회
+        Companies company = user.getCompany();
+        if (company == null) {
+            throw new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND);
+        }
+
+        // 4. 로고 URL 업데이트
+        company.updateLogoUrl(logoUrl);
+    }
 }
