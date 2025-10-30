@@ -156,7 +156,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:5173",
                 "https://www.unibooker.kro.kr:4040",
                 "https://www.unibooker.kro.kr:443",
-                "https://www.unibooker.kro.kr:80"
+                "http://www.unibooker.kro.kr:80"
         ));
 
         // 허용할 HTTP 메서드
