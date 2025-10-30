@@ -138,6 +138,7 @@ public class AdminService {
                     UserStatus.DELETED
             );
 
+            // ADMIN 역할의 탈퇴 계정만 필터링
             Optional<Users> deletedAdmin = deletedUser.filter(Users::isAdmin);
 
             Companies company;
@@ -148,7 +149,7 @@ public class AdminService {
                 admin = deletedAdmin.get();
                 admin.restore();
 
-                // 2-2. 신규 Company 생성 (logoUrl 직접 사용)
+                // 2-2. 신규 Company 생성
                 company = createCompany(request);
                 company = companyRepository.save(company);
 
@@ -256,7 +257,7 @@ public class AdminService {
                     .businessNumber(request.getBusinessNumber())
                     .companyName(request.getCompanyName())
                     .companySlug(request.getCompanySlug())
-                    .logoUrl(request.getLogoUrl())  // ← S3 URL 직접 저장
+                    .logoUrl(request.getLogoUrl())
                     .status(CompanyStatus.PENDING)
                     .build();
         }
@@ -1068,11 +1069,8 @@ public class AdminService {
 
     // ========== 퍼블릭 메서드 (컨트롤러에서 호출) ==========
 
-    /**
-     * 관리자 회원가입 처리 (외부 호출용)
-     */
     public AdminDto.SignUpResponse signUpAdmin(AdminDto.SignUpRequest request) {
-        return signUpService.signUpAdmin(request);  // ← logoFile 파라미터 제거
+        return signUpService.signUpAdmin(request);
     }
 
     public AdminDto.StatusResponse checkSignUpStatus(String email) {

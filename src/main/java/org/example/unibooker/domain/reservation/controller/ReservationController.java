@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 
 @Tag(name = "예약 처리 기능", description = "예약 요청, 조회, 취소 등 예약 처리에 대한 전반적인 기능")
 @RestController
@@ -48,8 +50,11 @@ public class ReservationController {
     // ===================
     @Operation(summary = "특정 서비스의 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 특정 리소스에 대한 예약/신청된 목록 조회를 합니다.")
     @GetMapping("/list/{resourceId}")
-    public BaseResponse<ReservationDto.ResponseList> getResourceReservations(@PathVariable Long resourceId) {
-        ReservationDto.ResponseList result = reservationService.getResourceReservations(resourceId);
+    public BaseResponse<ReservationDto.ResponseList> getResourceReservations(
+            @PathVariable Long resourceId,
+            @RequestParam(required = false) LocalDateTime startDate,
+            @RequestParam(required = false) LocalDateTime endDate) {
+        ReservationDto.ResponseList result = reservationService.getResourceReservations(resourceId, startDate, endDate);
         return BaseResponse.success(result);
     }
 
@@ -79,8 +84,10 @@ public class ReservationController {
     // ===================
     @Operation(summary = "예약 취소", description = "모든 사용자가 특정 기업의 서비스 예약/신청에 대한 예약 취소 요청을 합니다.")
     @DeleteMapping("/cancel/{reservationId}")
-    public ResponseEntity<BaseResponse<String>> deleteReservation(@PathVariable Long reservationId) {
-        reservationService.cancel(reservationId);
+    public ResponseEntity<BaseResponse<String>> deleteReservation(
+            @PathVariable Long reservationId,
+            @AuthenticationPrincipal AuthDto.AuthUser authUser) {
+        reservationService.cancel(reservationId, authUser.getId());
         return ResponseEntity.ok(BaseResponse.success("예약이 취소 되었습니다."));
     }
 }
