@@ -84,8 +84,10 @@ public class ReservationController {
     // ===================
     @Operation(summary = "예약 취소", description = "모든 사용자가 특정 기업의 서비스 예약/신청에 대한 예약 취소 요청을 합니다.")
     @DeleteMapping("/cancel/{reservationId}")
-    public ResponseEntity<BaseResponse<String>> deleteReservation(@PathVariable Long reservationId) {
-        reservationService.cancel(reservationId);
+    public ResponseEntity<BaseResponse<String>> deleteReservation(
+            @PathVariable Long reservationId,
+            @AuthenticationPrincipal AuthDto.AuthUser authUser) {
+        reservationService.cancel(reservationId, authUser.getId());
         return ResponseEntity.ok(BaseResponse.success("예약이 취소 되었습니다."));
     }
 }

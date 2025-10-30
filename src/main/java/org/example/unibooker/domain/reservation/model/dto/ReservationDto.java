@@ -147,6 +147,9 @@ public class ReservationDto {
         @Schema(description = "예약한 리소스")
         private String resourceName;
 
+        @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
+        private ReservationStatus status;
+
         @Schema(description = "예약 시작 일시")
         private LocalDateTime startDate;
 
@@ -158,6 +161,7 @@ public class ReservationDto {
                     .id(entity.getId())
                     .userName(entity.getUsers().getName())
                     .resourceName(entity.getResources().getName())
+                    .status(entity.getStatus())
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
                     .build();
@@ -181,6 +185,9 @@ public class ReservationDto {
         @Schema(description = "좌석 열")
         private Integer col;
 
+        @Schema(description = "예약 상태", example = "CONFIRMED 및 CANCELED")
+        private ReservationStatus status;
+
         @Schema(description = "예약 시작 일시")
         private LocalDateTime startDate;
 
@@ -194,6 +201,7 @@ public class ReservationDto {
                     .userName(entity.getUsers().getName())
                     .row(entity.getRow())
                     .col(entity.getCol())
+                    .status(entity.getStatus())
                     .startDate(entity.getStartDate())
                     .endDate(entity.getEndDate())
                     .build();

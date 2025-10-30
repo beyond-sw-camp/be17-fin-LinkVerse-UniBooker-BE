@@ -152,20 +152,30 @@ public class ReservationService {
     /**
      * 예약 취소
      */
-    public void cancel(Long reservationId) {
+    public void cancel(Long reservationId, Long userId) {
+        // 사용자 존재 여부 체크
+        Users user = userRepository.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
         // 예약 내역 존재 여부 체크
         Reservations reservation = reservationRepository.findByIdAndDeletedAtIsNull(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
 
         // 예약이 취소된 적 있는지 체크
-        if(reservation.getStatus() != ReservationStatus.CANCELLED) {
+        if(reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new BaseException(BaseResponseStatus.RESERVATION_ALREADY_CANCELED);
         }
+
+        /*
+        // TODO : 취소하려는 예약이 사용자가 예약한 것인지 체크
+        if(user.getRole().equals(UserRole.USER)) {
+
+        }
+        */
 
         // 예약 상태 수정
         reservation.cancel();
 
-        // TODO : 리소스도 마감된 것을 풀어줘야 함
-        resourceStatusUpdate(reservation.getResources().getId());
+        // TODO : 리소스도 마감된 것을 풀어줄 것인지
+        // resourceStatusUpdate(reservation.getResources().getId());
 
         // 예상치 못한 경우 취소 실패하는 경우 예외처리
         try {
@@ -175,7 +185,7 @@ public class ReservationService {
         }
     }
 
-    // TODO : 리소스도 마감된 것을 풀어줘야 함 > 리소스 서비스 클래스에 구현
+    // TODO : 리소스도 마감된 것 상태 변경 > 리소스 서비스 클래스에 구현
     public void resourceStatusUpdate(Long resourceId) {
         // 리소스 존재 여부 체크
         Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
