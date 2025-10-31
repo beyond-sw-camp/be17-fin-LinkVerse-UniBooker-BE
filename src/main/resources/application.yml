@@ -157,3 +157,9 @@ management:
   endpoint:
     health:
       show-details: always
+      enabled: true
+  health:
+    mail:
+      enabled: false
+    diskspace:
+      enabled: false
