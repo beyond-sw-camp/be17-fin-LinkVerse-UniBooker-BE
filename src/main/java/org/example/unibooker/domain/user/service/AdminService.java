@@ -250,6 +250,7 @@ public class AdminService {
 
         /**
          * Company 엔티티 생성
+         * - S3 logoUrl 직접 사용 (파일 업로드 로직 제거)
          */
         private Companies createCompany(AdminDto.SignUpRequest request) {
             return Companies.builder()

@@ -172,6 +172,26 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             Pageable pageable
     );
 
+    // ========== 기업 정지 로직 ==========
+
+    /**
+     * 기업 정지로 인해 정지된 관리자 조회
+     */
+    List<Users> findByCompany_IdAndRoleInAndSuspendedByCompany(
+            Long companyId,
+            List<UserRole> roles,
+            Boolean suspendedByCompany
+    );
+
+    /**
+     * 특정 상태의 관리자 조회
+     */
+    List<Users> findByCompany_IdAndRoleInAndStatus(
+            Long companyId,
+            List<UserRole> roles,
+            UserStatus status
+    );
+
     // ========== 이메일 찾기 (이름 기반) ==========
 
     /**
