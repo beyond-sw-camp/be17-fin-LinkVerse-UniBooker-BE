@@ -72,6 +72,10 @@ public class Users extends BaseEntity {
     @Comment("첫 로그인 여부")
     private Boolean isFirstLogin = false;
 
+    @Column(nullable = false)
+    @Comment("기업 정지로 인한 계정 정지 여부")
+    private Boolean suspendedByCompany = false;
+
     // ========== 비즈니스 로직 메서드 ==========
 
     /**
@@ -144,6 +148,29 @@ public class Users extends BaseEntity {
      */
     public void suspend() {
         this.status = UserStatus.SUSPENDED;
+    }
+
+    /**
+     * 기업 정지로 인한 계정 정지
+     * - ACTIVE 상태일 때만 정지
+     * - suspendedByCompany 플래그 설정
+     */
+    public void suspendByCompany() {
+        if (this.status == UserStatus.ACTIVE) {
+            this.status = UserStatus.SUSPENDED;
+            this.suspendedByCompany = true;
+        }
+    }
+
+    /**
+     * 기업 활성화로 인한 계정 복구
+     * - suspendedByCompany가 true일 때만 복구
+     */
+    public void restoreByCompany() {
+        if (this.suspendedByCompany) {
+            this.status = UserStatus.ACTIVE;
+            this.suspendedByCompany = false;
+        }
     }
 
     /**
@@ -259,7 +286,7 @@ public class Users extends BaseEntity {
     @Builder
     public Users(Long id, String email, String password, String name, String phone,
                  String birthDate, Gender gender, UserRole role, UserStatus status,
-                 Companies company, Boolean isFirstLogin) {
+                 Companies company, Boolean isFirstLogin, Boolean suspendedByCompany) {
         super.setId(id);
         this.email = email;
         this.password = password;
@@ -271,6 +298,7 @@ public class Users extends BaseEntity {
         this.status = status != null ? status : UserStatus.ACTIVE;
         this.company = company; // SUPER는 null, 나머지는 반드시 설정
         this.isFirstLogin = isFirstLogin != null ? isFirstLogin : false;
+        this.suspendedByCompany = suspendedByCompany != null ? suspendedByCompany : false;
     }
 
     /**
