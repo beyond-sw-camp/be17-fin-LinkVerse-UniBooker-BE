@@ -59,11 +59,10 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.36'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 
-    // spring batch
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // spring batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 
 tasks.named('test') {

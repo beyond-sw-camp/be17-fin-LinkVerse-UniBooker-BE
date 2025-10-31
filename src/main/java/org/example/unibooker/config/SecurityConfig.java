@@ -130,7 +130,7 @@ public class SecurityConfig {
 
                         // ===== actuator ====
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/**").authenticated()
+                        .requestMatchers("/actuator/**").permitAll()
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
