@@ -153,4 +153,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health
+  endpoint:
+    health:
+      show-details: always
+  health:
+    defaults:
+      enabled: false
