@@ -3,17 +3,22 @@ package org.example.unibooker.domain.resource.service;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.unibooker.common.BaseResponseStatus;
+import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.notification.service.NotificationService;
 import org.example.unibooker.domain.resource.model.*;
 import org.example.unibooker.domain.resource.repository.*;
+import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -299,5 +304,75 @@ public class ResourceService {
         } catch (OptimisticLockException e) {
             throw new IllegalStateException("다른 사용자가 동시에 수정 중입니다. 다시 시도해주세요.");
         }
+    }
+
+    /**
+     * 상태 변경이 가능한지 판단
+     */
+    private boolean isStatusChangeable(Resources resource, ResourceStatus targetStatus){
+        ResourceStatus currentStatus = resource.getStatus();
+        LocalDate today = LocalDate.now();
+        boolean always = resource.getResourceGroup() != null
+                && Boolean.TRUE.equals(resource.getResourceGroup().getIsAlwaysAvailable());
+
+        // 상시모집 (기간 개념 없음)
+        if (always) {
+            if (targetStatus == ResourceStatus.PROGRESS_BEFORE) return false; // 상시모집은 진행전 상태 없음
+            // 진행중 ↔ 종료만 가능
+            return (currentStatus == ResourceStatus.IN_PROGRESS && targetStatus == ResourceStatus.CLOSED)
+                    || (currentStatus == ResourceStatus.CLOSED && targetStatus == ResourceStatus.IN_PROGRESS);
+        }
+
+        // 기간형
+        LocalDate start = resource.getStartDate();
+        LocalDate end = resource.getEndDate();
+
+        // 날짜 정보가 없으면 '닫기'만 허용
+        if (start == null || end == null) {
+            return targetStatus == ResourceStatus.CLOSED;
+        }
+
+        // → CLOSED : 항상 허용
+        if (targetStatus == ResourceStatus.CLOSED) return true;
+
+        // CLOSED → IN_PROGRESS : 오늘이 기간 내에 있어야 함
+        if (currentStatus == ResourceStatus.CLOSED && targetStatus == ResourceStatus.IN_PROGRESS) {
+            return !today.isBefore(start) && !today.isAfter(end);
+        }
+
+        // CLOSED → PROGRESS_BEFORE : 오늘이 시작 전이어야 함
+        if (currentStatus == ResourceStatus.CLOSED && targetStatus == ResourceStatus.PROGRESS_BEFORE) {
+            return today.isBefore(start);
+        }
+
+        // 기간이 지났으면 재오픈 불가
+        if (today.isAfter(end)) return false;
+
+        // 기타 케이스 불허
+        return false;
+    }
+
+    @Transactional
+    public boolean changeStatus(AuthDto.AuthenticatedUser authUser, ResourceDto.ResourceStatusChangReq req) {
+        Resources resource = resourceRepository.findById(req.getResourceId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+        Users updatedBy = userRepository.findById(authUser.getId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+        // 낙관적 락 검증
+        if (req.getVersion() != null && !resource.getVersion().equals(req.getVersion())) {
+            throw new BaseException(BaseResponseStatus.CONCURRENT_MODIFICATION);
+        }
+
+        ResourceStatus targetStatus = ResourceStatus.valueOf(req.getTargetStatus());
+
+        // 변경 가능 여부 판단
+        if (!isStatusChangeable(resource, targetStatus)) return false;
+
+        // 변경 반영
+        resource.setStatus(targetStatus);
+        resource.setUpdatedBy(updatedBy);
+
+        return true;
     }
 }

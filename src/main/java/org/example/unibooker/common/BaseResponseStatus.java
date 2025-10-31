@@ -14,6 +14,8 @@ public enum BaseResponseStatus {
     BAD_REQUEST(20000, "잘못된 요청입니다."),
     INTERNAL_SERVER_ERROR(20001, "서버 내부 오류가 발생했습니다."),
     DATABASE_ERROR(20002, "데이터베이스 오류가 발생했습니다."),
+    CONCURRENT_MODIFICATION(20004, "다른 사용자가 동시에 수정을 요청했습니다."),
+
 
     // ========== 30000: User 관련 ==========
     USER_NOT_FOUND(30000, "사용자를 찾을 수 없습니다."),
@@ -92,7 +94,8 @@ public enum BaseResponseStatus {
     // ========== 200000: Resource 관련 ==========
     RESOURCE_NOT_FOUND(200000, "리소스 정보를 찾을 수 없습니다."),
     RESOURCE_OVER_CAPACITY(200001, "정원이 초과되어 예약 불가합니다."),
-    RESOURCE_NOT_ACTIVE(200002, "활성화 되지 않은 리소스입니다.");
+    RESOURCE_NOT_ACTIVE(200002, "활성화 되지 않은 리소스입니다."),
+    RESOURCE_STATUS_CHANGE_FAILED(200003, "유효하지 않은 상태 변경 요청입니다.");
 
 
     private final int code;

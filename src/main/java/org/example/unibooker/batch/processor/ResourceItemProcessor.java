@@ -37,7 +37,7 @@ public class ResourceItemProcessor implements ItemProcessor<Resources, Resources
         // 변경 필요할 때만 변경
         if (resource.getStatus() != newStatus) {
             log.info("리소스 ID {} 상태 변경: {} -> {}", resource.getId(), resource.getStatus(), newStatus);
-            resource.setUpdateStatus(newStatus);
+            resource.setStatus(newStatus);
         }
 
         return resource;

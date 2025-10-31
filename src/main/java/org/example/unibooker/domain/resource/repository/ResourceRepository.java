@@ -19,11 +19,12 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
     // 상세 조회 (활성화 & 미삭제 상태만)
     Optional<Resources> findByIdAndIsActiveTrueAndDeletedAtIsNull(Long resourceId);
 
+    // 목록 조회 (모든 리소스)
+    List<Resources> findAllByResourceGroupId(Long resourceGroupId);
+
     // 특정 리소스 그룹의 리소스 수 조회(활성화 & 미삭제 상태만)
     @Query("SELECT COUNT(r) FROM Resources r WHERE r.resourceGroup.company.id = :companyId AND r.isActive = true AND r.deletedAt IS NULL")
     int countActiveResourcesByCompanyId(Long companyId);
-
-
 
     int countByResourceGroupIdAndIsActiveTrueAndDeletedAtIsNull(Long id);
 

@@ -5,8 +5,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
+import org.example.unibooker.common.BaseResponseStatus;
+import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.resource.model.ResourceDto;
 import org.example.unibooker.domain.resource.model.ResourceGroupDto;
+import org.example.unibooker.domain.resource.model.ResourceGroups;
 import org.example.unibooker.domain.resource.service.ResourceService;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -86,4 +89,19 @@ public class ResourceController {
         resourceService.deactivate(resourceId, authUser.getId());
         return BaseResponse.success("서비스가 비활성화되었습니다.");
     }
+
+    // ---------------- 서비스 상태 변경 ----------------
+    @Operation(summary = "서비스 상태 변경", description = "서비스의 상태를 변경합니다.")
+    @PatchMapping("/status")
+    public BaseResponse changeResourceStatus(
+            @AuthenticationPrincipal AuthDto.AuthenticatedUser authUser,
+            @RequestBody ResourceDto.ResourceStatusChangReq req)
+    {
+        return resourceService.changeStatus(authUser, req) ?
+                BaseResponse.success("서비스의 상태가 성공적으로 변경되었습니다.")
+                : BaseResponse.error(BaseResponseStatus.RESOURCE_STATUS_CHANGE_FAILED);
+    }
+
+    // ---------------- 서비스 상태 변경 ----------------
+
 }

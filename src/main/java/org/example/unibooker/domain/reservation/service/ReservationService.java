@@ -192,7 +192,7 @@ public class ReservationService {
 
         // TODO : 리소스가 마감이면 상태 변경
 
-        resource.setUpdateStatus(ResourceStatus.IN_PROGRESS); // 여기서 수정자는 일반 사용자로 해야하는가?
+        resource.setStatus(ResourceStatus.IN_PROGRESS); // 여기서 수정자는 일반 사용자로 해야하는가?
 
     }
 }
