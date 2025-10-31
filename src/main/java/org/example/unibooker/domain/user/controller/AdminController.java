@@ -3,6 +3,7 @@ package org.example.unibooker.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import jakarta.validation.constraints.NotBlank;
 import org.example.unibooker.domain.user.service.AuthService;
 import org.example.unibooker.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,12 +50,13 @@ public class AdminController {
     /**
      * 관리자 회원가입 신청
      * - 슈퍼 관리자의 승인 필요
+     * - 로고는 S3 업로드 후 URL만 전달받음
      */
     @Operation(summary = "관리자 회원가입 신청",
             description = "기업 관리자 회원가입을 신청합니다. 슈퍼 관리자의 승인이 필요합니다.")
     @PostMapping("/signup")
     public BaseResponse<AdminDto.SignUpResponse> adminSignUp(
-            @RequestBody @Valid AdminDto.SignUpRequest request) {
+            @RequestBody @Valid AdminDto.SignUpRequest request) {  // ← @RequestPart + logoFile 제거
 
         AdminDto.SignUpResponse response = adminService.signUpAdmin(request);
         return BaseResponse.success(response);
@@ -173,26 +175,6 @@ public class AdminController {
     }
 
     /**
-     * 기업 로고 업데이트
-     * - ADMIN 권한 필요
-     */
-    @Operation(summary = "기업 로고 업데이트",
-            description = "관리자가 자신의 기업 로고를 업데이트합니다. (ADMIN 권한 필요)")
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/company/logo")
-    public BaseResponse<AdminDto.LogoUpdateResponse> updateCompanyLogo(
-            @RequestParam String logoUrl,
-            @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin) {
-
-        if (authAdmin == null) {
-            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
-        }
-
-        AdminDto.LogoUpdateResponse response = adminService.updateCompanyLogo(authAdmin.getId(), logoUrl);
-        return BaseResponse.success(response);
-    }
-
-    /**
      * 회원 탈퇴
      * - ADMIN 및 MANAGER 모두 사용 가능
      */
@@ -223,6 +205,26 @@ public class AdminController {
 
         boolean exists = userService.existsByEmailForAdmin(email);
         return BaseResponse.success(exists);
+    }
+
+    /**
+     * 기업 로고 업데이트
+     * - ADMIN 및 MANAGER 모두 사용 가능
+     * - 자신이 속한 기업의 로고만 변경 가능
+     */
+    @Operation(summary = "기업 로고 업데이트",
+            description = "현재 로그인한 관리자의 기업 로고를 업데이트합니다.")
+    @PatchMapping("/company/logo")
+    public BaseResponse<String> updateCompanyLogo(
+            @RequestParam @NotBlank(message = "로고 URL은 필수입니다") String logoUrl,
+            @AuthenticationPrincipal AuthDto.AdminLike admin) {
+
+        if (admin == null) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED);
+        }
+
+        adminService.updateCompanyLogo(admin.getId(), logoUrl);
+        return BaseResponse.success("기업 로고가 성공적으로 변경되었습니다.");
     }
 
     // ========== 매니저 관리 (ADMIN 권한) ==========
