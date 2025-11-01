@@ -2,6 +2,8 @@ package org.example.unibooker.infrastructure.email.template;
 
 import org.example.unibooker.domain.user.model.UserRole;
 
+import java.time.LocalDateTime;
+
 /**
  * 이메일 템플릿 렌더링 서비스 인터페이스
  */
@@ -46,4 +48,22 @@ public interface EmailTemplateService {
      * @return 렌더링된 HTML 문자열
      */
     String renderAccountDeletionTemplate(String name, UserRole role);
+
+    /**
+     * 기업 가입 거절 이메일 템플릿 렌더링
+     *
+     * @param name 관리자 이름
+     * @param companyName 기업명
+     * @param businessNumber 사업자등록번호
+     * @param appliedDate 신청일
+     * @param rejectionReason 거절 사유
+     * @return 렌더링된 HTML 문자열
+     */
+    String renderCompanyRejectionTemplate(
+            String name,
+            String companyName,
+            String businessNumber,
+            LocalDateTime appliedDate,
+            String rejectionReason
+    );
 }

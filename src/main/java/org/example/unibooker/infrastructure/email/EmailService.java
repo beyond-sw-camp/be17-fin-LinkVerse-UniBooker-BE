@@ -2,6 +2,8 @@ package org.example.unibooker.infrastructure.email;
 
 import org.example.unibooker.domain.user.model.UserRole;
 
+import java.time.LocalDateTime;
+
 /**
  * 이메일 발송 서비스 인터페이스
  */
@@ -56,4 +58,23 @@ public interface EmailService {
      * @param role 사용자 역할 (ADMIN/MANAGER)
      */
     void sendAccountDeletionNotice(String to, String name, UserRole role);
+
+    /**
+     * 기업 가입 거절 이메일 발송
+     *
+     * @param to 수신자 이메일 (관리자)
+     * @param name 관리자 이름
+     * @param companyName 기업명
+     * @param businessNumber 사업자등록번호
+     * @param appliedDate 신청일
+     * @param rejectionReason 거절 사유
+     */
+    void sendCompanyRejectionEmail(
+            String to,
+            String name,
+            String companyName,
+            String businessNumber,
+            LocalDateTime appliedDate,
+            String rejectionReason
+    );
 }

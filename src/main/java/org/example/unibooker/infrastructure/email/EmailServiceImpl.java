@@ -12,6 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 /**
  * 이메일 발송 서비스 구현체
  * JavaMailSender를 사용하여 실제 이메일을 발송합니다.
@@ -78,6 +80,27 @@ public class EmailServiceImpl implements EmailService {
     public void sendAccountDeletionNotice(String to, String name, UserRole role) {
         String htmlContent = templateService.renderAccountDeletionTemplate(name, role);
         String subject = "[UniBooker] 계정이 삭제되었습니다";
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
+
+    @Override
+    public void sendCompanyRejectionEmail(
+            String to,
+            String name,
+            String companyName,
+            String businessNumber,
+            LocalDateTime appliedDate,
+            String rejectionReason) {
+
+        String htmlContent = templateService.renderCompanyRejectionTemplate(
+                name,
+                companyName,
+                businessNumber,
+                appliedDate,
+                rejectionReason
+        );
+        String subject = "[UniBooker] 기업 가입 신청이 거절되었습니다";
 
         sendHtmlEmail(to, subject, htmlContent);
     }
