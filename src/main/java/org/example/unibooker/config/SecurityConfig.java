@@ -71,6 +71,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/admins/logout").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/super/logout").authenticated()
 
+                        // ===== 슈퍼 관리자 전용 경로 (통합 보호) =====
+                        .requestMatchers("/api/super/**").hasRole("SUPER")
+
                         // ===== 상태 조회 =====
                         .requestMatchers(HttpMethod.GET, "/api/admins/status").permitAll()
 
@@ -115,13 +118,18 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // ===== 슈퍼 관리자 전용 경로 (인증 필요) =====
+                        // ===== CompanyController - SUPER 전용 경로 (하위 호환 유지) =====
                         .requestMatchers(HttpMethod.GET, "/api/companies").hasRole("SUPER")
                         .requestMatchers(HttpMethod.GET, "/api/companies/pending").hasRole("SUPER")
                         .requestMatchers(HttpMethod.GET, "/api/companies/{companyId}").hasRole("SUPER")
                         .requestMatchers(HttpMethod.POST, "/api/companies/{companyId}/approve").hasRole("SUPER")
                         .requestMatchers(HttpMethod.POST, "/api/companies/{companyId}/reject").hasRole("SUPER")
                         .requestMatchers(HttpMethod.PATCH, "/api/companies/{companyId}/status").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.GET, "/api/companies/{companyId}/managers").hasRole("SUPER")
+
+                        // ===== AdminController - SUPER 전용 경로 (Deprecated, 하위 호환 유지) =====
+                        .requestMatchers(HttpMethod.GET, "/api/admins").hasRole("SUPER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/admins/{userId}/status").hasRole("SUPER")
 
                         // ===== 리소스 관련 경로 =====
                         .requestMatchers("/api/resource-group/**").authenticated()

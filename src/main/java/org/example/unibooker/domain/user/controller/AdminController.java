@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.validation.constraints.NotBlank;
 import org.example.unibooker.domain.user.service.AuthService;
+import org.example.unibooker.domain.user.service.SuperService;
 import org.example.unibooker.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,6 +45,7 @@ public class AdminController {
     private final AdminService adminService;
     private final UserService userService;
     private final AuthService authService;
+    private final SuperService superService;
 
     // ========== 관리자 본인 관리 ==========
 
@@ -316,9 +318,11 @@ public class AdminController {
     /**
      * 관리자+매니저 목록 조회
      * - SUPER_ADMIN 권한 필요
+     * @deprecated /api/super/managers를 사용하세요
      */
-    @Operation(summary = "관리자+매니저 목록 조회",
-            description = "전체 관리자와 매니저 목록을 조회합니다. (SUPER_ADMIN 권한 필요)")
+    @Deprecated
+    @Operation(summary = "[Deprecated] 관리자+매니저 목록 조회",
+            description = "Deprecated: /api/super/managers를 사용하세요. 전체 관리자와 매니저 목록을 조회합니다. (SUPER_ADMIN 권한 필요)")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping
     public BaseResponse<AdminDto.AdminListResponse> getAllAdmins(
@@ -326,6 +330,8 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String status) {
+
+        log.warn("Deprecated API called: GET /api/admins - Use /api/super/managers instead");
 
         // String → Enum 변환
         UserRole userRole = null;
@@ -346,6 +352,7 @@ public class AdminController {
             }
         }
 
+        // AdminService를 그대로 호출 (하위 호환성 유지)
         AdminDto.AdminListResponse response = adminService.getAllAdmins(page, size, userRole, userStatus);
         return BaseResponse.success(response);
     }
@@ -353,15 +360,20 @@ public class AdminController {
     /**
      * 관리자/매니저 상태 변경
      * - SUPER_ADMIN 권한 필요
+     * @deprecated /api/super/managers/{userId}/status를 사용하세요
      */
-    @Operation(summary = "관리자/매니저 상태 변경",
-            description = "관리자 또는 매니저의 계정 상태를 변경합니다. (SUPER_ADMIN 권한 필요)")
+    @Deprecated
+    @Operation(summary = "[Deprecated] 관리자/매니저 상태 변경",
+            description = "Deprecated: /api/super/managers/{userId}/status를 사용하세요. 관리자 또는 매니저의 계정 상태를 변경합니다. (SUPER_ADMIN 권한 필요)")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PatchMapping("/{userId}/status")
     public BaseResponse<String> updateAdminStatus(
             @PathVariable Long userId,
             @RequestBody @Valid AdminDto.AdminStatusUpdateRequest request) {
 
+        log.warn("Deprecated API called: PATCH /api/admins/{}/status - Use /api/super/managers/{}/status instead", userId, userId);
+
+        // AdminService를 그대로 호출 (하위 호환성 유지)
         adminService.updateAdminStatus(userId, request);
         return BaseResponse.success("계정 상태가 성공적으로 변경되었습니다.");
     }
