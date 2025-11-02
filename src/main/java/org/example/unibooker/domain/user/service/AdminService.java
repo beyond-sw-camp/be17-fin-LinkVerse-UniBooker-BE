@@ -498,7 +498,10 @@ public class AdminService {
 
         /**
          * 기업 거절 처리
-         * - 거절 이메일 발송 후 Company 및 Users 하드삭제
+         * - 거절 이메일 발송
+         * - Company 상태 → REJECTED로 변경 (소프트 삭제)
+         * - User 상태 → DELETED로 변경 (소프트 삭제)
+         * - 배치에서 7일 후 하드 삭제
          */
         @Transactional
         public CompanyDto.ApprovalResponse rejectCompany(Long companyId, String rejectionReason) {
@@ -515,7 +518,7 @@ public class AdminService {
             Users admin = userRepository.findByCompany_IdAndRole(companyId, UserRole.ADMIN)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-            // 4. 거절 이메일 발송 (하드삭제 전 필수)
+            // 4. 거절 이메일 발송
             try {
                 emailService.sendCompanyRejectionEmail(
                         admin.getEmail(),
@@ -529,16 +532,22 @@ public class AdminService {
                 throw new BaseException(BaseResponseStatus.EMAIL_SEND_FAILED);
             }
 
-            // 5. 해당 Company의 모든 Users 하드삭제
-            List<Users> users = userRepository.findByCompany_Id(companyId);
-            userRepository.deleteAll(users);
+            // 5. Company 상태 변경 (REJECTED로 소프트 삭제)
+            company.reject(rejectionReason);
+            companyRepository.save(company);
 
-            // 6. Company 하드삭제
-            companyRepository.delete(company);
+            // 6. 해당 Company의 모든 Users를 DELETED 상태로 변경 (소프트 삭제)
+            List<Users> users = userRepository.findByCompany_Id(companyId);
+            for (Users user : users) {
+                user.delete();
+            }
+            if (!users.isEmpty()) {
+                userRepository.saveAll(users);
+            }
 
             // 7. 응답 생성
             return CompanyDto.ApprovalResponse.builder()
-                    .message("기업 가입 신청이 거절되었으며, 관련 데이터가 삭제되었습니다. 거절 사유가 이메일로 발송되었습니다.")
+                    .message("기업 가입 신청이 거절되었습니다. 거절 사유가 이메일로 발송되었습니다.")
                     .processedAt(LocalDateTime.now())
                     .build();
         }

@@ -242,6 +242,50 @@ public class CompanyService {
     }
 
     /**
+     * 거절된 기업 자동 정리 (배치용)
+     * - 생성 후 설정된 일수 경과한 REJECTED 기업 삭제
+     * - 연결된 사용자도 함께 하드 삭제
+     */
+    @Transactional
+    public void cleanupRejectedCompanies(int retentionDays) {
+        // 1. 삭제 대상 기업 조회
+        LocalDateTime cutoffTime = LocalDateTime.now().minusDays(retentionDays);
+
+        List<Companies> rejectedCompanies = companyRepository
+                .findByStatusAndCreatedAtBefore(CompanyStatus.REJECTED, cutoffTime);
+
+        if (rejectedCompanies.isEmpty()) {
+            return;
+        }
+
+        // 2. 각 기업별로 연결된 계정 삭제
+        for (Companies company : rejectedCompanies) {
+            deleteCompanyWithUsers(company);
+        }
+    }
+
+    /**
+     * 기업 및 연결된 계정 삭제 처리
+     */
+    private void deleteCompanyWithUsers(Companies company) {
+        try {
+            // 1. 기업 연결 모든 User 조회
+            List<Users> users = userRepository.findByCompany_Id(company.getId());
+
+            // 2. User 하드 삭제
+            if (!users.isEmpty()) {
+                userRepository.deleteAll(users);
+            }
+
+            // 3. Company 하드 삭제
+            companyRepository.delete(company);
+
+        } catch (Exception e) {
+            // 개별 기업 삭제 실패 시 로깅 후 계속 진행
+        }
+    }
+
+    /**
      * Companies -> CompanyInfo DTO 변환
      */
     private CompanyDto.CompanyInfo convertToCompanyInfo(Companies company) {
