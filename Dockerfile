@@ -14,7 +14,7 @@ COPY src ./src
 RUN ./gradlew bootJar --no-daemon --configure-on-demand
 
 # 실행.
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-slim
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
