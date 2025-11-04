@@ -77,4 +77,20 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
             "ORDER BY DATE(r.startDate) ASC")
     List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
 
+    @Query("""
+    SELECT COUNT(r.id)
+    FROM Reservations r
+    JOIN r.resources res
+    WHERE res.id = :resourceId
+      AND r.status = 'CONFIRMED'
+      AND r.startDate < :endDate
+      AND r.endDate   > :startDate
+    GROUP BY res.id, res.name
+""")
+    int countConfirmedByResourceAndRange(
+            Long resourceId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
+
 }

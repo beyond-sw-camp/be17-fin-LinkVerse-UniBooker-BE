@@ -3,6 +3,7 @@ package org.example.unibooker.domain.resource.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.example.unibooker.domain.user.model.entity.Users;
 
 import java.time.LocalDate;
@@ -166,6 +167,9 @@ public class ResourceDto {
         @Schema(description = "상시 모집 여부", example = "true")
         private Boolean isAlwaysAvailable;
 
+        @Schema(description = "수정 버전", example = "5")
+        private Long version;
+
         private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
         public static ResourceDetailInfo fromEntity(Resources resource) {
@@ -186,7 +190,8 @@ public class ResourceDto {
                     resource.getRow(),
                     resource.getCol(),
                     resource.getResourceGroup() != null ? resource.getResourceGroup().getCategory() : null,
-                    resource.getResourceGroup() != null ? resource.getResourceGroup().getIsAlwaysAvailable() : null
+                    resource.getResourceGroup() != null ? resource.getResourceGroup().getIsAlwaysAvailable() : null,
+                    resource.getVersion()
             );
         }
     }
@@ -251,6 +256,15 @@ public class ResourceDto {
 
         @Schema(description = "예외 타임슬롯 목록", nullable = true)
         private List<TimeSlotDto.ExceptionSlotRequest> exceptionSlots;
+    }
+
+    @Getter
+    @Setter
+    @Schema(description = "서비스 상태 변경 요청 DTO")
+    public static class ResourceStatusChangReq{
+        private Long resourceId;
+        private Long version;
+        private String targetStatus;
     }
 
 
