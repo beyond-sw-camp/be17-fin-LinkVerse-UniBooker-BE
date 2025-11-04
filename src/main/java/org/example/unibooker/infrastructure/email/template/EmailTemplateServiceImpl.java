@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,5 +81,24 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         variables.put("roleKorean", roleKorean);
 
         return renderTemplate("email/AccountDeletion", variables);
+    }
+
+    @Override
+    public String renderCompanyRejectionTemplate(
+            String name,
+            String companyName,
+            String businessNumber,
+            LocalDateTime appliedDate,
+            String rejectionReason) {
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", name);
+        variables.put("companyName", companyName);
+        variables.put("businessNumber", businessNumber);
+        variables.put("appliedDate", appliedDate);
+        variables.put("rejectionReason", rejectionReason);
+        variables.put("signupUrl", "https://unibooker.kro.kr/admin/signup");
+
+        return renderTemplate("email/CompanyRejection", variables);
     }
 }

@@ -261,4 +261,9 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     @Query("SELECT u FROM Users u LEFT JOIN FETCH u.company WHERE u.id = :userId")
     Optional<Users> findByIdWithCompany(@Param("userId") Long userId);
+
+    /**
+     * 특정 기업의 모든 사용자 조회
+     */
+    List<Users> findByCompany_Id(Long companyId);
 }

@@ -118,10 +118,20 @@ app:
     from: noreply@unibooker.com
     login-url: https://unibooker.com/login
 
-  account-cleanup:
-    enabled: true                    # 자동 삭제 기능 활성화 여부
-    inactive-minutes: 4320               # 미활성 기준 시간 (72시간 = 3일)
-    cron: "0 0 2  * * *"             # 매일 새벽 2시 실행
+  # ========== 배치 처리 설정 ==========
+  batch:
+    # 전역 배치 활성화 플래그
+    enabled: true
+
+    # 미활성 계정 정리 (2주마다)
+    inactive-minutes: 4320              # 72시간 (3일)
+    inactive-account:
+      cron: "0 0 2 1,15 * ?"           # 매달 1일, 15일 새벽 2시 (약 2주)
+
+    # 거절된 기업 정리 (2주마다)
+    company-retention-days: 7           # 보존 기간 (일)
+    rejected-company:
+      cron: "0 0 2 1,15 * ?"           # 매달 1일, 15일 새벽 2시 (약 2주)
 
 # =================================================================
 # 서버 설정

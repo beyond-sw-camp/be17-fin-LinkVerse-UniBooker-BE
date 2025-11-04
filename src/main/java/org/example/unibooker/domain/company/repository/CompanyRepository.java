@@ -82,4 +82,10 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    /**
+     * REJECTED 상태 기업 중 일정 시간 경과한 기업 조회
+     * - 배치 작업용: 자동 삭제 대상 조회
+     */
+    List<Companies> findByStatusAndCreatedAtBefore(CompanyStatus status, LocalDateTime createdAtBefore);
 }
