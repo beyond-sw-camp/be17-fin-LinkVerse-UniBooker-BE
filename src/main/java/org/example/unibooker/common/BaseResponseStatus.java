@@ -52,6 +52,7 @@ public enum BaseResponseStatus {
     INVALID_COMPANY_STATUS(40010, "유효하지 않은 기업 상태입니다."),
     INVALID_STATUS_CHANGE(40011, "변경할 수 없는 상태입니다. PENDING과 REJECTED 상태는 변경할 수 없습니다."),
     COMPANY_NOT_ACTIVE(40012, "활성 상태의 기업만 정지할 수 있습니다."),
+    COMPANY_SUSPENDED(40013, "서비스가 일시 정지되었습니다."),
 
     // ========== 50000: Auth 관련 (향후 로그인 구현 시 사용) ==========
     UNAUTHORIZED(50000, "인증되지 않은 사용자입니다."),
