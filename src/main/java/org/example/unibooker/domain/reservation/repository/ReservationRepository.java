@@ -18,32 +18,45 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // 삭제되지 않은 예약 조회
     Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
 
-    // 사용자의 중복 예약 존재 여부
+    // 사용자의 중복 예약 존재 여부 - 예약형, 신청형
     @Query("""
         SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
         FROM Reservations r
-        WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate)
+        WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
-    Boolean existsByUserIdAndResourceIdAndStartDateBetween(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+    Boolean existsByDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 예약 카테고리 - 해당 기간 예약 존재 여부
+    // 사용자의 중복 예약 존재 여부 - 좌석형
     @Query("""
         SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
         FROM Reservations r
-        WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate)
+        WHERE r.users.id = :userId 
+            AND r.resources.id = :resourceId 
+            AND (r.startDate < :endDate AND r.endDate > :startDate)
+            AND r.row = :row 
+            AND r.col = :col 
+            AND r.deletedAt IS NULL
     """)
-    Boolean existsByResourceIdAndTimeRange(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+    Boolean existsByDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
-    // 좌석 카테고리 - 날짜 단위 예약 수 카운트
+    // 선택한 일시 예약 수 카운트 - 예약형
     @Query("""
         SELECT COUNT(r)
         FROM Reservations r
-        WHERE r.resources.id = :resourceId AND DATE(r.startDate) = :date
+        WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
-    Integer countByResourceIdAndDate(Long resourceId, LocalDate date);
+    Integer countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 신청 카테고리 - 예약 수 카운트
-    Integer countByResourcesId(Long resourceId);
+    // 선택한 일시 예약 수 카운트 - 좌석형
+    @Query("""
+        SELECT COUNT(r)
+        FROM Reservations r
+        WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
+    """)
+    Integer countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
+
+    // 예약 수 카운트 - 신청형
+    Integer countByResourcesIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r LEFT JOIN r.resources rs WHERE rs.id = :resourceId")

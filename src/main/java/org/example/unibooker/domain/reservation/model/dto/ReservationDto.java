@@ -48,7 +48,7 @@ public class ReservationDto {
         public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
             LocalDateTime startDate, endDate;
 
-            // 신청인지 아닌지 체크 - 신청일은 createdAt 으로 구별
+            // 신청인지 아닌지 체크 - 예약일 변환. 신청은 날짜랑 시간 예약이 없음. 신청일은 createdAt 으로 구별
             if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
                 startDate = date.atTime(time);
                 endDate = startDate.plusMinutes(resource.getTimeInterval());
@@ -56,33 +56,33 @@ public class ReservationDto {
                 startDate = null; endDate = null;
             }
 
-            // 중복 예약 체크
-            Boolean isDuplicate;
-            if(!(resource.getResourceGroup().getCategory() == ServiceCategory.EVENT)) {
-                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), startDate, endDate);
-            } else {
-                isDuplicate = reservationRepository.existsByUserIdAndResourceIdAndStartDateBetween(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
-            }
-            if (isDuplicate) {
+            // TODO : 범위 내의 날짜 및 시간인지 체크
+
+            // 중복 예약 체크 (사용자 입장)
+            Boolean isDuplicate = switch (resource.getResourceGroup().getCategory()) {
+                case RESERVATION -> reservationRepository.existsByDuplicatedReservation(user.getId(), resource.getId(), startDate, endDate);
+                case SEAT -> reservationRepository.existsByDuplicatedReservationSeat(user.getId(), resource.getId(), startDate, endDate, row, col);
+                case EVENT -> reservationRepository.existsByDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+                default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
+            };
+            if (Boolean.TRUE.equals(isDuplicate)) {
                 throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
             }
 
-            // TODO : 범위 내 날짜, 시간 체크
-
-            // 정원 초과 체크
-            if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 수용 가능
-                Integer currentCount = reservationRepository.countByResourceIdAndDate(resource.getId(), startDate.toLocalDate());
-                if ((currentCount >= resource.getCapacity())) {
+            // 정원 초과 체크 (리소스 입장)
+            if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 해당 시간대에 수용 가능
+                Integer currentCount = reservationRepository.countBySeatReservation(resource.getId(), startDate, endDate, row, col);
+                if (currentCount+headCount >= resource.getCapacity() || headCount > 1) {
                     throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
                 }
             } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.RESERVATION)) { // 시간대별 한 타임 예약 가능
-                Boolean isReserved = reservationRepository.existsByResourceIdAndTimeRange(resource.getId(), startDate, endDate);
-                if (isReserved) {
+                Integer currentCount = reservationRepository.countByReservation(resource.getId(), startDate, endDate);
+                if (currentCount > 0 || headCount >  resource.getCapacity()) {
                     throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
                 }
             } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
-                Integer currentCount = reservationRepository.countByResourcesId(resource.getId());
-                if((currentCount >= resource.getCapacity())) {
+                Integer currentCount = reservationRepository.countByResourcesIdAndDeletedAtIsNull(resource.getId());
+                if(currentCount+headCount >= resource.getCapacity()) {
                     throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
                 }
             }
