@@ -23,6 +23,7 @@ public class ReservationDto {
     // 예약 요청 DTO
     // ===================
     @Getter
+    @Builder
     @Schema(description = "예약시 필요 요청 정보")
     public static class Request {
         @Schema(description = "예약할 날짜", example = "2025-10-16")

@@ -53,7 +53,7 @@ public class ReservationService {
      * - synchronized 키워드를 통해  해당 메소드에 락을 걸어 동시성 문제 해결
      */
     @Transactional
-    public synchronized ReservationDto.Response reserve(ReservationDto.Request dto, Long resourceId, Long userId) {
+    public ReservationDto.Response reserve(ReservationDto.Request dto, Long resourceId, Long userId) {
         // 일반 사용자 체크
         Users user = userRepository.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
         userRoleCheck(user);
