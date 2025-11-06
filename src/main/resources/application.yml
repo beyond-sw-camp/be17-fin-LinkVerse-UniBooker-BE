@@ -150,7 +150,7 @@ server:
   tomcat:
     max-threads: 10
     accept-count: 5
-    connection-timeout: 2000
+    connection-timeout: 60000
 
 # =================================================================
 # Redis 설정 (TODO: Redis 연동 시 활성화)
