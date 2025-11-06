@@ -80,6 +80,9 @@ public class SecurityConfig {
                         // ===== 중복 확인 =====
                         .requestMatchers(HttpMethod.GET, "/api/users/check-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admins/check-email").permitAll()
+
+                        // ===== 기업 정보 조회 (우선순위 높음 - 구체적 패턴) =====
+                        .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-slug").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/check-business-number").permitAll()
 
@@ -91,9 +94,6 @@ public class SecurityConfig {
 
                         // ===== 계정 조회 (아이디 찾기) =====
                         .requestMatchers(HttpMethod.GET, "/api/users/accounts").permitAll()
-
-                        // ===== 기업 정보 조회 =====
-                        .requestMatchers(HttpMethod.GET, "/api/companies/slug/**").permitAll()
 
                         // ===== 이미지 업로드 관련 경로 (회원가입시 필요) =====
                         .requestMatchers(HttpMethod.POST, "/api/image-upload").permitAll()
