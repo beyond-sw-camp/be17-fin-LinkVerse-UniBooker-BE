@@ -32,7 +32,11 @@ public class ReservationController {
             @Valid @RequestBody ReservationDto.Request dto,
             @PathVariable Long resourceId,
             @AuthenticationPrincipal AuthDto.AuthUser authUser) {
-        return ResponseEntity.ok(BaseResponse.success(reservationService.reserve(dto, resourceId, authUser.getId())));
+        ReservationDto.Response response;
+        synchronized(this) {
+            response = reservationService.reserve(dto, resourceId, authUser.getId());
+        }
+        return ResponseEntity.ok(BaseResponse.success(response));
     }
 
 
