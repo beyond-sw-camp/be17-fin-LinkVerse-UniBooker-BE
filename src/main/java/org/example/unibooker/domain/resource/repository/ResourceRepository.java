@@ -1,9 +1,11 @@
 package org.example.unibooker.domain.resource.repository;
 
+import jakarta.persistence.LockModeType;
 import org.example.unibooker.domain.resource.model.ResourceStatus;
 import org.example.unibooker.domain.resource.model.Resources;
 import org.example.unibooker.domain.resource.model.ServiceCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -18,6 +20,11 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
 
     // 상세 조회 (활성화 & 미삭제 상태만)
     Optional<Resources> findByIdAndIsActiveTrueAndDeletedAtIsNull(Long resourceId);
+
+    // 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Resources r WHERE r.id = :resourceId AND r.isActive = true AND r.deletedAt IS NULL")
+    Optional<Resources> findByIdForUpdate(Long resourceId);
 
     // 목록 조회 (모든 리소스)
     List<Resources> findAllByResourceGroupId(Long resourceGroupId);
