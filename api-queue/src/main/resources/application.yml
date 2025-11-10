@@ -1,0 +1,22 @@
+server:
+  port: 8083
+
+spring:
+  application.name: api-queue
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+
+queue:
+  scheduler:
+    enabled: true              # ???? on/off
+    fixed-delay-ms: 2000       # ??(???)
+    promote-batch-size: 3      # ? ?? ?? ??? ??
+    active-ttl-seconds: 600    # ACTIVE? ??? ? ?? ?? ??(?)
+    service-group-ids: 37,42   # ????? ??? ??? ?? ID ?? (?? ??)
+
+management:
+  endpoints.web.exposure.include: health,prometheus
+  endpoint.health.probes.enabled: true
+  endpoint.health.show-details: always
