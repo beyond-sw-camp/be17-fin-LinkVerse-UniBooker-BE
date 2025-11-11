@@ -3,6 +3,11 @@ kind: Rollout
 metadata:
   name: backend-rollout
   namespace: unibooker
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: backend=linkverseunibooker/backend
+    argocd-image-updater.argoproj.io/backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^.*$
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   replicas: 2
   revisionHistoryLimit: 2
