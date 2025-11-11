@@ -57,7 +57,6 @@ spec:
             failureThreshold: 3
   strategy:
     blueGreen:
-      activeService: backend-service-rollout
-      previewService: backend-preview-svc
+      activeService: backend-service
       autoPromotionEnabled: true
       autoPromotionSeconds: 30
