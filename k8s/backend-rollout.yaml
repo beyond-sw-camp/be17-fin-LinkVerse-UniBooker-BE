@@ -17,7 +17,7 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-worker3
       containers:
-        - name: feature/unibooker_backend_cicd
+        - name: backend
           image: linkverseunibooker/backend:113  # ← 새 버전마다 여기만 변경
           imagePullPolicy: IfNotPresent
           ports:
