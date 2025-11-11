@@ -1,0 +1,6 @@
+resources:
+  - backend-rollout.yaml
+
+images:
+  - name: linkverseunibooker/backend
+    newTag: latest
