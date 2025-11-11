@@ -18,7 +18,7 @@ spec:
         kubernetes.io/hostname: k8s-worker3
       containers:
         - name: backend
-          image: linkverseunibooker/backend:113  # ← 새 버전마다 여기만 변경
+          image: linkverseunibooker/backend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
