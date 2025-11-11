@@ -1,10 +1,9 @@
-package org.example.unibooker.domain.reservation.model.entity;
+package org.example.apireservation.adapter.out;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.unibooker.common.BaseEntity;
-import org.example.unibooker.domain.resource.model.Resources;
-import org.example.unibooker.domain.user.model.entity.Users;
+import org.example.apireservation.domain.model.ReservationStatus;
+import org.example.common.base.BaseEntity;
 
 import java.time.LocalDateTime;
 
@@ -16,19 +15,17 @@ import java.time.LocalDateTime;
 public class Reservations extends BaseEntity {
 
     // 사용자 키
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private Users users;
+    @JoinColumn(name = "user_id", nullable = false)
+    private Long userId;
 
     // 리소스 키
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_id")
-    private Resources resources;
+    @JoinColumn(name = "resource_id", nullable = false)
+    private Long resourceId;
 
     // 생성자
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private Users createdBy;
+    private Long createdBy;
+
 
     // 예약 상태
     @Enumerated(EnumType.STRING)
