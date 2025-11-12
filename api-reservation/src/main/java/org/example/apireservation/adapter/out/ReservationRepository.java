@@ -4,6 +4,7 @@ import jakarta.persistence.LockModeType;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,7 +35,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
         FROM Reservations r
         WHERE r.userId = :userId AND r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
-    List<Reservations> findDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
+    List<Reservations> findDuplicatedReservationSeat(@Param("userId") Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
 
     /** 선택한 일시 예약 조회 */
@@ -52,7 +53,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Query("""
         SELECT r
         FROM Reservations r
-        WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
+        WHERE r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
     List<Reservations> countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
