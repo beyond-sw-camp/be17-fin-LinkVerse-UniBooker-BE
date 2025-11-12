@@ -151,7 +151,10 @@ server:
     max-threads: 10
     accept-count: 5
     connection-timeout: 60000
+<<<<<<< HEAD
   port: 8079
+=======
+>>>>>>> 7663f9aab34aa47d9a3ad656d150ab20d3ad6ad2
 
 # =================================================================
 # Redis 설정 (TODO: Redis 연동 시 활성화)
