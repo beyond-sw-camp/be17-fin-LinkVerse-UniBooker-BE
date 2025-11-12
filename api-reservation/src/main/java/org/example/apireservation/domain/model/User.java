@@ -4,9 +4,10 @@ import lombok.*;
 import org.example.common.user.UserRole;
 
 @Getter
-@Setter
+@Builder
 public class User {
     private Long id;
     private UserRole role;
+    private String email;
     private String userName;
 }

@@ -1,4 +1,4 @@
-package org.example.apireservation.adapter.out;
+package org.example.apireservation.domain.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

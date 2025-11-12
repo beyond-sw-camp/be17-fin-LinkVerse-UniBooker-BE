@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Getter
-@Setter
+@Builder
 public class Resource {
     private Long id;
     private String resourceName;

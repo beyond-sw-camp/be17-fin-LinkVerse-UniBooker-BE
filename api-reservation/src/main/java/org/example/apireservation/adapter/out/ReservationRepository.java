@@ -1,6 +1,7 @@
 package org.example.apireservation.adapter.out;
 
 import jakarta.persistence.LockModeType;
+import org.example.apireservation.domain.model.entity.Reservations;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.*;
 
@@ -59,6 +60,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId);
 
+/*
     // 리소스 그룹의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);
@@ -70,10 +72,12 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // 특정 리소스 그룹의 예약 수
     @Query("SELECT COUNT(r) FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
     int countByResourceGroupId(Long resourceGroupId);
+*/
 
     // 특정 리소스의 예약 목록 조회
     List<Reservations> findAllByResourcesId(Long resources_id);
 
+/*
     // 특정 리소스의 예약 목록 조회 (특정 날짜)
     List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
 
@@ -102,4 +106,5 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+*/
 }
