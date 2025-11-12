@@ -3,7 +3,6 @@ package org.example.apireservation.usecase.port.out;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
-import org.example.apireservation.adapter.out.Reservations;
 import org.example.apireservation.domain.model.ReservationStatus;
 import org.example.apireservation.domain.model.ServiceCategory;
 
@@ -58,6 +57,7 @@ public class ReservationDetailDto {
     @SuperBuilder
     @Schema(description = "예약 상세 조회 [예약형] 응답 정보")
     public static class ReservationResponse extends Response {
+
         @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
         private LocalDateTime startDate;
 
@@ -69,27 +69,6 @@ public class ReservationDetailDto {
 
         @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
         private List<CustomFieldValueDto> customFieldValues;
-
-        /** entity -> dto 로 변환 */
-        public static ReservationResponse from(Reservations entity, List<CustomFieldValueDto> userCustomFieldValues) {
-            return ReservationResponse.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .status(entity.getStatus())
-                    .thumbnail(entity.getResources().getResourceImage())
-                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
-                    .resourceName(entity.getResources().getName())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
-                    .createdAt(entity.getCreatedAt())
-                    .updatedAt(entity.getUpdatedAt())
-                    .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues)
-                    // 아래부터는 예약형 정보
-                    .startDate(entity.getStartDate())
-                    .endDate(entity.getEndDate())
-                    .headCount(entity.getAttendeeCount())
-                    .build();
-        }
     }
 
 
@@ -98,6 +77,7 @@ public class ReservationDetailDto {
     @SuperBuilder
     @Schema(description = "예약 상세 조회 [좌석형] 응답 정보")
     public static class SeatResponse extends Response {
+
         @Schema(description = "예약 시작 일시", example = "2025-10-16T10:00:00")
         private LocalDateTime startDate;
 
@@ -115,28 +95,6 @@ public class ReservationDetailDto {
 
         @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
         private List<CustomFieldValueDto> customFieldValues;
-
-        public static SeatResponse from(Reservations entity, List<CustomFieldValueDto> userCustomFieldValues) {
-            return SeatResponse.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .status(entity.getStatus())
-                    .thumbnail(entity.getResources().getResourceImage())
-                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
-                    .resourceName(entity.getResources().getName())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
-                    .createdAt(entity.getCreatedAt())
-                    .updatedAt(entity.getUpdatedAt())
-                    .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues)
-                    // 아래부터는 좌석형 정보
-                    .startDate(entity.getStartDate())
-                    .endDate(entity.getEndDate())
-                    .headCount(entity.getAttendeeCount())
-                    .row(entity.getRow())
-                    .col(entity.getCol())
-                    .build();
-        }
     }
 
 
@@ -144,25 +102,9 @@ public class ReservationDetailDto {
     @Getter
     @SuperBuilder
     @Schema(description = "예약 상세 조회 [신청형] 응답 정보")
-    public static class EventResponse extends Response{
+    public static class EventResponse extends Response {
 
         @Schema(description = "예약할 때 작성한 사용자 입력 커스텀 필드 값")
         private List<CustomFieldValueDto> customFieldValues;
-
-        public static EventResponse from(Reservations entity, List<CustomFieldValueDto> userCustomFieldValues) {
-            return EventResponse.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .status(entity.getStatus())
-                    .thumbnail(entity.getResources().getResourceImage())
-                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
-                    .resourceName(entity.getResources().getName())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
-                    .createdAt(entity.getCreatedAt())
-                    .updatedAt(entity.getUpdatedAt())
-                    .deletedAt(entity.getDeletedAt())
-                    .customFieldValues(userCustomFieldValues)
-                    .build();
-        }
     }
 }

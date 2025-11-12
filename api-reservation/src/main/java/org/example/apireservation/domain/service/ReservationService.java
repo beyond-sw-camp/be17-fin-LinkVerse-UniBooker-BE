@@ -2,10 +2,10 @@ package org.example.apireservation.domain.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.apireservation.adapter.out.Reservations;
-import org.example.apireservation.adapter.out.external.UserInfo;
+import org.example.apireservation.domain.model.User;
 import org.example.apireservation.domain.model.ServiceCategory;
 import org.example.apireservation.infrastructure.ResourceExternalPort;
-import org.example.apireservation.adapter.out.external.ResourceInfo;
+import org.example.apireservation.domain.model.Resource;
 import org.example.apireservation.infrastructure.UserExternalPort;
 import org.example.apireservation.usecase.port.in.ReservationCommand;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
@@ -30,25 +30,26 @@ public class ReservationService {
 
 
     // ========================== 사용자 검증 ==========================
-    public void validateUser(Long userId) {
-        UserInfo user = userExternalPort.findUserById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+    public User validateUser(Long userId) {
+        User user = userExternalPort.findUserById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         if (user == null || !(user.getRole() == UserRole.USER)) {
             throw new BaseException(BaseResponseStatus.INVALID_USER_ROLE);
         }
+
+        return user;
     }
 
 
     // ========================== 리소스 검증 ==========================
-    public void validateResource(Long resourceId) {
-        resourceExternalPort.findResourceByIdForUpdate(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+    public Resource validateResource(Long resourceId) {
+        return resourceExternalPort.findResourceByIdForUpdate(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
     }
 
 
     // ========================== 예약일 날짜 변환 ==========================
-    public LocalDateTime[] transDate(Long resourceId, ReservationCommand dto) {
+    public LocalDateTime[] transDate(Resource resource, ReservationCommand dto) {
 
-        ResourceInfo resource = resourceExternalPort.findResourceById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
         LocalDateTime startDate, endDate;
 
         // 예약일 변환. 신청은 날짜랑 시간 예약이 없음. 신청일은 createdAt 으로 구별
@@ -64,9 +65,7 @@ public class ReservationService {
 
 
     // ========================== 중복 예약 체크 (사용자 입장) ==========================
-    public void duplicatedReservationCheck(Long resourceId, Long userId, LocalDateTime[] dates, ReservationCommand dto) {
-        ResourceInfo resource = resourceExternalPort.findResourceById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
-        UserInfo user = userExternalPort.findUserById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+    public void duplicatedReservationCheck(Resource resource, User user, LocalDateTime[] dates, ReservationCommand dto) {
 
         List<Reservations> duplicatedReservations = switch (resource.getServiceCategory()) {
             case RESERVATION -> reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId(), dates[0], dates[1]);
@@ -82,8 +81,7 @@ public class ReservationService {
 
 
     // ========================== 정원 초과 체크 (리소스 입장) ==========================
-    public void overCapacityCheck(Long resourceId, LocalDateTime[] dates, ReservationCommand dto) {
-        ResourceInfo resource = resourceExternalPort.findResourceById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+    public void overCapacityCheck(Resource resource, LocalDateTime[] dates, ReservationCommand dto) {
 
         if(resource.getServiceCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 해당 시간대에 수용 가능
             Integer currentCount = reservationPersistencePort.countBySeatReservation(resource.getId(), dates[0], dates[1], dto.getRow(), dto.getCol()).size();

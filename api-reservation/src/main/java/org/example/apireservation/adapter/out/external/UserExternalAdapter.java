@@ -1,6 +1,7 @@
 package org.example.apireservation.adapter.out.external;
 
 import lombok.RequiredArgsConstructor;
+import org.example.apireservation.domain.model.User;
 import org.example.apireservation.infrastructure.UserExternalPort;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +12,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserExternalAdapter implements UserExternalPort {
     @Override
-    public Optional<UserInfo> findUserById(Long userId) {
+    public Optional<User> findUserById(Long userId) {
         return null;
     }
 }

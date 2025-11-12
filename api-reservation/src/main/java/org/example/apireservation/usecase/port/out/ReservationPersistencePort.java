@@ -1,6 +1,7 @@
 package org.example.apireservation.usecase.port.out;
 
 import org.example.apireservation.adapter.out.Reservations;
+import org.example.apireservation.domain.model.Reservation;
 
 import java.time.LocalDateTime;
 import java.util.List;

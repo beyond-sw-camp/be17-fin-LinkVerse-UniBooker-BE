@@ -26,7 +26,6 @@ public class Reservations extends BaseEntity {
     @JoinColumn(name = "created_by")
     private Long createdBy;
 
-
     // 예약 상태
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;

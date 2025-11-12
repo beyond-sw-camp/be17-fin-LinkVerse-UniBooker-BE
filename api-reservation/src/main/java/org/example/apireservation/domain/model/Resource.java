@@ -1,14 +1,14 @@
-package org.example.apireservation.adapter.out.external;
+package org.example.apireservation.domain.model;
 
 import lombok.*;
-import org.example.apireservation.domain.model.ServiceCategory;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ResourceInfo {
+public class Resource {
     private Long id;
+    private String resourceName;
     private ServiceCategory serviceCategory;
     private LocalDate startDate;
     private LocalDate endDate;

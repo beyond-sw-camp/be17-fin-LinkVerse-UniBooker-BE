@@ -3,45 +3,23 @@ package org.example.apireservation.usecase.port.out;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.example.apireservation.adapter.out.Reservations;
 import org.example.apireservation.domain.model.ReservationStatus;
-import org.example.apireservation.domain.model.ServiceCategory;
-import org.example.common.base.BaseResponseStatus;
-import org.example.common.exception.BaseException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 예약 목록
- * 응답할 데이터를 담은 DTO */
+ * 응답할 데이터를 담은 DTO
+ * 변환 로직은 ReservationDtoMapper에 있음 */
 public class ReservationListDto {
 
-    // =============== 플랫폼 관리자 및 기업 관리자 용 ===============
+    // ========================== 플랫폼 관리자 및 기업 관리자 용 ==========================
     @Getter
     @Builder
     @Schema(description = "관리자 예약 목록 조회 응답 정보")
     public static class ResponseList {
         private List<Object> list;
-
-        public static ResponseList from(List<Reservations> entities, ServiceCategory serviceCategory) {
-            return switch(serviceCategory) {
-                case RESERVATION ->
-                        ResponseList.builder()
-                                .list(entities.stream().map(ReservationResponseListInfo::from).collect(Collectors.toList()))
-                                .build();
-                case SEAT ->
-                        ResponseList.builder()
-                                .list(entities.stream().map(SeatResponseListInfo::from).collect(Collectors.toList()))
-                                .build();
-                case EVENT ->
-                        ResponseList.builder()
-                                .list(entities.stream().map(EventResponseListInfo::from).collect(Collectors.toList()))
-                                .build();
-                default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
-            };
-        }
     }
 
     @Getter
@@ -66,17 +44,6 @@ public class ReservationListDto {
 
         @Schema(description = "예약 종료 일시")
         private LocalDateTime endDate;
-
-        public static ReservationResponseListInfo from(Reservations entity) {
-            return ReservationResponseListInfo.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .resourceName(entity.getResources().getName())
-                    .status(entity.getStatus())
-                    .startDate(entity.getStartDate())
-                    .endDate(entity.getEndDate())
-                    .build();
-        }
     }
 
     @Getter
@@ -104,19 +71,6 @@ public class ReservationListDto {
 
         @Schema(description = "예약 종료 일시")
         private LocalDateTime endDate;
-
-
-        public static SeatResponseListInfo from(Reservations entity) {
-            return SeatResponseListInfo.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .row(entity.getRow())
-                    .col(entity.getCol())
-                    .status(entity.getStatus())
-                    .startDate(entity.getStartDate())
-                    .endDate(entity.getEndDate())
-                    .build();
-        }
     }
 
     @Getter
@@ -138,31 +92,15 @@ public class ReservationListDto {
 
         @Schema(description = "신청 상태")
         private ReservationStatus status;
-
-        public static EventResponseListInfo from(Reservations entity) {
-            return EventResponseListInfo.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .email(entity.getUsers().getEmail())
-                    .applicationDate(entity.getCreatedAt())
-                    .status(entity.getStatus())
-                    .build();
-        }
     }
 
 
-    // =============== 일반 사용자용 ===============
+    // ========================== 일반 사용자용 ==========================
     @Getter
     @Builder
     @Schema(description = "일반 사용자 예약 목록 조회 응답 정보")
     public static class UserResponseList {
         List<UserResponse> reservations;
-
-        public static UserResponseList from(List<Reservations> entities) {
-            return UserResponseList.builder()
-                    .reservations(entities.stream().map(UserResponse::from).toList())
-                    .build();
-        }
     }
 
     @Getter
@@ -174,23 +112,5 @@ public class ReservationListDto {
 
         @Schema(description = "예약 종료 일시", example = "2025-10-16T11:00:00")
         private LocalDateTime endDate;
-
-        public static UserResponse from(Reservations entity) {
-            return UserResponse.builder()
-                    .id(entity.getId())
-                    .userName(entity.getUsers().getName())
-                    .status(entity.getStatus())
-                    .thumbnail(entity.getResources().getResourceGroup().getThumbnail())
-                    .resourceGroupName(entity.getResources().getResourceGroup().getName())
-                    .resourceName(entity.getResources().getName())
-                    .serviceCategory(entity.getResources().getResourceGroup().getCategory())
-                    .createdAt(entity.getCreatedAt())
-                    .updatedAt(entity.getUpdatedAt())
-                    .deletedAt(entity.getDeletedAt())
-                    // 아래부터는 일반 사용자 예약 목록 조회용 정보
-                    .startDate(entity.getStartDate())
-                    .endDate(entity.getEndDate())
-                    .build();
-        }
     }
 }

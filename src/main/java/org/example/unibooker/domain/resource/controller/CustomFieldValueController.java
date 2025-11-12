@@ -22,10 +22,10 @@ public class CustomFieldValueController {
     // ---------------- 필드 값 생성 --------------------
     @Operation(summary = "커스텀 필드 값 생성", description = "커스텀 필드에 대한 값을 생성합니다. 여러 값도 한 번에 저장 가능")
     @PostMapping("/values/{targetId}")
-    public BaseResponse registerCustomFieldValues(@PathVariable Long targetId,
-                                                  @RequestBody List<CustomFieldDto.CustomFieldValue> dtos) {
-        customFieldValueService.register(targetId, dtos);
-        return BaseResponse.success("커스텀 필드 값이 생성되었습니다.");
+    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> registerCustomFieldValues(@PathVariable Long targetId,
+                                                                                         @RequestBody List<CustomFieldDto.CustomFieldValue> dtos) {
+        List<CustomFieldDto.CustomFieldValueListRes> result = customFieldValueService.register(targetId, dtos);
+        return BaseResponse.success(result);
     }
 
 

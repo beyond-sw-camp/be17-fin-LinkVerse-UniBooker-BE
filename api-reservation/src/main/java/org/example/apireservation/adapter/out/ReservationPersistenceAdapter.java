@@ -1,6 +1,8 @@
 package org.example.apireservation.adapter.out;
 
 import lombok.RequiredArgsConstructor;
+import org.example.apireservation.domain.model.Reservation;
+import org.example.apireservation.mapper.ReservationMapper;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +30,8 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 예약 상세 조회 ==========================
     @Override
-    public Optional<Reservations> findById(Long reservationId) {
-        return reservationRepository.findById(reservationId);
+    public Optional<Reservation> findById(Long reservationId) {
+        return ReservationMapper.fromEntity(reservationRepository.findById(reservationId));
     }
 
     // ========================== 예약하기 ==========================

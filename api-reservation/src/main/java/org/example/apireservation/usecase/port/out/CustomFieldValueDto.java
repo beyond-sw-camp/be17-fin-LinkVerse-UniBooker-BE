@@ -1,6 +1,7 @@
 package org.example.apireservation.usecase.port.out;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * 유저 커스텀 필드 값 정보
  * 응답할 데이터를 담은 DTO */
 @Getter
+@Builder
 public class CustomFieldValueDto {
 
     @Schema(description = "필드 ID", example = "1")
