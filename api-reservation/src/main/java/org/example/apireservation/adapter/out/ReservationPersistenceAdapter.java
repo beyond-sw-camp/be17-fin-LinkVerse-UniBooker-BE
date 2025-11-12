@@ -30,8 +30,8 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 예약 상세 조회 ==========================
     @Override
-    public Optional<Reservation> findById(Long reservationId) {
-        return ReservationMapper.fromEntity(reservationRepository.findById(reservationId));
+    public Optional<Reservations> findById(Long reservationId) {
+        return reservationRepository.findById(reservationId);
     }
 
     // ========================== 예약하기 ==========================

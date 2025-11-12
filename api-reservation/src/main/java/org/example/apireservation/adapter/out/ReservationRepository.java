@@ -22,7 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Query("""
         SELECT r
         FROM Reservations r
-        WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
+        WHERE r.userId = :userId AND r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
     List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
@@ -31,7 +31,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Query("""
         SELECT r
         FROM Reservations r
-        WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
+        WHERE r.userId = :userId AND r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
     List<Reservations> findDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
@@ -42,7 +42,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     @Query("""
         SELECT r
         FROM Reservations r
-        WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
+        WHERE r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
     List<Reservations> countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 

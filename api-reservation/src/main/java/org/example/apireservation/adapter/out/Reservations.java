@@ -15,15 +15,14 @@ import java.time.LocalDateTime;
 public class Reservations extends BaseEntity {
 
     // 사용자 키
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 
     // 리소스 키
-    @JoinColumn(name = "resource_id", nullable = false)
+    @Column(nullable = false)
     private Long resourceId;
 
     // 생성자
-    @JoinColumn(name = "created_by")
     private Long createdBy;
 
     // 예약 상태
