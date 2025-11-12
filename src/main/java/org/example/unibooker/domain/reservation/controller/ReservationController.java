@@ -33,9 +33,7 @@ public class ReservationController {
             @PathVariable Long resourceId,
             @AuthenticationPrincipal AuthDto.AuthUser authUser) {
         ReservationDto.Response response;
-        synchronized(this) {
-            response = reservationService.reserve(dto, resourceId, authUser.getId());
-        }
+        response = reservationService.reserve(dto, resourceId, authUser.getId());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 

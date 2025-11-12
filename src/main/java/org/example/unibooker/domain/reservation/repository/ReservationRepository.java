@@ -1,9 +1,11 @@
 package org.example.unibooker.domain.reservation.repository;
 
+import jakarta.persistence.LockModeType;
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
 import org.example.unibooker.domain.resource.model.Resources;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
@@ -18,45 +20,47 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // 삭제되지 않은 예약 조회
     Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
 
-    // 사용자의 중복 예약 존재 여부 - 예약형, 신청형
+    /** 사용자의 중복 예약 존재 하는지 조회 */
+    // 사용자의 중복 예약 존재 하는지 조회 - 예약형, 신청형
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
+        SELECT r
         FROM Reservations r
         WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
-    Boolean existsByDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 사용자의 중복 예약 존재 여부 - 좌석형
+    // 사용자의 중복 예약 존재 하는지 조회 - 좌석형
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
+        SELECT r
         FROM Reservations r
-        WHERE r.users.id = :userId 
-            AND r.resources.id = :resourceId 
-            AND (r.startDate < :endDate AND r.endDate > :startDate)
-            AND r.row = :row 
-            AND r.col = :col 
-            AND r.deletedAt IS NULL
+        WHERE r.users.id = :userId AND r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
-    Boolean existsByDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
+    List<Reservations> findDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
-    // 선택한 일시 예약 수 카운트 - 예약형
+    /** 선택한 일시 예약 조회 */
+    // 선택한 일시 예약 조회 - 예약형
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        SELECT COUNT(r)
+        SELECT r
         FROM Reservations r
         WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
-    Integer countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Reservations> countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 선택한 일시 예약 수 카운트 - 좌석형
+    // 선택한 일시 예약 조회 - 좌석형
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        SELECT COUNT(r)
+        SELECT r
         FROM Reservations r
         WHERE r.resources.id = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
-    Integer countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
+    List<Reservations> countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
-    // 예약 수 카운트 - 신청형
-    Integer countByResourcesIdAndDeletedAtIsNull(Long resourceId);
+    // 선택한 일시 예약 조회 - 신청형
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r LEFT JOIN r.resources rs WHERE rs.id = :resourceId")
