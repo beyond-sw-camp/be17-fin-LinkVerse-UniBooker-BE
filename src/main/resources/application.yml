@@ -145,6 +145,15 @@ server:
         http-only: true
 
 # =================================================================
+# 톰캣 설정
+# =================================================================
+  tomcat:
+    max-threads: 10
+    accept-count: 5
+    connection-timeout: 60000
+  port: 8079
+
+# =================================================================
 # Redis 설정 (TODO: Redis 연동 시 활성화)
 # =================================================================
 # spring:
@@ -173,3 +182,11 @@ management:
       enabled: false
     diskspace:
       enabled: false
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    registerWithEureka: true
+    fetchRegistry: true

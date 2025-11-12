@@ -44,6 +44,7 @@ public class Users extends BaseEntity {
     @Comment("전화번호")
     private String phone;
 
+
     @Column(name = "birth_date", length = 20)
     @Comment("생년월일")
     private String birthDate;

@@ -1,0 +1,46 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    registerWithEureka: true
+    fetchRegistry: true
+
+jwt:
+  secret-key: ${JWT_SECRET}
+
+spring:
+  application:
+    name: api-gateway
+
+#  data:
+#    redis:
+#      host: ${AUTH_REDIS_URL}
+#      port: ${AUTH_REDIS_PORT}
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: api-resource
+              uri: lb://api-resource
+              order: 1
+              predicates:
+                - Path=/api/resource/**
+                - Path=/api/resource-group/**
+            - id: unibooker
+              uri: lb://unibooker
+              order: 2
+              predicates:
+                - Path=/api/**
+#            - id: api-purchase
+#              uri: lb://api-purchase
+#              predicates:
+#                - Path=/api/purchase/**
+#            - id: api-auth
+#              uri: lb://api-auth
+#              predicates:
+#                - Path=/api/auth/**
+
+#                - StripPrefix=1     # ?? 1
+#                - RewritePath=/user/(?<remaining>.*), /${remaining} # ?? 2

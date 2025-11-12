@@ -2,8 +2,10 @@ package org.example.common.user;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter // 테스트용..지우세요!!
 @Builder
 public class AuthDto {
 
