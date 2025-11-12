@@ -98,10 +98,26 @@ public class ResourceWebAdapter {
                 : BaseResponse.error(BaseResponseStatus.RESOURCE_STATUS_CHANGE_FAILED);
     }
 
-    // ---------------- 서비스 상태 변경 ----------------
+    // ---------------- 서비스 존재 여부 확인 ----------------
     @Operation(summary = "존재하는 서비스인지 확인", description = "서비스의 존재 여부를 반환합니다.")
     @GetMapping("/{id}/exists")
     public BaseResponse isExistResource(@PathVariable Long resourceId) {
         return BaseResponse.success(resourceWebPort.getResourceIfExists(resourceId));
+    }
+
+    // ---------------- 서비스 상세 조회 (비활성화,삭제된 리소스도 허용) ----------------
+    @Operation(summary = "서비스 상세 조회(비활성화, 삭제 고려X)", description = "서비스를 상세 조회합니다(비활성화, 삭제 고려X)")
+    @GetMapping("/{resourceId}/super")
+    public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceByIdForSuper(@PathVariable Long resourceId) {
+        ResourceDto.ResourceDetailInfo response = resourceWebPort.getResourceByIdForSuper(resourceId);
+        return BaseResponse.success(response);
+    }
+
+    // ---------------- 서비스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락) ----------------
+    @Operation(summary = "서비스 상세 조회(활성화 & 미삭제 상태 & 비관적 락)", description = "서비스를 상세 조회합니다(활성화 & 미삭제 상태 & 비관적 락)")
+    @GetMapping("/{resourceId}/super")
+    public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceLock(@PathVariable Long resourceId) {
+        ResourceDto.ResourceDetailInfo response = resourceWebPort.getResourceLock(resourceId);
+        return BaseResponse.success(response);
     }
 }

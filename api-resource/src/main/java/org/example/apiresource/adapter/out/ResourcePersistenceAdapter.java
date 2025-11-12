@@ -66,4 +66,12 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
     public boolean existsById(Long resourceId) {
         return resourceRepository.existsById(resourceId);
     }
+
+
+    // 리소스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    @Override
+    @Transactional
+    public Optional<Resources> findByIdForUpdate(Long resourceId) {
+        return resourceRepository.findByIdForUpdate(resourceId);
+    }
 }

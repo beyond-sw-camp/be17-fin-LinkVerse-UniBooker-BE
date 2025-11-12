@@ -1,8 +1,10 @@
 package org.example.apiresource.adapter.out.repository;
 
+import jakarta.persistence.LockModeType;
 import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.apiresource.domain.model.entity.Resources;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -32,4 +34,9 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
     int countAllByIsActive(Boolean isActive);
 
     List<Resources> findByDeletedAtIsNullAndStartDateIsNotNullAndEndDateIsNotNull();
+
+    // 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Resources r WHERE r.id = :resourceId AND r.isActive = true AND r.deletedAt IS NULL")
+    Optional<Resources> findByIdForUpdate(Long resourceId);
 }

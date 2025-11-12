@@ -22,4 +22,7 @@ public interface ResourcePersistencePort {
 
     // 리소스 존재 여부 확인
     boolean existsById(Long resourceId);
+
+    // 리소스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    Optional<Resources> findByIdForUpdate(Long resourceId);
 }

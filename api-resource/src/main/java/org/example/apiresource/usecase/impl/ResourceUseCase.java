@@ -202,4 +202,26 @@ public class ResourceUseCase implements ResourceWebPort {
 
         return resourceService.toExistenceDto(resource);
     }
+
+
+    // 서비스 상세 조회 (비활성화, 삭제 고려X)
+    @Override
+    @Transactional
+    public ResourceDto.ResourceDetailInfo getResourceByIdForSuper(Long resourceId) {
+        Resources resource = resourcePersistencePort.findById(resourceId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
+
+        return resourceService.toResourceDetailInfo(resource);
+    }
+
+
+    // 서비스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    @Override
+    @Transactional
+    public ResourceDto.ResourceDetailInfo getResourceLock(Long resourceId) {
+        Resources resource = resourcePersistencePort.findByIdForUpdate(resourceId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
+
+        return resourceService.toResourceDetailInfo(resource);
+    }
 }

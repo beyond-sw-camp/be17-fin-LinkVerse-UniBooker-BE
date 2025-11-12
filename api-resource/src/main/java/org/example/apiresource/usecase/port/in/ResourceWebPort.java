@@ -32,4 +32,10 @@ public interface ResourceWebPort {
 
     // 서비스 존재 여부 확인
     Object getResourceIfExists(Long resourceId);
+
+    // 서비스 상세 조회 (비활성화, 삭제 고려X)
+    ResourceDto.ResourceDetailInfo getResourceByIdForSuper(Long resourceId);
+
+    // 서비스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
+    ResourceDto.ResourceDetailInfo getResourceLock(Long resourceId);
 }
