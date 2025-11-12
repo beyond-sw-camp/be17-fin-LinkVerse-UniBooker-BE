@@ -154,6 +154,14 @@ public class ResourceService {
         return ResourceDto.ResourceDetailInfo.fromEntity(resource);
     }
 
+    // -------------------- 리소스 상세 조회 (비관적 락) --------------------
+    public ResourceDto.ResourceDetailInfo getPessimisticResourceById(Long resourceId) {
+        Resources resource = resourceRepository.findByIdForUpdate(resourceId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
+
+        return ResourceDto.ResourceDetailInfo.fromEntity(resource);
+    }
+
 
     // -------------------- 리소스 수정 --------------------
     @Transactional

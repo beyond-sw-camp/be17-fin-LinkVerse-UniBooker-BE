@@ -1,7 +1,7 @@
 package org.example.apireservation.domain.model;
 
 import lombok.*;
-import org.example.apireservation.adapter.out.Reservations;
+import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.service.ReservationService;
 import org.example.apireservation.usecase.port.in.ReservationCommand;
 

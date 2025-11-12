@@ -1,7 +1,7 @@
 package org.example.apireservation.mapper;
 
 import org.example.apireservation.domain.model.CustomFieldValue;
-import org.example.apireservation.usecase.port.out.CustomFieldValueDto;
+import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
 
 public class CustomFieldValueMapper {
 

@@ -1,10 +1,10 @@
 package org.example.apireservation.mapper;
 
-import org.example.apireservation.adapter.out.Reservations;
+import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
-import org.example.apireservation.usecase.port.out.CustomFieldValueDto;
-import org.example.apireservation.usecase.port.out.ReservationDetailDto;
-import org.example.apireservation.usecase.port.out.ReservationListDto;
+import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
+import org.example.apireservation.domain.model.dto.ReservationDetailDto;
+import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
 

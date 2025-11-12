@@ -49,6 +49,14 @@ public class ResourceController {
         return BaseResponse.success(response);
     }
 
+    // ---------------- 단건 조회 (비관적 락) ----------------
+    @Operation(summary = "서비스 상세 조회 (비관적 락)", description = "서비스를 상세 조회합니다.")
+    @GetMapping("/pessimistic/{resourceId}")
+    public BaseResponse<ResourceDto.ResourceDetailInfo> getPessimisticResourceById(@PathVariable Long resourceId) {
+        ResourceDto.ResourceDetailInfo response = resourceService.getPessimisticResourceById(resourceId);
+        return BaseResponse.success(response);
+    }
+
 
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 수정", description = "기존의 예약/신청 서비스를 수정합니다.")

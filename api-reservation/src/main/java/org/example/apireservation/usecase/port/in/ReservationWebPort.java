@@ -1,7 +1,7 @@
 package org.example.apireservation.usecase.port.in;
 
-import org.example.apireservation.usecase.port.out.ReservationDetailDto;
-import org.example.apireservation.usecase.port.out.ReservationListDto;
+import org.example.apireservation.domain.model.dto.ReservationDetailDto;
+import org.example.apireservation.domain.model.dto.ReservationListDto;
 
 import java.time.LocalDateTime;
 

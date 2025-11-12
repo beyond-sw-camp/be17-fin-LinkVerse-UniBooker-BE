@@ -1,14 +1,16 @@
 package org.example.apireservation.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.apireservation.adapter.out.Reservations;
+import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.User;
 import org.example.apireservation.domain.model.ServiceCategory;
-import org.example.apireservation.infrastructure.ResourceExternalPort;
+import org.example.apireservation.domain.model.entity.Users;
+import org.example.apireservation.infrastructure.ResourceFeignAdapter;
 import org.example.apireservation.domain.model.Resource;
-import org.example.apireservation.infrastructure.UserExternalPort;
+import org.example.apireservation.mapper.UserMapper;
 import org.example.apireservation.usecase.port.in.ReservationCommand;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
+import org.example.apireservation.usecase.port.out.UserPersistencePort;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
 import org.example.common.user.UserRole;
@@ -25,13 +27,15 @@ import java.util.List;
 public class ReservationService {
 
     private final ReservationPersistencePort reservationPersistencePort;
-    private final ResourceExternalPort resourceExternalPort;
-    private final UserExternalPort userExternalPort;
+    private final ResourceFeignAdapter resourceFeignAdapter;
+    private final UserPersistencePort userPersistencePort;
 
 
     // ========================== 사용자 검증 ==========================
     public User validateUser(Long userId) {
-        User user = userExternalPort.findUserById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        // 사용자 상세 조회 (외부 호출)
+        Users entity = userPersistencePort.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        User user = UserMapper.from(entity); // entity -> domain
 
         if (user == null || !(user.getRole() == UserRole.USER)) {
             throw new BaseException(BaseResponseStatus.INVALID_USER_ROLE);
@@ -43,7 +47,7 @@ public class ReservationService {
 
     // ========================== 리소스 검증 ==========================
     public Resource validateResource(Long resourceId) {
-        return resourceExternalPort.findResourceByIdForUpdate(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+        return resourceFeignAdapter.findResourceByIdForUpdate(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
     }
 
 

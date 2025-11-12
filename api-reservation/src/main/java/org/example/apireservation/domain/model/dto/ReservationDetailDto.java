@@ -1,4 +1,4 @@
-package org.example.apireservation.usecase.port.out;
+package org.example.apireservation.domain.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;

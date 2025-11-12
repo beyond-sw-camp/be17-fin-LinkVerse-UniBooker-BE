@@ -1,6 +1,37 @@
 server:
   port: 8082
 
+
+# =================================================================
+# 서킷 브레이커 설정
+# =================================================================
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000    # TCP 연결하는데 기다리는 시간, 5초
+        readTimeout: 5000       # HTTP로 데이터를 보내고 받는데 기다리는 시간, 5초
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      B_API_CIRCUIT:
+        # 서킷 브레이커의 상태
+        # Closed : 정상적인 상태
+        # Open : api-b가 일정 비율 이상으로 실패하거나 지연되면 "열림" 상태로 변경됨
+        #         "열림" 상태에서는 서요청을 보내지 않고 즉시 실패 응답
+        #         일정 시간이 지나면 "반열림" 상태로 전환
+        # Half-Open : api-b에 요청을 전송하여 정상 동작 여부를 확인
+
+        minimumNumberOfCalls: 5   # 최소 5개 이상의 요청이 있어야 실패율을 계산함
+        slidingWindowSize: 10    # 최근 10의 요청 중
+        failureRateThreshold: 50  # 50% 이상 실패하면 Open 상태로 변경
+        waitDurationInOpenState: 30s  # Open 상태가 30초동안 유지, 30초 후 Half-Open상태로 전환
+        permittedNumberOfCallsInHalfOpenState: 2  # Half-Open 상태에서 2번 성공하면 Closed 상태로 전환
+
+
 spring:
   application:
     name: api-reservation
