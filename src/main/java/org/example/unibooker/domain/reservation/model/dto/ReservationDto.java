@@ -7,7 +7,6 @@ import org.example.unibooker.common.BaseResponseStatus;
 import org.example.unibooker.common.exception.BaseException;
 import org.example.unibooker.domain.reservation.model.entity.ReservationStatus;
 import org.example.unibooker.domain.reservation.model.entity.Reservations;
-import org.example.unibooker.domain.reservation.repository.ReservationRepository;
 import org.example.unibooker.domain.resource.model.CustomFieldDto;
 import org.example.unibooker.domain.resource.model.Resources;
 import org.example.unibooker.domain.resource.model.ServiceCategory;
@@ -45,48 +44,7 @@ public class ReservationDto {
         private List<CustomFieldDto.CustomFieldValue> customFieldValues;
 
         /** dto -> entity 변환 함수 */
-        // TODO : reservationRepository 분리 필요
-        public Reservations toReservationEntity(Users user, Resources resource, ReservationRepository reservationRepository) {
-            LocalDateTime startDate, endDate;
-
-            // 신청인지 아닌지 체크 - 예약일 변환. 신청은 날짜랑 시간 예약이 없음. 신청일은 createdAt 으로 구별
-            if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
-                startDate = date.atTime(time);
-                endDate = startDate.plusMinutes(resource.getTimeInterval());
-            } else {
-                startDate = null; endDate = null;
-            }
-
-            // TODO : 범위 내의 날짜 및 시간인지 체크
-
-            // 중복 예약 체크 (사용자 입장)
-            Boolean isDuplicate = switch (resource.getResourceGroup().getCategory()) {
-                case RESERVATION -> reservationRepository.existsByDuplicatedReservation(user.getId(), resource.getId(), startDate, endDate);
-                case SEAT -> reservationRepository.existsByDuplicatedReservationSeat(user.getId(), resource.getId(), startDate, endDate, row, col);
-                case EVENT -> reservationRepository.existsByDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
-                default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
-            };
-            if (Boolean.TRUE.equals(isDuplicate)) {
-                throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
-            }
-
-            // 정원 초과 체크 (리소스 입장)
-            if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 해당 시간대에 수용 가능
-                Integer currentCount = reservationRepository.countBySeatReservation(resource.getId(), startDate, endDate, row, col);
-                if (currentCount+headCount >= resource.getCapacity() || headCount > 1) {
-                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
-                }
-            } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.RESERVATION)) { // 시간대별 한 타임 예약 가능
-                Integer currentCount = reservationRepository.countByReservation(resource.getId(), startDate, endDate);
-                if (currentCount > 0 || headCount >  resource.getCapacity()) {
-                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
-                }
-            } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
-                Integer currentCount = reservationRepository.countByResourcesIdAndDeletedAtIsNull(resource.getId());
-                if(currentCount+headCount >= resource.getCapacity()) {
-                    throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
-                }
-            }
+        public Reservations toReservationEntity(Users user, Resources resource, LocalDateTime[] dates) {
 
             // 예약 Entity 반환
             return Reservations.builder()
@@ -95,8 +53,8 @@ public class ReservationDto {
                     .createdBy(user)
                     .status(ReservationStatus.CONFIRMED)
                     .attendeeCount(headCount)
-                    .startDate(startDate)
-                    .endDate(endDate)
+                    .startDate(dates[0])
+                    .endDate(dates[1])
                     .row(row)
                     .col(col)
                     .build();

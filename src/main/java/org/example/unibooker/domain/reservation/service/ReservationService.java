@@ -18,6 +18,7 @@ import org.example.unibooker.domain.user.model.UserRole;
 import org.example.unibooker.domain.user.model.entity.Users;
 import org.example.unibooker.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -29,24 +30,73 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReservationService {
 
-    /** service */
+    // service
     private final CustomFieldValueService customFieldValueService;
     private final NotificationService notificationService;
 
-    /** repository */
+    //repository
     private final ReservationRepository reservationRepository;
     private final ResourceGroupRepository resourceGroupRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
 
-    /**
-     * 사용자 권한 확인
-     */
+
+    /** 사용자 권한 확인 */
     public void userRoleCheck(Users user) {
         if (user == null || !(user.getRole() == UserRole.USER)) {
             throw new BaseException(BaseResponseStatus.INVALID_USER_ROLE);
         }
     }
+
+    /** 예약일 날짜 변환 */
+    public LocalDateTime[] transDate(Resources resource, ReservationDto.Request dto) {
+        LocalDateTime startDate, endDate;
+
+        // 예약일 변환. 신청은 날짜랑 시간 예약이 없음. 신청일은 createdAt 으로 구별
+        if(!resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) {
+            startDate = dto.getDate().atTime(dto.getTime());
+            endDate = startDate.plusMinutes(resource.getTimeInterval());
+        } else {
+            startDate = null; endDate = null;
+        }
+
+        return new LocalDateTime[]{startDate, endDate};
+    }
+
+    /** 중복 예약 체크 (사용자 입장) */
+    public void duplicatedReservationCheck(Resources resource, Users user, LocalDateTime[] dates, ReservationDto.Request dto) {
+        List<Reservations> duplicatedReservations = switch (resource.getResourceGroup().getCategory()) {
+            case RESERVATION -> reservationRepository.findDuplicatedReservation(user.getId(), resource.getId(), dates[0], dates[1]);
+            case SEAT -> reservationRepository.findDuplicatedReservationSeat(user.getId(), resource.getId(), dates[0], dates[1], dto.getRow(), dto.getCol());
+            case EVENT -> reservationRepository.findDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+            default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
+        };
+
+        if (!duplicatedReservations.isEmpty()) {
+            throw new BaseException(BaseResponseStatus.RESERVATION_DUPLICATED);
+        }
+    }
+
+    /** 정원 초과 체크 (리소스 입장) */
+    public void overCapacityCheck(Resources resource, LocalDateTime[] dates, ReservationDto.Request dto) {
+        if(resource.getResourceGroup().getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 해당 시간대에 수용 가능
+            Integer currentCount = reservationRepository.countBySeatReservation(resource.getId(), dates[0], dates[1], dto.getRow(), dto.getCol()).size();
+            if (currentCount+dto.getHeadCount() >= resource.getCapacity() || dto.getHeadCount() > 1) {
+                throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+            }
+        } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.RESERVATION)) { // 시간대별 한 타임 예약 가능
+            Integer currentCount = reservationRepository.countByReservation(resource.getId(), dates[0], dates[1]).size();
+            if (currentCount > 0 || dto.getHeadCount() >  resource.getCapacity()) {
+                throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+            }
+        } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
+            Integer currentCount = reservationRepository.countByResourcesIdAndDeletedAtIsNull(resource.getId()).size();
+            if(currentCount+dto.getHeadCount() >= resource.getCapacity()) {
+                throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
+            }
+        }
+    }
+
 
     /**
      * 예약하기
@@ -59,10 +109,15 @@ public class ReservationService {
         userRoleCheck(user);
 
         // 리소스 존재 여부 체크
-        Resources resource = resourceRepository.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+        Resources resource = resourceRepository.findByIdForUpdate(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+
+        // 예약을 하기 위한 조건 검사
+        LocalDateTime[] dates = transDate(resource, dto);       // 예약일 변환
+        duplicatedReservationCheck(resource, user, dates, dto); // 중복 예약 체크 (사용자 입장)
+        overCapacityCheck(resource, dates, dto);                // 정원 초과 체크 (리소스 입장)
 
         // 예약 생성 및 저장
-        Reservations reservation = reservationRepository.save(dto.toReservationEntity(user, resource, reservationRepository));
+        Reservations reservation = reservationRepository.save(dto.toReservationEntity(user, resource, dates));
 
         // 사용자 커스텀 필드 값 저장
         List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
@@ -94,7 +149,6 @@ public class ReservationService {
         ResourceGroups resourceGroups = resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_GROUP_NOT_FOUND));
 
         // 리소스 그룹 별 전체 예약 목록 조회
-        // TODO : 취소된 예약은 안보이게 조회하는 코드로 수정
         List<Reservations> result = reservationRepository.findAllByResourceGroupIdWithReservation(resourceGroupId);
 
         return ReservationDto.ResponseList.from(result, resourceGroups.getCategory());
@@ -121,18 +175,15 @@ public class ReservationService {
     }
 
 
-    /**
-     * 예약 목록 조회 - 일반 사용자
-     * */
+    /** 예약 목록 조회 - 일반 사용자 */
     public ReservationDto.UserResponseList getUserReservations(Long userId) {
+        // TODO : 취소된 예약은 안보이게 조회하는 코드로 수정
         List<Reservations> result = reservationRepository.findAllByUsersId(userId);
         return ReservationDto.UserResponseList.from(result);
     }
 
 
-    /**
-     * 예약 상세 조회
-     */
+    /** 예약 상세 조회 */
     public ReservationDto.Response getReservationDetail(Long reservationId) {
         // 예약 존재 여부 체크
         Reservations reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESERVATION_NOT_FOUND));
@@ -150,9 +201,7 @@ public class ReservationService {
     }
 
 
-    /**
-     * 예약 취소
-     */
+    /** 예약 취소 */
     public void cancel(Long reservationId, Long userId) {
         // 사용자 존재 여부 체크
         Users user = userRepository.findById(userId).orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
