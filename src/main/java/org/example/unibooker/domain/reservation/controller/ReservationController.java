@@ -43,7 +43,7 @@ public class ReservationController {
     // ===================
     @Operation(summary = "플랫폼 관리자 및 기업 관리자 예약 목록 조회", description = "플랫폼 관리자 및 기업 관리자가 리소스 그룹에 예약된 모든 예약/신청된 목록 조회를 합니다.")
     @GetMapping("/list/all/{resourceGroupId}")
-    public ResponseEntity getAdminReservations(@PathVariable Long resourceGroupId) {
+    public ResponseEntity<BaseResponse<ReservationDto.ResponseList>> getAdminReservations(@PathVariable Long resourceGroupId) {
         return ResponseEntity.ok(BaseResponse.success(reservationService.getAdminReservations(resourceGroupId)));
     }
 

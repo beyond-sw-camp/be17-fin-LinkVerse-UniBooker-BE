@@ -120,8 +120,7 @@ public class ReservationService {
         Reservations reservation = reservationRepository.save(dto.toReservationEntity(user, resource, dates));
 
         // 사용자 커스텀 필드 값 저장
-        List<Object> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
-        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValuesResult = userCustomFieldValues.stream().map(value -> CustomFieldDto.CustomFieldValueListRes.fromUserEntity((UserCustomFieldValues) value)).collect(Collectors.toList());
+        List<CustomFieldDto.CustomFieldValueListRes> userCustomFieldValues = customFieldValueService.register(reservation.getId(), dto.getCustomFieldValues()); // 현재 받은 Object = UserCustomFieldValues
 
         // 예약 확정 알림 발송
         notificationService.sendNotificationToUser(
@@ -132,9 +131,9 @@ public class ReservationService {
 
         // 카테고리 별 알맞은 형식으로 응답
         return switch (resource.getResourceGroup().getCategory()) {
-            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValuesResult);
-            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValuesResult);
-            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValuesResult);
+            case RESERVATION -> ReservationDto.ReservationResponse.from(reservation, userCustomFieldValues);
+            case SEAT -> ReservationDto.SeatResponse.from(reservation, userCustomFieldValues);
+            case EVENT -> ReservationDto.EventResponse.from(reservation, userCustomFieldValues);
             default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
         };
     }

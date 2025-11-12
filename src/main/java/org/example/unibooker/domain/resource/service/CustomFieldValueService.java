@@ -30,8 +30,8 @@ public class CustomFieldValueService {
 
 
     // -------------------- 커스텀 필드 값 저장 -------------------
-    public List<Object> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
-        List<Object> savedEntities = new ArrayList<>();
+    public List<CustomFieldDto.CustomFieldValueListRes> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
+        List<CustomFieldDto.CustomFieldValueListRes> savedDtos = new ArrayList<>();
 
         for (CustomFieldDto.CustomFieldValue dto : dtos) {
             CustomFieldDefinitions field = customFieldRepository.findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
@@ -41,13 +41,12 @@ public class CustomFieldValueService {
             if (field.getTargetType() == CustomTargetType.USER) {
                 List<UserCustomFieldValues> entities = dto.toUserEntity(field, targetId); // 여러 엔티티 리스트
                 for (UserCustomFieldValues entity : entities) {
-                    savedEntities.add(userFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                    savedDtos.add(CustomFieldDto.CustomFieldValueListRes.fromUserEntity(userFieldRepository.save(entity))); // 한 개씩 저장하고 리스트에 추가
                 }
-
             } else if (field.getTargetType() == CustomTargetType.RESOURCE) {
                 List<ResourceCustomFieldValues> entities = dto.toResourceEntities(field, targetId);
                 for (ResourceCustomFieldValues entity : entities) {
-                    savedEntities.add(resourceFieldRepository.save(entity)); // 한 개씩 저장하고 리스트에 추가
+                    savedDtos.add(CustomFieldDto.CustomFieldValueListRes.fromResourceEntity(resourceFieldRepository.save(entity))); // 한 개씩 저장하고 리스트에 추가
                 }
             } else {
                 throw new IllegalArgumentException(
@@ -56,7 +55,7 @@ public class CustomFieldValueService {
             }
         }
 
-        return savedEntities;
+        return savedDtos;
     }
 
 
