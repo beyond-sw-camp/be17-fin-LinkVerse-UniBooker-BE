@@ -15,14 +15,14 @@ import java.util.Optional;
 public interface ResourceFeignAdapter {
     // ========================== 상세 조회 ==========================
     @CircuitBreaker(name = "")
-    @GetMapping("/api/resource/detail/{resourceId}")
-    BaseResponse<Resource> findById(Long resourceId);
+    @GetMapping("/api/resource/all/{resourceId}")
+    BaseResponse<Resource> findById(@PathVariable("resourceId") Long resourceId);
 
 
     // ========================== 상세 조회 (활성화 & 미삭제 상태만) ==========================
     @CircuitBreaker(name = "")
-    @GetMapping("/api/resource/{resourceId}/super")
-    BaseResponse<Resource> findResourceById(Long resourceId);
+    @GetMapping("/api/resource/{resourceId}")
+    BaseResponse<Resource> findResourceById(@PathVariable("resourceId") Long resourceId);
 
 
     // ========================== 상세 조회 (활성화 & 미삭제 상태 & 비관적 락) ==========================

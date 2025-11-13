@@ -58,6 +58,7 @@ public class ReservationService {
         }
 
         Resource resource = response.getData();
+
         if (resource == null) {
             throw new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND);
         }

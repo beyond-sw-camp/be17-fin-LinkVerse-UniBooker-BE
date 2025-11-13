@@ -17,4 +17,10 @@ public class Resource {
     private Integer timeInterval;
     private Integer capacity;
     private boolean isActive;
+
+    private String status;
+    private String resourceImage;
+    private String description;
+    private Long resourceGroupId;
+    private String resourceGroupName;
 }

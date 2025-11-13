@@ -81,6 +81,7 @@ public class Reservation {
                 .headCount(entity.getAttendeeCount())
                 .row(entity.getRow())
                 .col(entity.getCol())
+
                 .build();
     }
 }

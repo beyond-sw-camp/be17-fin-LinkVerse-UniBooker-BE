@@ -105,9 +105,9 @@ public class ResourceWebAdapter {
         return BaseResponse.success(resourceWebPort.getResourceIfExists(resourceId));
     }
 
-    // ---------------- 서비스 상세 조회 (활성화 & 미삭제 상태만) ----------------
-    @Operation(summary = "서비스 상세 조회(비활성화, 삭제 고려X)", description = "서비스를 상세 조회합니다(비활성화, 삭제 고려X)")
-    @GetMapping("/{resourceId}/super")
+    // ---------------- 서비스 무작정 조회 ----------------
+    @Operation(summary = "서비스 상세 조회 (무작정 조회)", description = "서비스를 무작정 상세 조회합니다.")
+    @GetMapping("/all/{resourceId}")
     public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceByIdForSuper(@PathVariable Long resourceId) {
         ResourceDto.ResourceDetailInfo response = resourceWebPort.getResourceByIdForSuper(resourceId);
         return BaseResponse.success(response);

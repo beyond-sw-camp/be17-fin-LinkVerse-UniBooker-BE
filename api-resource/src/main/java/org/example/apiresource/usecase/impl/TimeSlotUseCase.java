@@ -62,12 +62,12 @@ public class TimeSlotUseCase implements TimeSlotWebPort {
         // 정규 슬롯 로드
         Map<DayOfWeek, List<ResourceTimeSlots>> regularSlots = new HashMap<>();
         for (DayOfWeek day : DayOfWeek.values()) {
-            regularSlots.put(day, resourceTimeSlotPersistencePort.findByResources_IdAndDayOfWeekAndIsActiveTrue(resourceId, day));
+            regularSlots.put(day, resourceTimeSlotPersistencePort.findByResource_IdAndDayOfWeekAndIsActiveTrue(resourceId, day));
         }
 
         // 예외 슬롯 로드
         Map<LocalDate, List<ResourceTimeSlotExceptions>> exceptionMap =
-                resourceTimeSlotExceptionPersistencePort.findByResources_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd)
+                resourceTimeSlotExceptionPersistencePort.findByResource_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd)
                         .stream()
                         .collect(Collectors.groupingBy(ResourceTimeSlotExceptions::getDate));
 
@@ -83,7 +83,7 @@ public class TimeSlotUseCase implements TimeSlotWebPort {
     @Transactional
     public List<TimeSlotDto.TimeSlotExceptionResponse> getExceptions(Long resourceId) {
         List<ResourceTimeSlotExceptions> exceptions = resourceTimeSlotExceptionPersistencePort
-                .findByResources_IdOrderByDateAscStartTimeAsc(resourceId);
+                .findByResource_IdOrderByDateAscStartTimeAsc(resourceId);
 
         return timeSlotService.toExceptionResponses(exceptions);
     }
