@@ -8,7 +8,7 @@ import org.example.apiresource.domain.model.dto.ResourceDto;
 import org.example.apiresource.usecase.port.in.ResourceWebPort;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "리소스 관리", description = "리소스에 대한 값들을 관리합니다.")

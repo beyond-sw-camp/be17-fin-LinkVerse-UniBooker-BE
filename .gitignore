@@ -42,3 +42,4 @@ uploads/
 # Local configuration (보안상 커밋 금지)
 application-local.yml
 application-local.properties
+.env

@@ -4,6 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+/**
+ * API 응답 공통 형식
+ * - 성공/실패 여부
+ * - 상태 코드
+ * - 메시지
+ * - 데이터
+ */
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseResponse<T> {
@@ -12,41 +19,43 @@ public class BaseResponse<T> {
     private final String message;
     private final T data;
 
-    // 성공 응답 (데이터 있음)
+    // ========== 생성자 ==========
+
+    /**
+     * 성공 응답 (데이터 있음)
+     */
     private BaseResponse(T data) {
-        this.code = BaseResponseStatus.SUCCESS.getCode();
-        this.message = BaseResponseStatus.SUCCESS.getMessage();
+        this.code = 10000;
+        this.message = "요청에 성공하였습니다.";
         this.data = data;
     }
 
-    // 성공 응답 (데이터 없음)
+    /**
+     * 성공 응답 (데이터 없음)
+     */
     private BaseResponse() {
-        this.code = BaseResponseStatus.SUCCESS.getCode();
-        this.message = BaseResponseStatus.SUCCESS.getMessage();
+        this.code = 10000;
+        this.message = "요청에 성공하였습니다.";
         this.data = null;
     }
 
-    // 에러 응답
+    /**
+     * 에러 응답 (커스텀)
+     */
     private BaseResponse(int code, String message) {
         this.code = code;
         this.message = message;
         this.data = null;
     }
 
-    // 에러 응답 (BaseResponseStatus)
-    private BaseResponse(BaseResponseStatus status) {
-        this.code = status.getCode();
-        this.message = status.getMessage();
-        this.data = null;
-    }
+    // ========== isSuccess 판단 ==========
 
     /**
      * 성공 여부 판단
-     * - code가 1000(SUCCESS)이면 true
      */
     @JsonProperty("isSuccess")
     public boolean isSuccess() {
-        return this.code == BaseResponseStatus.SUCCESS.getCode();
+        return this.code == 10000;
     }
 
     // ========== Static Factory Methods ==========
@@ -66,7 +75,7 @@ public class BaseResponse<T> {
     }
 
     /**
-     * 에러 응답 (커스텀 코드, 메시지)
+     * 에러 응답 (코드, 메시지)
      */
     public static <T> BaseResponse<T> error(int code, String message) {
         return new BaseResponse<>(code, message);
@@ -75,7 +84,5 @@ public class BaseResponse<T> {
     /**
      * 에러 응답 (BaseResponseStatus 사용)
      */
-    public static <T> BaseResponse<T> error(BaseResponseStatus status) {
-        return new BaseResponse<>(status);
-    }
+    public static <T> BaseResponse<T> error(BaseResponseStatus status) { return new BaseResponse<>(status.getCode(), status.getMessage()); }
 }

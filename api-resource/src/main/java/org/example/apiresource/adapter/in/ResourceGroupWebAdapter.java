@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.apiresource.domain.model.dto.ResourceGroupDto;
 import org.example.apiresource.usecase.port.in.ResourceGroupWebPort;
 import org.example.common.base.BaseResponse;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "리소스 그룹 관리", description = "리소스 그룹에 대한 값들을 관리합니다.")

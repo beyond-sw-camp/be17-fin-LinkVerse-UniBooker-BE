@@ -1,8 +1,9 @@
-package org.example.common.user;
+package org.example.common.model.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.common.model.UserRole;
 
 @Getter
 @Setter // 테스트용..지우세요!!

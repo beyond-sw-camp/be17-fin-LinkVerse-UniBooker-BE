@@ -11,8 +11,8 @@ import org.example.apiresource.domain.model.entity.ResourceGroups;
 import org.example.apiresource.domain.service.ResourceGroupService;
 import org.example.apiresource.usecase.port.in.ResourceGroupWebPort;
 import org.example.apiresource.usecase.port.out.ResourceGroupPersistencePort;
-import org.example.common.user.AuthDto;
-import org.example.common.user.UserRole;
+import org.example.common.model.dto.AuthDto;
+import org.example.common.model.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
