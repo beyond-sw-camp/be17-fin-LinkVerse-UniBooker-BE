@@ -18,8 +18,8 @@ public class UserFieldValuePersistenceAdapter implements UserFieldValuePersisten
 
     @Override
     @Transactional
-    public void save(UserCustomFieldValues userEntity) {
-        userFieldValueRepository.save(userEntity);
+    public UserCustomFieldValues save(UserCustomFieldValues userEntity) {
+        return userFieldValueRepository.save(userEntity);
     }
 
 

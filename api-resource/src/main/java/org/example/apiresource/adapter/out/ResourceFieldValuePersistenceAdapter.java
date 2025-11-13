@@ -19,8 +19,8 @@ public class ResourceFieldValuePersistenceAdapter implements ResourceFieldValueP
 
     @Override
     @Transactional
-    public void save(ResourceCustomFieldValues resourceEntity) {
-        resourceCustomFieldValueRepository.save(resourceEntity);
+    public ResourceCustomFieldValues save(ResourceCustomFieldValues resourceEntity) {
+        return resourceCustomFieldValueRepository.save(resourceEntity);
     }
 
     @Override
