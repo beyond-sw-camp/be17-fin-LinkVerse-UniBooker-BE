@@ -177,7 +177,7 @@ public class ResourceService {
         resource.update(dto, user);
 
         // 정규 시간 슬롯 업데이트
-        List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+        List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResource_Id(resourceId);
 
         List<TimeSlotDto.TimeSlotRequest> dtoSlots = dto.getTimeSlots();
 
@@ -205,7 +205,7 @@ public class ResourceService {
         if (dto.getExceptionSlots() != null && !dto.getExceptionSlots().isEmpty()) {
             // 기존 예외 슬롯 소프트 삭제
             List<ResourceTimeSlotExceptions> existingExceptions =
-                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+                    resourceTimeSlotExceptionRepository.findByResource_Id(resourceId);
             existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
 
             // 새로운 예외 슬롯 추가
@@ -223,7 +223,7 @@ public class ResourceService {
         } else {
             // DTO에 예외 슬롯이 없으면 기존 예외 슬롯 소프트 삭제
             List<ResourceTimeSlotExceptions> existingExceptions =
-                    resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+                    resourceTimeSlotExceptionRepository.findByResource_Id(resourceId);
             existingExceptions.forEach(ResourceTimeSlotExceptions::softDelete);
         }
 
@@ -250,11 +250,11 @@ public class ResourceService {
             resource.softDelete();
 
             // 연관 정규 시간 슬롯 소프트 삭제
-            List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResources_Id(resourceId);
+            List<ResourceTimeSlots> allSlots = resourceTimeSlotRepository.findByResource_Id(resourceId);
             allSlots.forEach(ResourceTimeSlots::softDelete);
 
             // 연관 예외 시간 슬롯 소프트 삭제
-            List<ResourceTimeSlotExceptions> exceptionSlots = resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+            List<ResourceTimeSlotExceptions> exceptionSlots = resourceTimeSlotExceptionRepository.findByResource_Id(resourceId);
             exceptionSlots.forEach(ResourceTimeSlotExceptions::softDelete);
 
         } catch (OptimisticLockException e) {

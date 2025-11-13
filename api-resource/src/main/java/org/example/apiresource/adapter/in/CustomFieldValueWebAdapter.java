@@ -39,12 +39,12 @@ public class CustomFieldValueWebAdapter {
 
 
     // -------------------- 특정 예약의 커스텀 필드 값 조회 -------------------
-//    @Operation(summary = "예약 기반 커스텀 필드 값 조회", description = "예약 ID에 해당하는 커스텀 필드 값을 조회합니다.")
-//    @GetMapping("/value/reservation/{reservationId}")
-//    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getUserFieldValuesByReservation(@PathVariable Long reservationId) {
-//        List<CustomFieldDto.CustomFieldValueListRes> result = customFieldValueWebPort.getUserFieldValuesByReservation(reservationId);
-//        return BaseResponse.success(result);
-//    }
+    @Operation(summary = "예약 기반 커스텀 필드 값 조회", description = "예약 ID에 해당하는 커스텀 필드 값을 조회합니다.")
+    @GetMapping("/value/reservation/{reservationId}")
+    public BaseResponse<List<CustomFieldDto.CustomFieldValueListRes>> getUserFieldValuesByReservation(@PathVariable Long reservationId) {
+        List<CustomFieldDto.CustomFieldValueListRes> result = customFieldValueWebPort.getUserFieldValuesByReservation(reservationId);
+        return BaseResponse.success(result);
+    }
 
 
     // ---------------- RESOURCE 필드 값 수정 --------------------

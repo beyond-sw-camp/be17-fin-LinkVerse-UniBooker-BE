@@ -12,7 +12,7 @@ import java.util.*;
 public interface ReservationRepository extends JpaRepository<Reservations, Long> {
 
     // 사용자의 모든 예약 조회
-    List<Reservations> findAllByUsersId(Long userId);
+    List<Reservations> findAllByUserId(Long userId);
 
     // 삭제되지 않은 예약 조회
     Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
@@ -59,7 +59,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
     // 선택한 일시 예약 조회 - 신청형
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId);
+    List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
 /*
     // 리소스 그룹의 예약 목록 찾기
@@ -76,7 +76,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 */
 
     // 특정 리소스의 예약 목록 조회
-    List<Reservations> findAllByResourcesId(Long resources_id);
+    List<Reservations> findAllByResourceId(Long resources_id);
 
 /*
     // 특정 리소스의 예약 목록 조회 (특정 날짜)

@@ -7,6 +7,7 @@ import org.example.apiresource.usecase.port.out.UserFieldValuePersistencePort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -25,6 +26,13 @@ public class UserFieldValuePersistenceAdapter implements UserFieldValuePersisten
     @Override
     @Transactional
     public Optional<UserCustomFieldValues> findByIdAndDeletedAtIsNull(Long valueId) {
-        return Optional.empty();
+        return userFieldValueRepository.findByIdAndDeletedAtIsNull(valueId);
+    }
+
+
+    @Override
+    @Transactional
+    public List<UserCustomFieldValues> findByReservationIdAndDeletedAtIsNull(Long reservationId) {
+        return userFieldValueRepository.findByReservationIdAndDeletedAtIsNull(reservationId);
     }
 }

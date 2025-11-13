@@ -27,7 +27,7 @@ public class TimeSlotService {
 
     // -------------------- 리소스 상세 조회용 --------------------
     public List<TimeSlotDto.TimeSlotResponse> getTimeSlots(Long resourceId) {
-        List<ResourceTimeSlots> slots = resourceTimeSlotRepository.findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
+        List<ResourceTimeSlots> slots = resourceTimeSlotRepository.findByResourceIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
 
         // 요일별로 그룹화
         Map<String, List<ResourceTimeSlots>> byDay = slots.stream()
@@ -77,7 +77,7 @@ public class TimeSlotService {
     // -------------------- 특정 리소스의 예외 운영 시간 조회 --------------------
     public List<TimeSlotDto.TimeSlotExceptionResponse> getExceptions(Long resourceId) {
         List<ResourceTimeSlotExceptions> exceptions = resourceTimeSlotExceptionRepository
-                .findByResources_IdOrderByDateAscStartTimeAsc(resourceId);
+                .findByResource_IdOrderByDateAscStartTimeAsc(resourceId);
 
         return exceptions.stream()
                 .map(TimeSlotDto.TimeSlotExceptionResponse::fromEntity)
@@ -107,7 +107,7 @@ public class TimeSlotService {
         // 정규 시간 슬롯 전체 조회 (DayOfWeek 기준)
         Map<DayOfWeek, List<ResourceTimeSlots>> regularSlots = new HashMap<>();
         for (DayOfWeek day : DayOfWeek.values()) {
-            regularSlots.put(day, resourceTimeSlotRepository.findByResources_IdAndDayOfWeekAndIsActiveTrue(resourceId, day));
+            regularSlots.put(day, resourceTimeSlotRepository.findByResource_IdAndDayOfWeekAndIsActiveTrue(resourceId, day));
         }
 
         // 예외 시간 슬롯 조회 (deletedAt null 체크)

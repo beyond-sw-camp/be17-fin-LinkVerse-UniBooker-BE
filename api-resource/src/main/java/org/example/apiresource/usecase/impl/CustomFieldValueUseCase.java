@@ -74,21 +74,17 @@ public class CustomFieldValueUseCase implements CustomFieldValueWebPort {
 
 
     // 예약의 사용자 커스텀 필드 값 조회
-//    @Override
-//    @Transactional
-//    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
-//
-//        // 예약 존재 여부 검증
-//        var reservation = reservationRepository.findById(reservationId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다. id=" + reservationId));
-//
-//        // USER 커스텀 필드 값 조회 (서비스 메서드 호출)
-//        List<UserCustomFieldValues> fieldValues = userFieldValuePersistencePort
-//                .findByReservationIdAndDeletedAtIsNull(reservation.getId());
-//
-//        Map<Long, List<String>> groupedValues = customFieldValueService.groupFieldValues(fieldValues);
-//        return customFieldValueService.toValueListDto(groupedValues, fieldValues);
-//    }
+    @Override
+    @Transactional
+    public List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId) {
+
+        // USER 커스텀 필드 값 조회 (서비스 메서드 호출)
+        List<UserCustomFieldValues> fieldValues = userFieldValuePersistencePort
+                .findByReservationIdAndDeletedAtIsNull(reservationId);
+
+        Map<Long, List<String>> groupedValues = customFieldValueService.groupFieldValues(fieldValues);
+        return customFieldValueService.toValueListDto(groupedValues, fieldValues);
+    }
 
 
     // 리소스 커스텀 필드 값 수정

@@ -35,7 +35,7 @@ public class TimeSlotUseCase implements TimeSlotWebPort {
     public List<TimeSlotDto.TimeSlotResponse> getTimeSlots(Long resourceId) {
         // 타임슬롯 조회
         List<ResourceTimeSlots> slots =
-                resourceTimeSlotPersistencePort.findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
+                resourceTimeSlotPersistencePort.findByResourceIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
 
         return timeSlotService.mergeActiveSlots(slots);
     }

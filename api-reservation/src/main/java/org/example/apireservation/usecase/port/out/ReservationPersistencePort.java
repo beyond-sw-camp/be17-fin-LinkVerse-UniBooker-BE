@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface ReservationPersistencePort {
 
     // 사용자의 모든 예약 조회
-    List<Reservations> findAllByUsersId(Long userId);
+    List<Reservations> findAllByUserId(Long userId);
 
     // 삭제되지 않은 예약 조회
     Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
@@ -33,7 +33,7 @@ public interface ReservationPersistencePort {
     List<Reservations> countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
     // 선택한 일시 예약 조회 - 신청형
-    List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId);
+    List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스 그룹의 예약 목록 찾기
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);
@@ -50,10 +50,10 @@ public interface ReservationPersistencePort {
     Integer countByResourceGroupId(Long resourceGroupId);
 
     // 특정 리소스의 예약 목록 조회
-    List<Reservations> findAllByResourcesId(Long resourceId);
+    List<Reservations> findAllByResourceId(Long resourceId);
 
     // 특정 리소스의 예약 목록 조회 (특정 날짜)
-    List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Reservations> findAllByResourceIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
     // 특정 기간 동안의 리소스 그룹별 예약수
     List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);

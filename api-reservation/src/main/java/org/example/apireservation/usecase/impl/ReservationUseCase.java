@@ -1,5 +1,6 @@
 package org.example.apireservation.usecase.impl;
 
+import feign.FeignException;
 import lombok.*;
 import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
 import org.example.apireservation.domain.model.dto.ReservationDetailDto;
@@ -14,6 +15,7 @@ import org.example.apireservation.mapper.ReservationMapper;
 import org.example.apireservation.mapper.UserMapper;
 import org.example.apireservation.usecase.port.in.*;
 import org.example.apireservation.usecase.port.out.*;
+import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
 import org.springframework.stereotype.Service;
@@ -84,19 +86,23 @@ public class ReservationUseCase implements ReservationWebPort {
     public ReservationListDto.ResponseList getResourceReservations(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
 
         // 리소스 존재 여부 체크 (외부 호출)
-        Resource resource = resourceFeignAdapter.findById(resourceId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND));
+        BaseResponse<Resource> response = resourceFeignAdapter.findById(resourceId);
+        Resource resource = response.getData();
+        if (resource == null) {
+            throw new BaseException(BaseResponseStatus.RESOURCE_NOT_FOUND);
+        }
 
         List<Reservations> result;
 
         if (startDate != null && endDate != null) {
-            result = reservationPersistencePort.findAllByResourcesIdAndStartDateBetween(resourceId, startDate, endDate);
+            result = reservationPersistencePort.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
         } else {
-            result = reservationPersistencePort.findAllByResourcesId(resourceId);
+            result = reservationPersistencePort.findAllByResourceId(resourceId);
         }
 
         List<Reservation> reservations = result.stream().map(entity -> Reservation.toDomain(entity, entity.getResourceId(), entity.getUserId(), reservationService)).collect(Collectors.toList()); // entity -> domain
 
-        return ReservationMapper.toRes(reservations, resource.getServiceCategory());
+        return ReservationMapper.toRes(reservations, resource.getCategory());
     }
 
 
@@ -105,7 +111,7 @@ public class ReservationUseCase implements ReservationWebPort {
     public ReservationListDto.UserResponseList getUserReservations(Long userId) {
 
         // TODO : 취소된 예약은 안보이게 조회하는 코드로 수정
-        List<Reservations> result = reservationPersistencePort.findAllByUsersId(userId);
+        List<Reservations> result = reservationPersistencePort.findAllByUserId(userId);
         List<Reservation> reservations = result.stream().map(entity -> Reservation.toDomain(entity, entity.getResourceId(), entity.getUserId(), reservationService)).collect(Collectors.toList()); // entity -> domain
         return ReservationMapper.toRes(reservations);
     }
@@ -119,8 +125,9 @@ public class ReservationUseCase implements ReservationWebPort {
         Reservation reservation = Reservation.toDomain(entity, entity.getResourceId(), entity.getUserId(), reservationService);
 
         // 하나의 예약에 대한 사용자 압력 커스텀 필드 값 리스트 조회 (외부 호출)
-        List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.getUserFieldValuesByReservation(reservationId);
-        List<CustomFieldValueDto> userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).collect(Collectors.toList()); // domain -> dto
+        BaseResponse<List<CustomFieldValue>> userCustomFieldValues = customFieldValueFeignAdapter.getUserFieldValuesByReservation(reservationId);
+        List<CustomFieldValue> res = userCustomFieldValues.getData();
+        List<CustomFieldValueDto> userCustomFieldValuesDto = res.stream().map(CustomFieldValueMapper::toDto).collect(Collectors.toList()); // domain -> dto
 
         // 카테고리 별 알맞은 형식으로 응답
         return ReservationMapper.toRes(reservation, userCustomFieldValuesDto);

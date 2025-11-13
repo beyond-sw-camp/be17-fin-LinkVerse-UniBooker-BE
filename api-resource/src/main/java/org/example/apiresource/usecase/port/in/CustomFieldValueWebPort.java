@@ -13,7 +13,7 @@ public interface CustomFieldValueWebPort {
     List<CustomFieldDto.CustomFieldValueListRes> getResourceFieldValues(Long resourceId);
 
     // 예약의 사용자 커스텀 필드 값 조회
-//    List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId);
+    List<CustomFieldDto.CustomFieldValueListRes> getUserFieldValuesByReservation(Long reservationId);
 
     // 리소스 커스텀 필드 값 수정
     void update(List<CustomFieldDto.CustomFieldValueUpdateReq> dtoList);

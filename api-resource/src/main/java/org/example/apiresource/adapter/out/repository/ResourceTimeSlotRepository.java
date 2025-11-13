@@ -11,12 +11,12 @@ import java.util.List;
 public interface ResourceTimeSlotRepository extends JpaRepository<ResourceTimeSlots, Long> {
 
     // 특정 요일의 활성화된 시간 슬롯 조회
-    List<ResourceTimeSlots> findByResources_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek dayOfWeek);
+    List<ResourceTimeSlots> findByResource_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek dayOfWeek);
 
     // 특정 리소스의 모든 활성화된 시간 슬롯 조회
-    List<ResourceTimeSlots> findByResources_IdAndIsActiveTrue(Long resourceId);
+    List<ResourceTimeSlots> findByResource_IdAndIsActiveTrue(Long resourceId);
 
-    List<ResourceTimeSlots> findByResources_Id(Long resourceId);
+    List<ResourceTimeSlots> findByResource_Id(Long resourceId);
 
-    List<ResourceTimeSlots> findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId);
+    List<ResourceTimeSlots> findByResourceIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId);
 }

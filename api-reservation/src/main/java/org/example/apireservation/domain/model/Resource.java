@@ -8,8 +8,8 @@ import java.time.LocalDate;
 @Builder
 public class Resource {
     private Long id;
-    private String resourceName;
-    private ServiceCategory serviceCategory;
+    private String name;
+    private ServiceCategory category;
     private LocalDate startDate;
     private LocalDate endDate;
 //    private Integer row;

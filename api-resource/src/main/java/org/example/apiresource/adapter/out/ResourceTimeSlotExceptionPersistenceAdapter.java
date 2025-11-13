@@ -27,19 +27,19 @@ public class ResourceTimeSlotExceptionPersistenceAdapter implements ResourceTime
     @Override
     @Transactional
     public List<ResourceTimeSlotExceptions> findByResourceId(Long resourceId) {
-        return resourceTimeSlotExceptionRepository.findByResources_Id(resourceId);
+        return resourceTimeSlotExceptionRepository.findByResource_Id(resourceId);
     }
 
 
     @Override
     @Transactional
-    public List<ResourceTimeSlotExceptions> findByResources_IdAndDateBetweenAndDeletedAtIsNull(Long resourceId, LocalDate pageStart, LocalDate pageEnd) {
-        return resourceTimeSlotExceptionRepository.findByResources_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd);
+    public List<ResourceTimeSlotExceptions> findByResource_IdAndDateBetweenAndDeletedAtIsNull(Long resourceId, LocalDate pageStart, LocalDate pageEnd) {
+        return resourceTimeSlotExceptionRepository.findByResource_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd);
     }
 
 
     @Override
-    public List<ResourceTimeSlotExceptions> findByResources_IdOrderByDateAscStartTimeAsc(Long resourceId) {
-        return resourceTimeSlotExceptionRepository.findByResources_IdOrderByDateAscStartTimeAsc(resourceId);
+    public List<ResourceTimeSlotExceptions> findByResource_IdOrderByDateAscStartTimeAsc(Long resourceId) {
+        return resourceTimeSlotExceptionRepository.findByResource_IdOrderByDateAscStartTimeAsc(resourceId);
     }
 }

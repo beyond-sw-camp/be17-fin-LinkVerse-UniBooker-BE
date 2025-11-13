@@ -12,7 +12,7 @@ public interface ResourceTimeSlotExceptionPersistencePort {
 
     List<ResourceTimeSlotExceptions> findByResourceId(Long resourceId);
 
-    List<ResourceTimeSlotExceptions> findByResources_IdAndDateBetweenAndDeletedAtIsNull(Long resourceId, LocalDate pageStart, LocalDate pageEnd);
+    List<ResourceTimeSlotExceptions> findByResource_IdAndDateBetweenAndDeletedAtIsNull(Long resourceId, LocalDate pageStart, LocalDate pageEnd);
 
-    List<ResourceTimeSlotExceptions> findByResources_IdOrderByDateAscStartTimeAsc(Long resourceId);
+    List<ResourceTimeSlotExceptions> findByResource_IdOrderByDateAscStartTimeAsc(Long resourceId);
 }

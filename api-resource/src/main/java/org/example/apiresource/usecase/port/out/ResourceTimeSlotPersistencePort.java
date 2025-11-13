@@ -11,7 +11,7 @@ public interface ResourceTimeSlotPersistencePort {
 
     List<ResourceTimeSlots> findByResourceId(Long resourceId);
 
-    List<ResourceTimeSlots> findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId);
+    List<ResourceTimeSlots> findByResourceIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId);
 
-    List<ResourceTimeSlots> findByResources_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek day);
+    List<ResourceTimeSlots> findByResource_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek day);
 }

@@ -105,7 +105,7 @@ public class ResourceWebAdapter {
         return BaseResponse.success(resourceWebPort.getResourceIfExists(resourceId));
     }
 
-    // ---------------- 서비스 상세 조회 (비활성화,삭제된 리소스도 허용) ----------------
+    // ---------------- 서비스 상세 조회 (활성화 & 미삭제 상태만) ----------------
     @Operation(summary = "서비스 상세 조회(비활성화, 삭제 고려X)", description = "서비스를 상세 조회합니다(비활성화, 삭제 고려X)")
     @GetMapping("/{resourceId}/super")
     public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceByIdForSuper(@PathVariable Long resourceId) {
@@ -115,7 +115,7 @@ public class ResourceWebAdapter {
 
     // ---------------- 서비스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락) ----------------
     @Operation(summary = "서비스 상세 조회(활성화 & 미삭제 상태 & 비관적 락)", description = "서비스를 상세 조회합니다(활성화 & 미삭제 상태 & 비관적 락)")
-    @GetMapping("/{resourceId}/super")
+    @GetMapping("/pessimistic/{resourceId}")
     public BaseResponse<ResourceDto.ResourceDetailInfo> getResourceLock(@PathVariable Long resourceId) {
         ResourceDto.ResourceDetailInfo response = resourceWebPort.getResourceLock(resourceId);
         return BaseResponse.success(response);

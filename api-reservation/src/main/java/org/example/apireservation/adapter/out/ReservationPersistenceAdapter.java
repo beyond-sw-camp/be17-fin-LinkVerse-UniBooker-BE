@@ -17,8 +17,8 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 사용자의 모든 예약 조회 ==========================
     @Override
-    public List<Reservations> findAllByUsersId(Long userId) {
-        return reservationRepository.findAllByUsersId(userId);
+    public List<Reservations> findAllByUserId(Long userId) {
+        return reservationRepository.findAllByUserId(userId);
     }
 
     // ========================== 삭제되지 않은 예약 조회 ==========================
@@ -65,8 +65,8 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 선택한 일시 예약 조회 - 신청형 ==========================
     @Override
-    public List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId) {
-        return reservationRepository.countByResourcesIdAndDeletedAtIsNull(resourceId);
+    public List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId) {
+        return reservationRepository.countByResourceIdAndDeletedAtIsNull(resourceId);
     }
 
     // ========================== 리소스 그룹의 예약 목록 찾기 ==========================
@@ -100,14 +100,14 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 특정 리소스의 예약 목록 조회 ==========================
     @Override
-    public List<Reservations> findAllByResourcesId(Long resourceId) {
-        return reservationRepository.findAllByResourcesId(resourceId);
+    public List<Reservations> findAllByResourceId(Long resourceId) {
+        return reservationRepository.findAllByResourceId(resourceId);
     }
 
     // ========================== 특정 리소스의 예약 목록 조회 (특정 날짜) ==========================
     @Override
-    public List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
-//        return reservationRepository.findAllByResourcesIdAndStartDateBetween(resourceId, startDate, endDate);
+    public List<Reservations> findAllByResourceIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
+//        return reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
         return null;
     }
 

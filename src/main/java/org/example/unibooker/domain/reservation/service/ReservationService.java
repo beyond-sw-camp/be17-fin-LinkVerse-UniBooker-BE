@@ -90,7 +90,7 @@ public class ReservationService {
                 throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
             }
         } else if(resource.getResourceGroup().getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
-            Integer currentCount = reservationRepository.countByResourcesIdAndDeletedAtIsNull(resource.getId()).size();
+            Integer currentCount = reservationRepository.countByResourceIdAndDeletedAtIsNull(resource.getId()).size();
             if(currentCount+dto.getHeadCount() >= resource.getCapacity()) {
                 throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
             }
@@ -164,9 +164,9 @@ public class ReservationService {
         List<Reservations> result;
 
         if (startDate != null && endDate != null) {
-            result = reservationRepository.findAllByResourcesIdAndStartDateBetween(resourceId, startDate, endDate);
+            result = reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
         } else {
-            result = reservationRepository.findAllByResourcesId(resourceId);
+            result = reservationRepository.findAllByResourceId(resourceId);
         }
 
         return ReservationDto.ResponseList.from(result, resource.getResourceGroup().getCategory());
@@ -177,7 +177,7 @@ public class ReservationService {
     /** 예약 목록 조회 - 일반 사용자 */
     public ReservationDto.UserResponseList getUserReservations(Long userId) {
         // TODO : 취소된 예약은 안보이게 조회하는 코드로 수정
-        List<Reservations> result = reservationRepository.findAllByUsersId(userId);
+        List<Reservations> result = reservationRepository.findAllByUserId(userId);
         return ReservationDto.UserResponseList.from(result);
     }
 

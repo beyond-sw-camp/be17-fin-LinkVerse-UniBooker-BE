@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservations, Long> {
     // 사용자의 모든 예약 조회
-    List<Reservations> findAllByUsersId(Long userId);
+    List<Reservations> findAllByUserId(Long userId);
 
     // 삭제되지 않은 예약 조회
     Optional<Reservations> findByIdAndDeletedAtIsNull(Long reservationId);
@@ -60,7 +60,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
     // 선택한 일시 예약 조회 - 신청형
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<Reservations> countByResourcesIdAndDeletedAtIsNull(Long resourceId);
+    List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스의 예약 목록 찾기
     @Query("SELECT r FROM Reservations r LEFT JOIN r.resources rs WHERE rs.id = :resourceId")
@@ -79,10 +79,10 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     int countByResourceGroupId(Long resourceGroupId);
 
     // 특정 리소스의 예약 목록 조회
-    List<Reservations> findAllByResourcesId(Long resources_id);
+    List<Reservations> findAllByResourceId(Long resources_id);
 
     // 특정 리소스의 예약 목록 조회 (특정 날짜)
-    List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
+    List<Reservations> findAllByResourceIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
 
     // 특정 기간 동안의 리소스 그룹별 예약수
     @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +

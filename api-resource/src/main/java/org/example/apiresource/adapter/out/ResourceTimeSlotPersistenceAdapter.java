@@ -26,20 +26,20 @@ public class ResourceTimeSlotPersistenceAdapter implements ResourceTimeSlotPersi
     @Override
     @Transactional
     public List<ResourceTimeSlots> findByResourceId(Long resourceId) {
-        return resourceTimeSlotRepository.findByResources_Id(resourceId);
+        return resourceTimeSlotRepository.findByResource_Id(resourceId);
     }
 
 
     @Override
     @Transactional
-    public List<ResourceTimeSlots> findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId) {
-        return resourceTimeSlotRepository.findByResourcesIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
+    public List<ResourceTimeSlots> findByResourceIdOrderByDayOfWeekAscStartTimeAsc(Long resourceId) {
+        return resourceTimeSlotRepository.findByResourceIdOrderByDayOfWeekAscStartTimeAsc(resourceId);
     }
 
 
     @Override
     @Transactional
-    public List<ResourceTimeSlots> findByResources_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek day) {
-        return resourceTimeSlotRepository.findByResources_IdAndDayOfWeekAndIsActiveTrue(resourceId, day);
+    public List<ResourceTimeSlots> findByResource_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek day) {
+        return resourceTimeSlotRepository.findByResource_IdAndDayOfWeekAndIsActiveTrue(resourceId, day);
     }
 }
