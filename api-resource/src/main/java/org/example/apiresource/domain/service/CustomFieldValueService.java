@@ -120,4 +120,54 @@ public class CustomFieldValueService {
 
         return result;
     }
+
+
+    public List<UserCustomFieldValues> toUserEntities(CustomFieldDto.CustomFieldValue dto,
+                                                      CustomFieldDefinitions field,
+                                                      Long reservationId) {
+        List<UserCustomFieldValues> entities = new ArrayList<>();
+        for (String v : dto.getValues()) {
+            entities.add(UserCustomFieldValues.builder()
+                    .reservationId(reservationId)
+                    .fieldValue(v)
+                    .customFieldDefinition(field)
+                    .build());
+        }
+        return entities;
+    }
+
+    public List<ResourceCustomFieldValues> toResourceEntities(CustomFieldDto.CustomFieldValue dto,
+                                                              CustomFieldDefinitions field,
+                                                              Long resourceId) {
+        List<ResourceCustomFieldValues> entities = new ArrayList<>();
+        for (String v : dto.getValues()) {
+            entities.add(ResourceCustomFieldValues.builder()
+                    .resourceId(resourceId)
+                    .fieldValue(v)
+                    .customFieldDefinition(field)
+                    .build());
+        }
+        return entities;
+    }
+
+    // Entity → DTO 변환
+    public CustomFieldDto.CustomFieldValueListRes toDto(Object entity) {
+        if (entity instanceof UserCustomFieldValues userEntity) {
+            return CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(userEntity.getCustomFieldDefinition().getId())
+                    .fieldName(userEntity.getCustomFieldDefinition().getFieldName())
+                    .values(List.of(convertBooleanValue(userEntity.getFieldValue())))
+                    .build();
+
+        } else if (entity instanceof ResourceCustomFieldValues resourceEntity) {
+            return CustomFieldDto.CustomFieldValueListRes.builder()
+                    .customFieldId(resourceEntity.getCustomFieldDefinition().getId())
+                    .fieldName(resourceEntity.getCustomFieldDefinition().getFieldName())
+                    .values(List.of(convertBooleanValue(resourceEntity.getFieldValue())))
+                    .build();
+
+        } else {
+            throw new IllegalArgumentException("지원되지 않는 엔티티 타입입니다: " + entity.getClass().getSimpleName());
+        }
+    }
 }

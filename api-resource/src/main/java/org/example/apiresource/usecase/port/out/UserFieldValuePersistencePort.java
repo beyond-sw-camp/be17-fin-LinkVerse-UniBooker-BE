@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface UserFieldValuePersistencePort {
 
-    void save(UserCustomFieldValues userEntity);
+    UserCustomFieldValues save(UserCustomFieldValues userEntity);
 
     Optional<UserCustomFieldValues> findByIdAndDeletedAtIsNull(Long valueId);
 

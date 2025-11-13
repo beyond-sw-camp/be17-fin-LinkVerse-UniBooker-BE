@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ResourceFieldValuePersistencePort {
 
-    void save(ResourceCustomFieldValues resourceEntity);
+    ResourceCustomFieldValues save(ResourceCustomFieldValues resourceEntity);
 
     Optional<ResourceCustomFieldValues> findByIdAndDeletedAtIsNull(Long customFieldValueId);
 }

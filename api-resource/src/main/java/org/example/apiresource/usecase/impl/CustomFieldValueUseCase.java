@@ -35,24 +35,39 @@ public class CustomFieldValueUseCase implements CustomFieldValueWebPort {
     // 커스텀 필드 값 생성
     @Override
     @Transactional
-    public void register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
+    public List<CustomFieldDto.CustomFieldValueListRes> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos) {
+        List<CustomFieldDto.CustomFieldValueListRes> savedDtos = new ArrayList<>();
+
         for (CustomFieldDto.CustomFieldValue dto : dtos) {
+
+            // 1️⃣ 커스텀 필드 정의 조회
             CustomFieldDefinitions field = customFieldDefinitionPersistencePort
                     .findByIdAndDeletedAtIsNull(dto.getCustomFieldId())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "존재하지 않거나 삭제된 커스텀 필드입니다. fieldId=" + dto.getCustomFieldId()
                     ));
 
-            List<Object> entities = customFieldValueService.toEntities(targetId, dto, field);
-
-            for (Object entity : entities) {
-                if (entity instanceof UserCustomFieldValues userEntity) {
-                    userFieldValuePersistencePort.save(userEntity);
-                } else if (entity instanceof ResourceCustomFieldValues resourceEntity) {
-                    resourceFieldValuePersistencePort.save(resourceEntity);
+            // 2️⃣ 변환 및 저장 로직은 서비스로 위임
+            if (field.getTargetType() == CustomTargetType.USER) {
+                List<UserCustomFieldValues> userEntities = customFieldValueService.toUserEntities(dto, field, targetId);
+                for (UserCustomFieldValues entity : userEntities) {
+                    UserCustomFieldValues saved = userFieldValuePersistencePort.save(entity);
+                    savedDtos.add(customFieldValueService.toDto(saved));
                 }
+
+            } else if (field.getTargetType() == CustomTargetType.RESOURCE) {
+                List<ResourceCustomFieldValues> resourceEntities = customFieldValueService.toResourceEntities(dto, field, targetId);
+                for (ResourceCustomFieldValues entity : resourceEntities) {
+                    ResourceCustomFieldValues saved = resourceFieldValuePersistencePort.save(entity);
+                    savedDtos.add(customFieldValueService.toDto(saved));
+                }
+
+            } else {
+                throw new IllegalArgumentException("알 수 없는 타겟 타입입니다. fieldId=" + dto.getCustomFieldId());
             }
         }
+
+        return savedDtos;
     }
 
 

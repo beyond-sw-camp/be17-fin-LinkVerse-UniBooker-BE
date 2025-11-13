@@ -7,7 +7,7 @@ import java.util.List;
 public interface CustomFieldValueWebPort {
 
     // 커스텀 필드 값 저장
-    void register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos);
+    List<CustomFieldDto.CustomFieldValueListRes> register(Long targetId, List<CustomFieldDto.CustomFieldValue> dtos);
 
     // 리소스 커스텀 필드 값 조회
     List<CustomFieldDto.CustomFieldValueListRes> getResourceFieldValues(Long resourceId);
