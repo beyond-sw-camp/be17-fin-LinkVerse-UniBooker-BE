@@ -36,7 +36,7 @@ public class ReservationUseCase implements ReservationWebPort {
     private final UserPersistencePort userPersistencePort;
 
     private final ResourceFeignAdapter resourceFeignAdapter;                    // 리소스 외부 API 호출
-    private final ResourceGroupFeignAdapter resourceGroupFeignAdapter;          // 리소스 그룳 외부 API 호출
+    private final ResourceGroupFeignAdapter resourceGroupFeignAdapter;          // 리소스 그룹 외부 API 호출
     private final CustomFieldValueFeignAdapter customFieldValueFeignAdapter;    // 사용자 커스텀 입력 필드 외부 API 호출
 
     private final ReservationService reservationService;                        // Domain Validator
@@ -56,8 +56,11 @@ public class ReservationUseCase implements ReservationWebPort {
 
 
         // 사용자 커스텀 필드 값 저장 (외부 호출)
-        List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
-        List<CustomFieldValueDto> userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).toList();
+        List<CustomFieldValueDto> userCustomFieldValuesDto = null;
+        if(dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
+            List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
+            userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).toList();
+        }
 
         // TODO: 예약 확정 알림 발송 (외부 호출)
 

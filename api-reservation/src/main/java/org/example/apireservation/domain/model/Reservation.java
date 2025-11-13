@@ -13,24 +13,31 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class Reservation {
+    /* 예약 관련 */
     private Long id;                                // 예약 번호
-    private Long userId;                            // 사용자 ID
-    private String userName;                        // 사용자 이름
-    private String email;                           // 사용자 이메일
-    private Long resourceId;                        // 리소스 ID
-    private String resourceName;                    // 리소스명
-    private String resourceImage;                   // 리소스 이미지
-    private String resourceGroupName;               // 리소스 그룹 명
-    private ServiceCategory serviceCategory;        // 서비스 카테고리
+    private ReservationStatus status;               // 예약 상태
+    private Integer headCount;                      // 인원수
+    private Integer row;                            // 좌석 행
+    private Integer col;                            // 좌석 열
     private LocalDateTime startDate;                // 예약 시작 일시
     private LocalDateTime endDate;                  // 예약 종료 일시
     private LocalDateTime createdAt;                // 생성일
     private LocalDateTime updatedAt;                // 수정일
     private LocalDateTime deletedAt;                // 삭제일
-    private ReservationStatus status;               // 예약 상태
-    private Integer headCount;                      // 인원수
-    private Integer row;                            // 좌석 행
-    private Integer col;                            // 좌석 열
+
+    /* user 관련 */
+    private Long userId;                            // 사용자 ID
+    private String userName;                        // 사용자 이름
+    private String email;                           // 사용자 이메일
+
+    /* 리소스 관련*/
+    private Long resourceId;                        // 리소스 ID
+    private String resourceName;                    // 리소스명
+    private String resourceImage;                   // 리소스 이미지
+
+    /* 리소스 그룹 관련 */
+    private String resourceGroupName;               // 리소스 그룹 명
+    private ServiceCategory serviceCategory;        // 서비스 카테고리
 
 
     // ========================== Command -> Domain (예약하기) ==========================
@@ -52,8 +59,11 @@ public class Reservation {
         return Reservation.builder()
                 .userId(userId)
                 .userName(user.getUserName())
+                .email(user.getEmail())
                 .resourceId(resourceId)
                 .resourceName(resource.getName())
+                .resourceImage(resource.getResourceImage())
+                .resourceGroupName(resource.getResourceGroupName())
                 .serviceCategory(resource.getCategory())
                 .startDate(dates[0])
                 .endDate(dates[1])
@@ -71,16 +81,24 @@ public class Reservation {
         Resource resource = reservationService.validateResource(resourceId);
 
         return Reservation.builder()
+                .id(entity.getId())
                 .userId(userId)
                 .userName(user.getUserName())
-                .resourceId(resourceId)
+                .email(user.getEmail())
+                .resourceId(resource.getId())
                 .resourceName(resource.getName())
+                .resourceImage(resource.getResourceImage())
+                .resourceGroupName(resource.getResourceGroupName())
                 .serviceCategory(resource.getCategory())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
+                .status(entity.getStatus())
                 .headCount(entity.getAttendeeCount())
                 .row(entity.getRow())
                 .col(entity.getCol())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .deletedAt(entity.getDeletedAt())
                 .build();
     }
 }

@@ -112,7 +112,7 @@ public class TimeSlotService {
 
         // 예외 시간 슬롯 조회 (deletedAt null 체크)
         List<ResourceTimeSlotExceptions> exceptions =
-                resourceTimeSlotExceptionRepository.findByResources_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd);
+                resourceTimeSlotExceptionRepository.findByResource_IdAndDateBetweenAndDeletedAtIsNull(resourceId, pageStart, pageEnd);
         Map<LocalDate, List<ResourceTimeSlotExceptions>> exceptionMap =
                 exceptions.stream().collect(Collectors.groupingBy(ResourceTimeSlotExceptions::getDate));
 

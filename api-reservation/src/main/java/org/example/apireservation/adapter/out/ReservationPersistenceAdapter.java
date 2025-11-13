@@ -107,8 +107,7 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
     // ========================== 특정 리소스의 예약 목록 조회 (특정 날짜) ==========================
     @Override
     public List<Reservations> findAllByResourceIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
-//        return reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
-        return null;
+        return reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
     }
 
     // ========================== 특정 기간 동안의 리소스 그룹별 예약수 ==========================

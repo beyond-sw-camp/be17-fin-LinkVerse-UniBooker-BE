@@ -63,7 +63,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
 /*
     // 리소스 그룹의 예약 목록 찾기
-    @Query("SELECT r FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
+    @Query("SELECT r FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rs.id = :resourceGroupId")
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);
 
     // 특정 기업의 모든 예약 수 카운트
@@ -78,10 +78,10 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // 특정 리소스의 예약 목록 조회
     List<Reservations> findAllByResourceId(Long resources_id);
 
-/*
     // 특정 리소스의 예약 목록 조회 (특정 날짜)
-    List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
+    List<Reservations> findAllByResourceIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
 
+    /*
     // 특정 기간 동안의 리소스 그룹별 예약수
     @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +
             "FROM Reservations r " +

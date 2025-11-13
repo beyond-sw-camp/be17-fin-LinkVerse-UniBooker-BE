@@ -37,14 +37,21 @@ public class ReservationMapper {
                 .id(entity.getId())
                 .userId(entity.getUserId())
                 .userName(domain.getUserName())
+                .email(domain.getEmail())
                 .resourceId(entity.getResourceId())
                 .resourceName(domain.getResourceName())
+                .resourceImage(domain.getResourceImage())
+                .resourceGroupName(domain.getResourceGroupName())
+                .serviceCategory(domain.getServiceCategory())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
                 .status(entity.getStatus())
                 .headCount(entity.getAttendeeCount())
                 .row(entity.getRow())
                 .col(entity.getCol())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .deletedAt(entity.getDeletedAt())
                 .build();
     }
 
