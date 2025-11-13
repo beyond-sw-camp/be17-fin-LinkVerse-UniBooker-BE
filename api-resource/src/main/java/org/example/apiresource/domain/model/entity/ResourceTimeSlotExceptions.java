@@ -22,7 +22,7 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
     // 리소스
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
-    private Resources resources;
+    private Resources resource;
 
     // 날짜
     @Column(nullable = false)
@@ -45,6 +45,6 @@ public class ResourceTimeSlotExceptions extends BaseEntity {
     private String note;
 
     public void setResources(Resources resources) {
-        this.resources = resources;
+        this.resource = resources;
     }
 }

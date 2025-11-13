@@ -22,7 +22,7 @@ public class ResourceTimeSlots extends BaseEntity {
     // 리소스
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
-    private Resources resources;
+    private Resources resource;
 
     // 시작 시간
     @Column(nullable = false)
@@ -50,7 +50,7 @@ public class ResourceTimeSlots extends BaseEntity {
     }
 
     public void setResources(Resources resources) {
-        this.resources = resources;
+        this.resource = resources;
     }
 
     public void setIsActive(Boolean isActive) {

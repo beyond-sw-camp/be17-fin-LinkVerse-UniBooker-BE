@@ -77,12 +77,12 @@ public class Resources extends BaseEntity {
     private Long updatedBy;
 
     /** 타임 슬롯 */
-    @OneToMany(mappedBy = "resources",  cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "resource",  cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ResourceTimeSlots> timeSlots = new ArrayList<>();
 
     /** 예외 타임 슬롯 */
-    @OneToMany(mappedBy = "resources", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ResourceTimeSlotExceptions> timeSlotExceptions = new ArrayList<>();
 

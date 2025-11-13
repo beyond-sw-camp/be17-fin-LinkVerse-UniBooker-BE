@@ -1,6 +1,7 @@
 package org.example.apiresource.adapter.out;
 
 import lombok.RequiredArgsConstructor;
+import org.example.apiresource.adapter.out.repository.ResourceCustomFieldValueRepository;
 import org.example.apiresource.domain.model.entity.ResourceCustomFieldValues;
 import org.example.apiresource.domain.model.entity.UserCustomFieldValues;
 import org.example.apiresource.usecase.port.out.ResourceFieldValuePersistencePort;
@@ -14,17 +15,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ResourceFieldValuePersistenceAdapter implements ResourceFieldValuePersistencePort {
 
-    private final ResourceFieldValuePersistencePort resourceFieldValuePersistencePort;
+    private final ResourceCustomFieldValueRepository resourceCustomFieldValueRepository;
 
     @Override
     @Transactional
     public void save(ResourceCustomFieldValues resourceEntity) {
-        resourceFieldValuePersistencePort.save(resourceEntity);
+        resourceCustomFieldValueRepository.save(resourceEntity);
     }
 
     @Override
     @Transactional
     public Optional<ResourceCustomFieldValues> findByIdAndDeletedAtIsNull(Long customFieldValueId) {
-        return Optional.empty();
+        return resourceCustomFieldValueRepository.findByIdAndDeletedAtIsNull(customFieldValueId);
     }
 }

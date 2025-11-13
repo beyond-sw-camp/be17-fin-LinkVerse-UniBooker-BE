@@ -36,7 +36,7 @@ public class ResourceTimeSlotService {
                 boolean active = isActiveSlot(day, slotStart, dto.getTimeSlots());
 
                 ResourceTimeSlots slot = ResourceTimeSlots.builder()
-                        .resources(resource)
+                        .resource(resource)
                         .dayOfWeek(day)
                         .startTime(slotStart)
                         .endTime(slotEnd)
@@ -84,7 +84,7 @@ public class ResourceTimeSlotService {
 
             // Resources 엔티티에 예외 슬롯 추가
             ResourceTimeSlotExceptions exceptionSlot = ResourceTimeSlotExceptions.builder()
-                    .resources(resource)
+                    .resource(resource)
                     .date(exDto.getDate())
                     .startTime(exDto.getIsClosed() ? null : exDto.getStartTime())
                     .endTime(exDto.getIsClosed() ? null : exDto.getEndTime())
@@ -127,7 +127,7 @@ public class ResourceTimeSlotService {
         if (dto.getExceptionSlots() != null) {
             for (var exDto : dto.getExceptionSlots()) {
                 ResourceTimeSlotExceptions ex = ResourceTimeSlotExceptions.builder()
-                        .resources(resource)
+                        .resource(resource)
                         .date(exDto.getDate())
                         .startTime(exDto.getIsClosed() ? null : exDto.getStartTime())
                         .endTime(exDto.getIsClosed() ? null : exDto.getEndTime())
