@@ -1,0 +1,31 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: api-queue
+
+  data:
+    redis:
+      sentinel:
+        master: mymaster
+        nodes:
+          - 192.0.44.160:26379
+          - 192.0.44.161:26379
+          - 192.0.44.162:26379
+      timeout: 3000
+
+queue:
+  scheduler:
+    enabled: true
+    fixed-delay-ms: 10000
+    active-target-size: 150
+    max-promote-per-tick: 10
+    active-ttl-seconds: 120
+    resource-ids: "*"
+    lock-key: unibooker:queue:scheduler:lock
+
+management:
+  endpoints.web.exposure.include: health,prometheus
+  endpoint.health.probes.enabled: true
+  endpoint.health.show-details: always
