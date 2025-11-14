@@ -7,42 +7,41 @@ import org.example.apiqueue.domain.port.out.QueueRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/queues")
+@RequestMapping("/api/queues")
 @RequiredArgsConstructor
 public class QueueController {
 
     private final QueueService service;
-    private final QueueRepository repo; // status 계산용
 
     /** JOIN */
-    @PostMapping("/{serviceGroupId}/join")
-    public JoinRes join(@PathVariable Long serviceGroupId,
+    @PostMapping("/{resourceId}/join")
+    public JoinRes join(@PathVariable Long resourceId,
                         @RequestHeader("X-User-Id") Long userId) {
-        var r = service.join(serviceGroupId, userId);
+        var r = service.join(resourceId, userId);
         return new JoinRes(r.token(), r.position());
     }
 
     /** PROMOTE (앞 n명 활성화) */
-    @PostMapping("/{serviceGroupId}/promote")
-    public String promote(@PathVariable Long serviceGroupId,
+    @PostMapping("/{resourceId}/promote")
+    public String promote(@PathVariable Long resourceId,
                           @RequestParam(defaultValue = "1") long count) {
-        service.promote(serviceGroupId, count);
+        service.promote(resourceId, count);
         return "OK";
     }
 
     /** STATUS (대기 순번/길이/ETA) */
-    @GetMapping("/{serviceGroupId}/status")
-    public StatusRes status(@PathVariable Long serviceGroupId,
+    @GetMapping("/{resourceId}/status")
+    public StatusRes status(@PathVariable Long resourceId,
                             @RequestParam String token) {
-        var s = service.status(serviceGroupId, token);
+        var s = service.status(resourceId, token);
         return new StatusRes(s.position(), s.length(), s.etaSeconds());
     }
 
     /** CONSUME (사용 완료 처리) */
-    @PostMapping("/{serviceGroupId}/tokens/{token}/consume")
-    public String consume(@PathVariable Long serviceGroupId,
+    @PostMapping("/{resourceId}/tokens/{token}/consume")
+    public String consume(@PathVariable Long resourceId,
                           @PathVariable String token) {
-        service.consume(serviceGroupId, token);
+        service.consume(resourceId, token);
         return "OK";
     }
 

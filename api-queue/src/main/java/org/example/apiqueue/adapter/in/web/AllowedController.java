@@ -8,16 +8,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/queue")
+@RequestMapping("/api/queue")
 @RequiredArgsConstructor
 public class AllowedController {
 
     private final QueueService service;
 
     @GetMapping("/allowed")
-    public AllowedRes allowed(@RequestParam("queue") Long serviceGroupId,
+    public AllowedRes allowed(@RequestParam("queue") Long resourceId,
                               @RequestParam("token") String token) {
-        boolean allowed = service.isAllowed(serviceGroupId, token);
+        boolean allowed = service.isAllowed(resourceId, token);
         return new AllowedRes(allowed);
     }
 

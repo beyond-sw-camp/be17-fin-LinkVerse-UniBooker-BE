@@ -2,19 +2,28 @@ server:
   port: 8083
 
 spring:
-  application.name: api-queue
+  application:
+    name: api-queue
+
   data:
     redis:
-      host: ${REDIS_HOST:127.0.0.1}
-      port: ${REDIS_PORT:6379}
+      sentinel:
+        master: mymaster
+        nodes:
+          - 192.0.44.160:26379
+          - 192.0.44.161:26379
+          - 192.0.44.162:26379
+      timeout: 3000
 
 queue:
   scheduler:
-    enabled: true              # ???? on/off
-    fixed-delay-ms: 2000       # ??(???)
-    promote-batch-size: 3      # ? ?? ?? ??? ??
-    active-ttl-seconds: 600    # ACTIVE? ??? ? ?? ?? ??(?)
-    service-group-ids: 37,42   # ????? ??? ??? ?? ID ?? (?? ??)
+    enabled: true
+    fixed-delay-ms: 10000
+    active-target-size: 150
+    max-promote-per-tick: 10
+    active-ttl-seconds: 120
+    resource-ids: "*"
+    lock-key: unibooker:queue:scheduler:lock
 
 management:
   endpoints.web.exposure.include: health,prometheus
