@@ -66,7 +66,6 @@ public class CompanyStatusFilter extends AbstractGatewayFilterFactory<CompanySta
                         // 4. 상태별 처리
                         switch (status) {
                             case ACTIVE:
-                            case ADMIN_PENDING:
                                 // 정상 서비스 → 요청 통과
                                 log.info("Company 정상 상태 - 요청 통과");
                                 return chain.filter(exchange);
