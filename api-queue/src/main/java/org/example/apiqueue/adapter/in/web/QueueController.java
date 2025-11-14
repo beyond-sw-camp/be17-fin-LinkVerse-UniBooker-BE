@@ -6,6 +6,8 @@ import org.example.apiqueue.application.service.QueueService;
 import org.example.apiqueue.domain.port.out.QueueRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/queues")
 @RequiredArgsConstructor
@@ -43,6 +45,11 @@ public class QueueController {
                           @PathVariable String token) {
         service.consume(resourceId, token);
         return "OK";
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "UP", "service", "api-queue");
     }
 
     // DTOs

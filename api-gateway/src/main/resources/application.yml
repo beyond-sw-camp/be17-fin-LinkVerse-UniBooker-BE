@@ -25,6 +25,13 @@ spring:
                 allowCredentials: true
                 maxAge: 3600
 
+      routes:
+        - id: queue-service
+          uri: lb://api-queue
+          predicates:
+            - Path=/api/queues/**
+
+
       # 기본 필터 설정
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
