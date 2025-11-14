@@ -1,5 +1,7 @@
 package org.example.apiapp.domain.company.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
@@ -257,6 +259,31 @@ public class CompanyController {
         CompanyDto.StatisticsResponse response =
                 companyService.getStatisticsByYear(year);
 
+        return BaseResponse.success(response);
+    }
+
+    // ========== 내부 API (Gateway 전용) ==========
+
+    /**
+     * [내부 API] Company Slug로 상태 조회 (Gateway 전용)
+     */
+    @Operation(
+            summary = "[내부] Company Slug로 상태 조회",
+            description = "Gateway에서 Company 상태를 확인하기 위한 내부 API입니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "404", description = "기업을 찾을 수 없음")
+            }
+    )
+    @GetMapping("/internal/slug/{companySlug}/status")
+    public BaseResponse<CompanyDto.StatusOnlyResponse> getCompanyStatusBySlug(
+            @PathVariable
+            @Schema(description = "Company Slug", required = true, example = "test-company")
+            String companySlug) {
+
+        log.info("[내부 API] Company 상태 조회 - companySlug: {}", companySlug);
+
+        CompanyDto.StatusOnlyResponse response = companyService.getCompanyStatusBySlug(companySlug);
         return BaseResponse.success(response);
     }
 }

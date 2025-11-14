@@ -1,5 +1,6 @@
 package org.example.apigateway.config;
 
+import org.example.apigateway.filter.CompanyStatusFilter;
 import org.example.apigateway.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,27 @@ import org.springframework.context.annotation.Configuration;
 public class GatewayConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CompanyStatusFilter companyStatusFilter;
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
+                // ========== Company URL 패턴 처리 (최우선) ==========
+
+                /**
+                 * /c/{slug}/** 경로 처리
+                 * - Company 상태 확인 후 적절한 처리
+                 * - SUSPENDED → 정지 페이지
+                 * - ACTIVE/ADMIN_PENDING → Main-Service로 전달
+                 */
+                .route("company-service", r -> r
+                        .path("/c/**")
+                        .filters(f -> f
+                                .filter(companyStatusFilter.apply(new CompanyStatusFilter.Config()))
+                                .rewritePath("/c/(?<slug>.*?)(?<remaining>/.*)?", "/api/c/${slug}${remaining}")
+                        )
+                        .uri("lb://api-main"))
+
                 // ========== Main Service - Admin API ==========
 
                 // Auth API (인증 불필요)

@@ -53,6 +53,11 @@ jwt:
   access-token-validity: 3600000      # 1시간 (밀리초)
   refresh-token-validity: 604800000   # 7일 (밀리초)
 
+# App 설정 (신규 추가)
+app:
+  main-service:
+    url: lb://api-main  # Eureka를 통한 로드밸런싱
+
 # Actuator 설정
 management:
   endpoints:

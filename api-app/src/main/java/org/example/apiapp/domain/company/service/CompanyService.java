@@ -277,26 +277,18 @@ public class CompanyService {
         if (newStatus == CompanyStatus.ACTIVE) {
             company.activate();
 
-            // 기업 정지로 인해 정지된 관리자만 복구
+            // 기업 정지로 인해 정지된 모든 사용자 복구 (역할 무관)
             List<Users> suspendedByCompany = userRepository
-                    .findByCompanyIdAndRoleInAndSuspendedByCompany(
-                            companyId,
-                            List.of(UserRole.ADMIN, UserRole.MANAGER),
-                            true
-                    );
+                    .findByCompanyIdAndSuspendedByCompany(companyId, true);
             suspendedByCompany.forEach(Users::restoreByCompany);
 
         } else if (newStatus == CompanyStatus.SUSPENDED) {
             company.suspend();
 
-            // ACTIVE 상태의 관리자만 정지 (기존 SUSPENDED는 유지)
-            List<Users> activeAdmins = userRepository
-                    .findByCompanyIdAndRoleInAndStatus(
-                            companyId,
-                            List.of(UserRole.ADMIN, UserRole.MANAGER),
-                            UserStatus.ACTIVE
-                    );
-            activeAdmins.forEach(Users::suspendByCompany);
+            // ACTIVE 상태의 모든 사용자 정지 (역할 무관)
+            List<Users> activeUsers = userRepository
+                    .findByCompanyIdAndStatus(companyId, UserStatus.ACTIVE);
+            activeUsers.forEach(Users::suspendByCompany);
         }
 
         companyRepository.save(company);
@@ -394,6 +386,24 @@ public class CompanyService {
                 .userCount(userCount)
                 .createdAt(company.getCreatedAt())
                 .approvedAt(company.getApprovedAt())
+                .build();
+    }
+
+    // ========== 내부 API용 메서드 ==========
+
+    /**
+     * Company Slug로 상태만 조회 (Gateway 전용)
+     */
+    public CompanyDto.StatusOnlyResponse getCompanyStatusBySlug(String companySlug) {
+        log.info("[내부 API] Company 상태 조회 - companySlug: {}", companySlug);
+
+        Companies company = companyRepository.findByCompanySlugAndDeletedAtIsNull(companySlug)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+
+        return CompanyDto.StatusOnlyResponse.builder()
+                .companyId(company.getId())
+                .companySlug(company.getCompanySlug())
+                .status(company.getStatus())
                 .build();
     }
 

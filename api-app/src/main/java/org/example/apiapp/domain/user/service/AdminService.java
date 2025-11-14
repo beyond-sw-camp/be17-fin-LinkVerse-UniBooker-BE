@@ -88,6 +88,13 @@ public class AdminService {
         return signUpService.checkSignUpStatus(email);
     }
 
+    /**
+     * MANAGER를 ADMIN으로 승격 (SUPER 전용)
+     */
+    public AdminDto.PromoteResponse promoteManagerToAdmin(Long managerId, Long superUserId) {
+        return managerManagement.promoteManagerToAdmin(managerId, superUserId);
+    }
+
     // ========== 승인 관리 관련 퍼블릭 메서드 ==========
 
     /**
@@ -943,6 +950,83 @@ public class AdminService {
                     .email(manager.getEmail())
                     .phone(manager.getPhone())
                     .updatedAt(LocalDateTime.now())
+                    .build();
+        }
+
+        /**
+         * MANAGER를 ADMIN으로 승격 (SUPER 전용)
+         * - 기존 ADMIN을 MANAGER로 강등
+         * - MANAGER를 ADMIN으로 승격
+         * - Company 상태는 ACTIVE 유지
+         */
+        @Transactional
+        public AdminDto.PromoteResponse promoteManagerToAdmin(Long managerId, Long superUserId) {
+            log.info("MANAGER ADMIN 승격 - managerId: {}, superUserId: {}", managerId, superUserId);
+
+            // 1. SUPER 권한 확인
+            Users superUser = userRepository.findByIdAndDeletedAtIsNull(superUserId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            if (superUser.getRole() != UserRole.SUPER) {
+                throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+            }
+
+            // 2. MANAGER 조회 및 검증
+            Users manager = userRepository.findByIdAndDeletedAtIsNull(managerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+
+            if (manager.getRole() != UserRole.MANAGER) {
+                throw new BaseException(BaseResponseStatus.NOT_MANAGER);
+            }
+
+            // 3. Company 조회
+            Companies company = companyRepository.findByIdAndDeletedAtIsNull(manager.getCompanyId())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
+
+            // 4. 기존 ADMIN 조회
+            Users currentAdmin = userRepository.findByCompanyIdAndRole(
+                            company.getId(), UserRole.ADMIN)
+                    .orElse(null);
+
+            CompanyStatus oldCompanyStatus = company.getStatus();
+
+            // 5. MANAGER → ADMIN 승격
+            UserRole managerOldRole = manager.getRole();
+            manager.updateRole(UserRole.ADMIN);
+            userRepository.save(manager);
+
+            // 6. 기존 ADMIN → MANAGER 강등
+            if (currentAdmin != null) {
+                currentAdmin.updateRole(UserRole.MANAGER);
+                userRepository.save(currentAdmin);
+
+                log.info("기존 ADMIN MANAGER 강등 - userId: {}, email: {}",
+                        currentAdmin.getId(), currentAdmin.getEmail());
+            }
+
+            // 7. Company 상태는 ACTIVE 유지 (변경 없음)
+            // ADMIN_PENDING이 없어졌으므로 상태 변경 불필요
+
+            log.info("MANAGER ADMIN 승격 완료 - userId: {}, companyId: {}, 기존 ADMIN 강등: {}",
+                    manager.getId(), company.getId(), currentAdmin != null);
+
+            // TODO: 승격된 ADMIN에게 알림
+            // TODO: 강등된 ADMIN에게 알림
+
+            return AdminDto.PromoteResponse.builder()
+                    .message(currentAdmin != null
+                            ? "매니저가 관리자로 승격되었습니다. 기존 관리자는 매니저로 강등되었습니다."
+                            : "매니저가 관리자로 승격되었습니다.")
+                    .userId(manager.getId())
+                    .email(manager.getEmail())
+                    .name(manager.getName())
+                    .oldRole(managerOldRole)
+                    .newRole(UserRole.ADMIN)
+                    .companyId(company.getId())
+                    .companyName(company.getCompanyName())
+                    .oldCompanyStatus(oldCompanyStatus)
+                    .newCompanyStatus(company.getStatus())
+                    .promotedAt(LocalDateTime.now())
                     .build();
         }
 

@@ -374,15 +374,10 @@ public class AuthService {
                     org.example.common.base.BaseResponseStatus.INACTIVE_USER);
         }
 
-        // 5. 기업 승인 상태 확인
+        // 5. 기업 조회 (companySlug 제공용)
         Companies company = companyRepository.findByIdAndDeletedAtIsNull(companyId)
                 .orElseThrow(() -> new org.example.common.exception.BaseException(
                         org.example.common.base.BaseResponseStatus.COMPANY_NOT_FOUND));
-
-        if (company.getStatus() != CompanyStatus.ACTIVE) {
-            throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.COMPANY_NOT_APPROVED);
-        }
 
         // 6. JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(
