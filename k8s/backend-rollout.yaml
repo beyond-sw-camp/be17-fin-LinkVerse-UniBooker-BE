@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: linkverseunibooker/backend:latest
+          image: linkverseunibooker/backend:20251114-152010
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
