@@ -7,10 +7,8 @@ import org.example.apiresource.domain.model.entity.CustomFieldDefinitions;
 import org.example.apiresource.domain.model.entity.CustomFieldSelectDefinitions;
 import org.example.apiresource.domain.model.entity.ResourceGroups;
 import org.example.apiresource.domain.model.entity.Resources;
-import org.example.common.user.AuthDto;
-import org.example.common.user.UserRole;
+import org.example.common.model.dto.AuthDto;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;

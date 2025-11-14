@@ -6,12 +6,7 @@ import org.example.apiresource.domain.model.dto.CustomFieldDto;
 import org.example.apiresource.domain.model.dto.ResourceDto;
 import org.example.apiresource.domain.model.entity.*;
 import org.example.apiresource.usecase.port.in.ResourceWebPort;
-import org.example.apiresource.usecase.port.out.ResourcePersistencePort;
 import org.example.apiresource.usecase.port.out.ResourceGroupPersistencePort;
-import org.example.apiresource.usecase.port.out.ResourceCustomFieldPersistencePort;
-import org.example.apiresource.usecase.port.out.CustomFieldDefinitionPersistencePort;
-import org.example.common.user.AuthDto;
-import org.example.common.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")

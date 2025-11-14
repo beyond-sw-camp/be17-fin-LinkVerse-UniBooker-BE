@@ -3,7 +3,6 @@ package org.example.apiresource.usecase.port.out;
 import org.example.apiresource.domain.model.entity.CustomFieldDefinitions;
 import org.example.apiresource.domain.model.entity.CustomFieldSelectDefinitions;
 import org.example.apiresource.domain.model.entity.ResourceGroups;
-import org.example.common.user.UserRole;
 
 import java.util.List;
 import java.util.Optional;

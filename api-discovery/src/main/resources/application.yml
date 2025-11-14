@@ -1,9 +1,34 @@
 server:
   port: 9090
 
+spring:
+  application:
+    name: api-discovery  # ← 추가
+
 eureka:
+  instance:
+    hostname: localhost  # ← 추가
   client:
     register-with-eureka: false
     fetch-registry: false
+    service-url:  # ← 추가
+      defaultZone: http://localhost:9090/eureka/
   server:
+    wait-time-in-ms-when-sync-empty: 0  # ← 추가
     enable-self-preservation: false
+
+# Actuator (← 신규 추가)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Logging (← 신규 추가)
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

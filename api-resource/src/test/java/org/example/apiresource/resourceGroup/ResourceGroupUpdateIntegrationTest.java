@@ -6,7 +6,7 @@ import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.apiresource.domain.model.dto.CustomFieldDto;
 import org.example.apiresource.domain.model.dto.ResourceGroupDto;
 import org.example.apiresource.usecase.port.in.ResourceGroupWebPort;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

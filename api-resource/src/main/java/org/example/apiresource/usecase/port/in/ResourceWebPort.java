@@ -2,7 +2,7 @@ package org.example.apiresource.usecase.port.in;
 
 import jakarta.validation.Valid;
 import org.example.apiresource.domain.model.dto.ResourceDto;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 
 public interface ResourceWebPort {
 

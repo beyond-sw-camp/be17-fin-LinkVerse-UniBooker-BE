@@ -2,7 +2,7 @@ package org.example.apiresource.resourceGroup;
 
 import org.example.apiresource.domain.model.dto.ResourceGroupDto;
 import org.example.apiresource.usecase.port.in.ResourceGroupWebPort;
-import org.example.common.user.UserRole;
+import org.example.common.model.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

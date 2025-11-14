@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 삭제 안내</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .deletion-box {
+            background: linear-gradient(135deg, #ffe5e5 0%, #ffcccc 100%);
+            border-left: 4px solid #dc3545;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .deletion-box .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .deletion-box .title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+
+        .deletion-box .message {
+            font-size: 16px;
+            color: #721c24;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .info-box .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-box .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .help-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .help-box h3 {
+            font-size: 16px;
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+
+        .help-box p {
+            margin: 0;
+            color: #004080;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer .contact p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .footer .copyright {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #999;
+            font-size: 12px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <div class="logo">🗑️</div>
+        <h1>UniBooker</h1>
+    </div>
+
+    <div class="content">
+        <div class="greeting">
+            안녕하세요, <strong th:text="${name}">홍길동</strong>님
+        </div>
+
+        <div class="deletion-box">
+            <div class="icon">⚠️</div>
+            <div class="title">계정이 삭제되었습니다</div>
+            <div class="message">
+                72시간 이내에 로그인이 없어 귀하의 계정이 자동으로 삭제되었습니다.
+            </div>
+        </div>
+
+        <p>
+            회원가입 시 안내드린 대로, 3일(72시간) 이내에 로그인하지 않으신
+            <strong th:text="${roleKorean}">역할</strong> 계정이 자동으로 삭제되었습니다.
+        </p>
+
+        <div class="info-box">
+            <div class="label">역할</div>
+            <div class="value" th:text="${roleKorean}">관리자</div>
+
+            <div class="label">삭제 일시</div>
+            <div class="value" th:text="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm')}">2025-10-27 14:00</div>
+        </div>
+
+        <div class="help-box">
+            <h3>💡 다시 계정이 필요하신가요?</h3>
+            <p>
+                계정이 필요하시다면 관리자에게 재신청을 요청해주세요.<br>
+                새로운 계정으로 다시 초대해드리겠습니다.
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="contact">
+            <p><strong>문의사항이 있으신가요?</strong></p>
+            <p>📧 이메일: support@unibooker.com</p>
+            <p>📞 전화: 1234-5678</p>
+        </div>
+
+        <div class="copyright">
+            © 2025 UniBooker. All rights reserved.
+        </div>
+    </div>
+</div>
+</body>
+</html>

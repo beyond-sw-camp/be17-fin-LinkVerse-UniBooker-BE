@@ -31,6 +31,14 @@ dependencies {
 
     // 예외 처리용
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // ========== JWT 의존성 추가 ==========
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    // Servlet API (CookieUtil용)
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 }
 
 tasks.named('test') {

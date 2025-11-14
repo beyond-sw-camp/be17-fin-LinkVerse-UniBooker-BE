@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매니저 계정 생성 안내</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        /* 본문 */
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        /* 임시 비밀번호 박스 */
+        .password-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 4px solid #667eea;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .password-box .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .password-box .password {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        /* 경고 메시지 */
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .warning p {
+            margin: 0;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .warning-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        /* 로그인 버튼 */
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            padding: 16px 50px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* 권한 안내 */
+        .permissions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .permissions h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .permissions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .permissions li {
+            padding: 8px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .permissions li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* 푸터 */
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer .contact {
+            margin-bottom: 15px;
+        }
+
+        .footer .contact p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .footer .contact strong {
+            color: #333;
+        }
+
+        .footer .copyright {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* 반응형 */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .password-box .password {
+                font-size: 22px;
+                letter-spacing: 2px;
+            }
+
+            .button {
+                padding: 14px 40px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="logo">🚀</div>
+        <h1>UniBooker</h1>
+    </div>
+
+    <!-- 본문 -->
+    <div class="content">
+        <div class="greeting">
+            안녕하세요, <strong th:text="${name}">홍길동</strong>님 👋
+        </div>
+
+        <p>
+            <strong th:text="${companyName}">회사명</strong>의 매니저로 초대되었습니다.
+        </p>
+
+        <p>
+            아래 임시 비밀번호를 사용하여 로그인하신 후,
+            <strong>반드시 비밀번호를 변경</strong>해주세요.
+        </p>
+
+        <!-- 임시 비밀번호 박스 -->
+        <div class="password-box">
+            <div class="label">임시 비밀번호</div>
+            <div class="password" th:text="${tempPassword}">Abc@1234</div>
+        </div>
+
+        <!-- 경고 메시지 -->
+        <div class="warning">
+            <p>
+                <span class="warning-icon">⚠️</span>
+                보안을 위해 첫 로그인 후 반드시 비밀번호를 변경해주세요.
+            </p>
+        </div>
+
+        <!-- 3일 내 로그인 안내 추가 -->
+        <div class="warning" style="background: #ffe5e5; border-left: 4px solid #dc3545; margin-top: 20px;">
+            <p>
+                <span class="warning-icon">⏰</span>
+                <strong>중요:</strong> 3일(72시간) 이내에 로그인하지 않으면 계정이 자동으로 삭제됩니다.
+            </p>
+        </div>
+
+        <!-- 로그인 버튼 -->
+        <div class="button-container">
+            <a th:href="${loginUrl}" class="button">
+                로그인하기 →
+            </a>
+        </div>
+
+        <!-- 권한 안내 -->
+        <div class="permissions">
+            <h3>📌 매니저 권한 안내</h3>
+            <ul>
+                <li>리소스 등록 및 관리</li>
+                <li>예약 조회 및 승인/거절</li>
+                <li>예약 통계 확인</li>
+                <li>고객 문의 응대</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        <div class="contact">
+            <p><strong>문의사항이 있으신가요?</strong></p>
+            <p>📧 이메일: support@unibooker.com</p>
+            <p>📞 전화: 1234-5678</p>
+        </div>
+
+        <div class="copyright">
+            © 2025 UniBooker. All rights reserved.
+        </div>
+    </div>
+</div>
+</body>
+</html>

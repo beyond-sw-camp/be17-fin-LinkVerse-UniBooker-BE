@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기업 가입 거절 안내</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        /* 본문 */
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        /* 거절 안내 박스 */
+        .rejection-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fd79a8 100%);
+            border-left: 4px solid #d63031;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .rejection-box .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .rejection-box .title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d63031;
+            margin-bottom: 10px;
+        }
+
+        .rejection-box .message {
+            font-size: 16px;
+            color: #2d3436;
+        }
+
+        /* 신청 정보 박스 */
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+            font-size: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-box li:last-child {
+            border-bottom: none;
+        }
+
+        .info-box li strong {
+            display: inline-block;
+            width: 140px;
+            color: #333;
+        }
+
+        /* 거절 사유 박스 */
+        .reason-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .reason-box h3 {
+            font-size: 18px;
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .reason-box p {
+            color: #856404;
+            line-height: 1.8;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* 재신청 안내 박스 */
+        .reapply-info {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .reapply-info h3 {
+            font-size: 18px;
+            color: #004085;
+            margin-bottom: 15px;
+        }
+
+        .reapply-info p {
+            color: #004085;
+            line-height: 1.8;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        /* 버튼 */
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            padding: 16px 50px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* 푸터 */
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer .contact {
+            margin-bottom: 15px;
+        }
+
+        .footer .contact p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .footer .contact strong {
+            color: #333;
+        }
+
+        .footer .copyright {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* 반응형 */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .button {
+                padding: 14px 40px;
+                font-size: 14px;
+            }
+
+            .info-box li strong {
+                display: block;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="logo">❌</div>
+        <h1>UniBooker</h1>
+    </div>
+
+    <!-- 본문 -->
+    <div class="content">
+        <div class="greeting">
+            안녕하세요, <strong th:text="${name}">홍길동</strong>님
+        </div>
+
+        <!-- 거절 안내 박스 -->
+        <div class="rejection-box">
+            <div class="icon">🚫</div>
+            <div class="title">기업 가입 신청이 거절되었습니다</div>
+            <div class="message">
+                <strong th:text="${companyName}">회사명</strong>의 UniBooker 가입 신청이<br>
+                검토 결과 거절되었음을 알려드립니다.
+            </div>
+        </div>
+
+        <!-- 신청 정보 -->
+        <div class="info-box">
+            <h3>📋 신청 정보</h3>
+            <ul>
+                <li>
+                    <strong>기업명:</strong>
+                    <span th:text="${companyName}">ABC 회사</span>
+                </li>
+                <li>
+                    <strong>사업자등록번호:</strong>
+                    <span th:text="${businessNumber}">123-45-67890</span>
+                </li>
+                <li>
+                    <strong>신청일:</strong>
+                    <span th:text="${#temporals.format(appliedDate, 'yyyy년 MM월 dd일 HH:mm')}">2025년 01월 01일 10:00</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 거절 사유 -->
+        <div class="reason-box">
+            <h3>❌ 거절 사유</h3>
+            <p th:text="${rejectionReason}">
+                사업자등록번호가 유효하지 않습니다.
+                정확한 사업자등록번호를 확인 후 재신청해주시기 바랍니다.
+            </p>
+        </div>
+
+        <!-- 재신청 안내 -->
+        <div class="reapply-info">
+            <h3>📌 재신청 안내</h3>
+            <p>
+                거절 사유를 확인하신 후, 내용을 보완하여 재신청하실 수 있습니다.
+            </p>
+            <p>
+                재신청 시 동일한 사업자등록번호와 이메일 주소를 사용하실 수 있습니다.
+            </p>
+        </div>
+
+        <!-- 재신청 버튼 -->
+        <div class="button-container">
+            <a th:href="${signupUrl}" class="button">
+                재신청하기 →
+            </a>
+        </div>
+
+        <p style="text-align: center; color: #999; font-size: 14px; margin-top: 30px;">
+            문의사항이 있으시면 아래 연락처로 문의해주시기 바랍니다.
+        </p>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        <div class="contact">
+            <p><strong>문의사항이 있으신가요?</strong></p>
+            <p>📧 이메일: support@unibooker.com</p>
+            <p>📞 전화: 1234-5678</p>
+        </div>
+
+        <div class="copyright">
+            © 2025 UniBooker. All rights reserved.
+        </div>
+    </div>
+</div>
+</body>
+</html>

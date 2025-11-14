@@ -1,8 +1,8 @@
 package org.example.apiresource.usecase.port.in;
 
 import org.example.apiresource.domain.model.dto.ResourceGroupDto;
-import org.example.common.user.AuthDto;
-import org.example.common.user.UserRole;
+import org.example.common.model.dto.AuthDto;
+import org.example.common.model.UserRole;
 
 public interface ResourceGroupWebPort {
 

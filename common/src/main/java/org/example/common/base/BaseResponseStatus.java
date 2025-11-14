@@ -69,8 +69,8 @@ public enum BaseResponseStatus {
 
 
     // ========== 60000: File 관련 ==========
-    INVALID_FILE_TYPE(60000, "지원하지 않는 파일 형식입니다. (jpg, jpeg, png만 가능)"),
-    FILE_SIZE_EXCEEDED(60001, "파일 크기는 5MB를 초과할 수 없습니다."),
+    INVALID_FILE_TYPE(60000, "지원하지 않는 파일 형식입니다."),
+    FILE_SIZE_EXCEEDED(60001, "파일 크기가 제한을 초과했습니다."),
     FILE_UPLOAD_FAILED(60002, "파일 업로드에 실패했습니다."),
 
     // ========== 70000: Email 관련 ==========

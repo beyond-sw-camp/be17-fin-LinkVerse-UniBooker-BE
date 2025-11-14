@@ -11,12 +11,11 @@ import org.example.apiresource.domain.service.ResourceService;
 import org.example.apiresource.domain.service.ResourceTimeSlotService;
 import org.example.apiresource.usecase.port.in.ResourceWebPort;
 import org.example.apiresource.usecase.port.out.*;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
