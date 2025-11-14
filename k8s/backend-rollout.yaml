@@ -14,12 +14,10 @@ spec:
       labels:
         app: backend
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker3
       containers:
         - name: backend
           image: linkverseunibooker/backend:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:
@@ -29,8 +27,8 @@ spec:
                 name: backend-secret
           resources:
             limits:
-              cpu: "1000m"
-              memory: "1Gi"
+              cpu: "500m"
+              memory: "768Mi"
             requests:
               cpu: "250m"
               memory: "512Mi"
