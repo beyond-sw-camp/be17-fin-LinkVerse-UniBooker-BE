@@ -8,7 +8,7 @@ import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.apireservation.usecase.port.in.*;
 import org.example.common.base.BaseResponse;
-import org.example.common.user.AuthDto;
+import org.example.common.model.dto.AuthDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

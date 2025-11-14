@@ -15,7 +15,7 @@ import org.example.apireservation.usecase.port.out.UserPersistencePort;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
-import org.example.common.user.UserRole;
+import org.example.common.model.UserRole;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

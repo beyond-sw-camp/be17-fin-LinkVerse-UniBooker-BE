@@ -3,7 +3,7 @@ package org.example.apireservation.domain.model.entity;
 import jakarta.persistence.Entity;
 import lombok.*;
 import org.example.common.base.BaseEntity;
-import org.example.common.user.UserRole;
+import org.example.common.model.UserRole;
 
 @Getter
 @Entity

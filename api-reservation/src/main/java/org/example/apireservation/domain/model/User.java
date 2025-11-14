@@ -1,7 +1,7 @@
 package org.example.apireservation.domain.model;
 
 import lombok.*;
-import org.example.common.user.UserRole;
+import org.example.common.model.UserRole;
 
 @Getter
 @Builder
