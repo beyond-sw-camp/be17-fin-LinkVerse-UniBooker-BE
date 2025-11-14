@@ -85,6 +85,16 @@ public class Companies extends BaseEntity {
     }
 
     /**
+     * 관리자 부재 7일 경과로 인한 서비스 정지
+     * - SUSPENDED 상태로 전환
+     * - adminPendingStartDate는 유지 (기록용)
+     */
+    public void expireAdminPending() {
+        this.status = CompanyStatus.SUSPENDED;
+        // adminPendingStartDate는 유지 (언제부터 ADMIN_PENDING이었는지 기록)
+    }
+
+    /**
      * 기업 거절 처리
      */
     public void reject(String rejectionReason) {

@@ -350,4 +350,24 @@ public class CompanyDto {
         @Schema(description = "변경 일시", example = "2025-11-11T16:30:00")
         private LocalDateTime updatedAt;
     }
+
+    /**
+     * Company 상태만 반환 (Gateway 내부 API용)
+     */
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "Company 상태 조회 응답")
+    public static class StatusOnlyResponse {
+
+        @Schema(description = "기업 ID", example = "1")
+        private Long companyId;
+
+        @Schema(description = "Company Slug", example = "test-company")
+        private String companySlug;
+
+        @Schema(description = "기업 상태", example = "ACTIVE")
+        private CompanyStatus status;
+    }
 }

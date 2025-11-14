@@ -283,4 +283,51 @@ public class AdminDto {
         @Schema(description = "비밀번호 변경 필수 여부", example = "false")
         private Boolean passwordChangeRequired;
     }
+
+    // ========== MANAGER → ADMIN 승격 Response ==========
+
+    /**
+     * MANAGER → ADMIN 승격 응답 DTO
+     */
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "MANAGER ADMIN 승격 응답")
+    public static class PromoteResponse {
+
+        @Schema(description = "처리 결과 메시지",
+                example = "매니저가 관리자로 승격되었습니다. 서비스가 정상화되었습니다.")
+        private String message;
+
+        @Schema(description = "승격된 사용자 ID", example = "15")
+        private Long userId;
+
+        @Schema(description = "이메일", example = "manager@company.com")
+        private String email;
+
+        @Schema(description = "이름", example = "김매니저")
+        private String name;
+
+        @Schema(description = "이전 권한", example = "MANAGER")
+        private UserRole oldRole;
+
+        @Schema(description = "새 권한", example = "ADMIN")
+        private UserRole newRole;
+
+        @Schema(description = "기업 ID", example = "10")
+        private Long companyId;
+
+        @Schema(description = "기업명", example = "ABC 회사")
+        private String companyName;
+
+        @Schema(description = "이전 기업 상태", example = "ADMIN_PENDING")
+        private CompanyStatus oldCompanyStatus;
+
+        @Schema(description = "새 기업 상태", example = "ACTIVE")
+        private CompanyStatus newCompanyStatus;
+
+        @Schema(description = "승격 일시", example = "2025-11-14T15:30:00")
+        private LocalDateTime promotedAt;
+    }
 }

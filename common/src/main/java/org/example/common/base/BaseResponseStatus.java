@@ -33,6 +33,7 @@ public enum BaseResponseStatus {
     ROLE_CONFLICT_IN_COMPANY(30012, "같은 기업 내에서 관리자와 매니저 역할을 동시에 가질 수 없습니다."),
     MANAGER_ALREADY_EXISTS(30013, "해당 이메일로 이미 매니저가 등록되어 있습니다."),
     ADMIN_MANAGER_EMAIL_EXISTS(30014, "해당 이메일은 이미 관리자 또는 매니저로 등록되어 있습니다."),
+    NOT_MANAGER(30015, "매니저 권한이 아닙니다."),
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),

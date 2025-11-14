@@ -105,6 +105,11 @@ app:
       cron: "0 0 2 ? * MON"            # 매주 월요일 새벽 2시
       retention-days: 3
 
+    # ADMIN_PENDING 만료 기업 정지 배치
+    admin-pending:
+      enabled: true              # 배치 활성화 여부
+      cron: "0 0 0 * * *"        # 매일 자정 실행
+
 # AWS S3 설정
 aws:
   s3:

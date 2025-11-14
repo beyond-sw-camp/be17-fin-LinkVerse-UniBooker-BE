@@ -188,6 +188,21 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             boolean suspendedByCompany);
 
     /**
+     * 기업별 + 상태별 모든 사용자 조회 (역할 무관)
+     * - Company 정지 시 모든 ACTIVE 사용자 정지용
+     */
+    List<Users> findByCompanyIdAndStatus(Long companyId, UserStatus status);
+
+    /**
+     * 기업별 + suspendedByCompany 플래그로 사용자 조회 (역할 무관)
+     * - Company 재개 시 자동 정지된 모든 사용자 복구용
+     */
+    List<Users> findByCompanyIdAndSuspendedByCompany(
+            Long companyId,
+            Boolean suspendedByCompany
+    );
+
+    /**
      * 기업별 + 역할별 + 상태별 사용자 조회
      * - 기업 정지 시 ACTIVE 관리자만 정지용
      */

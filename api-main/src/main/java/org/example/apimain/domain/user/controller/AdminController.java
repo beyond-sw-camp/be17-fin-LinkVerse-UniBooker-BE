@@ -468,4 +468,38 @@ public class AdminController {
         // 현재는 임시로 false 반환
         return BaseResponse.success(false);
     }
+
+    /**
+     * 12. MANAGER → ADMIN 승격 (SUPER 전용)
+     */
+    @Operation(
+            summary = "MANAGER를 ADMIN으로 승격",
+            description = "SUPER가 MANAGER를 ADMIN으로 승격시킵니다. 기존 ADMIN은 MANAGER로 강등됩니다. (SUPER 권한 필요)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "승격 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 (MANAGER가 아님)"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패"),
+                    @ApiResponse(responseCode = "403", description = "SUPER 권한 필요"),
+                    @ApiResponse(responseCode = "404", description = "사용자 또는 기업을 찾을 수 없음")
+            }
+    )
+    @PostMapping("/managers/{managerId}/promote")
+    public BaseResponse<AdminDto.PromoteResponse> promoteManagerToAdmin(
+            @Parameter(description = "승격할 MANAGER ID", required = true, example = "15")
+            @PathVariable Long managerId,
+            @Parameter(description = "SUPER 사용자 ID (JWT에서 추출)", required = true)
+            @RequestHeader("X-User-Id") Long superUserId,
+            @Parameter(description = "사용자 권한 (JWT에서 추출)", required = true)
+            @RequestHeader("X-User-Role") String role) {
+
+        log.info("MANAGER ADMIN 승격 - managerId: {}, superUserId: {}", managerId, superUserId);
+
+        // 권한 체크: SUPER만 허용
+        if (!"SUPER".equals(role)) {
+            throw new BaseException(BaseResponseStatus.UNAUTHORIZED_ACTION);
+        }
+
+        AdminDto.PromoteResponse response = adminService.promoteManagerToAdmin(managerId, superUserId);
+        return BaseResponse.success(response);
+    }
 }
