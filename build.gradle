@@ -49,10 +49,10 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
 
     // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation platform("io.jsonwebtoken:jjwt-bom:0.11.5")
+    implementation "io.jsonwebtoken:jjwt-api"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson"
 
     // WebSocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'

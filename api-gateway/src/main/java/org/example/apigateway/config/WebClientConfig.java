@@ -16,7 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${app.main-service.url:lb://api-main}")
+    @Value("${app.main-service.url:lb://api-app}")
     private String mainServiceUrl;
 
     /**

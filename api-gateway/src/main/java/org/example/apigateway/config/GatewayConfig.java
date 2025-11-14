@@ -39,77 +39,77 @@ public class GatewayConfig {
                                 .filter(companyStatusFilter.apply(new CompanyStatusFilter.Config()))
                                 .rewritePath("/c/(?<slug>.*?)(?<remaining>/.*)?", "/api/c/${slug}${remaining}")
                         )
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Main Service - Admin API ==========
 
                 // Auth API (인증 불필요)
                 .route("auth-refresh", r -> r
                         .path("/api/auth/refresh")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Admin 회원가입 (인증 불필요)
                 .route("admin-signup", r -> r
                         .path("/api/admins/signup")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Admin 상태 조회 (인증 불필요)
                 .route("admin-status", r -> r
                         .path("/api/admins/status")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Admin 이메일 확인 (인증 불필요)
                 .route("admin-check-email", r -> r
                         .path("/api/admins/check-email")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Admin 로그인 (인증 불필요)
                 .route("admin-login", r -> r
                         .path("/api/admins/login")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Admin API (인증 필요) - logout, /me 등
                 .route("admin-protected", r -> r
                         .path("/api/admins/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Main Service - Super API ==========
 
                 // Super 로그인 (인증 불필요)
                 .route("super-login", r -> r
                         .path("/api/super/login")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // Super API (인증 필요)
                 .route("super-protected", r -> r
                         .path("/api/super/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Main Service - User API ==========
 
                 // User 회원가입 (인증 불필요)
                 .route("user-signup", r -> r
                         .path("/api/users/signup")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // User 로그인 (인증 불필요)
                 .route("user-login", r -> r
                         .path("/api/users/login")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // User 공개 API (인증 불필요)
                 .route("user-public", r -> r
                         .path("/api/users/check-email", "/api/users/accounts",
                                 "/api/users/reset-password", "/api/users/find-email")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // User API (인증 필요)
                 .route("user-protected", r -> r
                         .path("/api/users/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Main Service - Company API ==========
 
@@ -117,7 +117,7 @@ public class GatewayConfig {
                 .route("company-api", r -> r
                         .path("/api/companies/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Main Service - Notification API ==========
 
@@ -125,14 +125,14 @@ public class GatewayConfig {
                 .route("notification-api", r -> r
                         .path("/api/notifications/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 // ========== Actuator (Health Check) ==========
 
                 // Actuator (인증 불필요)
                 .route("actuator", r -> r
                         .path("/actuator/**")
-                        .uri("lb://api-main"))
+                        .uri("lb://api-app"))
 
                 .build();
     }

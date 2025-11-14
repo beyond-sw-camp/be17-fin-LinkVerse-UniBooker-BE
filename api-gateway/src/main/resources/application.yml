@@ -30,22 +30,16 @@ spring:
           uri: lb://api-queue
           predicates:
             - Path=/api/queues/**
+        - id: main-service
+          uri: lb://api-app
+          predicates:
+            - Path=/api/**
 
 
       # 기본 필터 설정
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
-# Eureka Client 설정
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:9090/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
 # JWT 설정
 jwt:
@@ -56,7 +50,7 @@ jwt:
 # App 설정 (신규 추가)
 app:
   main-service:
-    url: lb://api-main  # Eureka를 통한 로드밸런싱
+    url: lb://api-app
 
 # Actuator 설정
 management:
@@ -67,6 +61,18 @@ management:
   endpoint:
     health:
       show-details: always
+      redis:
+        enabled: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # Logging 설정
 logging:

@@ -37,13 +37,26 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
     consumer:
-      group-id: api-main-group  # ← main-service-group → api-main-group
+      group-id: api-app-group  # ← main-service-group → api-app-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
 
 # JWT 설정
 jwt:
@@ -69,16 +82,6 @@ logging:
   level:
     org.example.apimain: DEBUG  # ← com.unibooker.main → org.example.apimain
     org.hibernate.SQL: DEBUG
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:9090/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
 # App 설정
 app:
