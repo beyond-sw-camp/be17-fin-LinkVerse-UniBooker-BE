@@ -10,6 +10,7 @@ import org.example.apireservation.infrastructure.ResourceFeignAdapter;
 import org.example.apireservation.domain.model.Resource;
 import org.example.apireservation.mapper.UserMapper;
 import org.example.apireservation.usecase.port.in.ReservationCommand;
+import org.example.apireservation.usecase.port.in.ReservationTrendCommand;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
 import org.example.apireservation.usecase.port.out.UserPersistencePort;
 import org.example.common.base.BaseResponse;

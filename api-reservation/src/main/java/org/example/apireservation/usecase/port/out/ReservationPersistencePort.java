@@ -1,5 +1,6 @@
 package org.example.apireservation.usecase.port.out;
 
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 
 import java.time.LocalDateTime;
@@ -43,9 +44,6 @@ public interface ReservationPersistencePort {
     List<Reservations> findAllByResourceIdWithReservation(Long resourceId);
 */
 
-    // 특정 기업의 모든 예약 수 카운트
-    Integer countByCompanyId(Long companyId);
-
     // 특정 리소스 그룹의 예약 수
     Integer countByResourceGroupId(Long resourceGroupId);
 
@@ -55,8 +53,11 @@ public interface ReservationPersistencePort {
     // 특정 리소스의 예약 목록 조회 (특정 날짜)
     List<Reservations> findAllByResourceIdAndStartDateBetween(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // 특정 기간 동안의 리소스 그룹별 예약수
-    List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
+    // 특정 기업의 모든 예약 수 카운트
+    Integer countByCompanyId(Long companyId);
+
+    // 특정 기간 동안의 리소스 그룹별 예약수 카운트
+    List<Object[]> countReservationByGroupAndDate(Long resourceGroupId, LocalDateTime startDate, LocalDateTime endDate);
 
     Integer countConfirmedByResourceAndRange(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 }

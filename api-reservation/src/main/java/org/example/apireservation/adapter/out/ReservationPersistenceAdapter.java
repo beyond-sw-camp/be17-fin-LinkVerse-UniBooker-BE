@@ -1,6 +1,7 @@
 package org.example.apireservation.adapter.out;
 
 import lombok.RequiredArgsConstructor;
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
 import org.springframework.stereotype.Component;
@@ -84,13 +85,6 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
     }
 */
 
-    // ========================== 특정 기업의 모든 예약 수 카운트 ==========================
-    @Override
-    public Integer countByCompanyId(Long companyId) {
-//        return reservationRepository.countByCompanyId(companyId);
-        return null;
-    }
-
     // ========================== 특정 리소스 그룹의 예약 수 ==========================
     @Override
     public Integer countByResourceGroupId(Long resourceGroupId) {
@@ -110,11 +104,16 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
         return reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
     }
 
+    // ========================== 특정 기업의 모든 예약 수 카운트 ==========================
+    @Override
+    public Integer countByCompanyId(Long companyId) {
+        return reservationRepository.countByCompanyId(companyId);
+    }
+
     // ========================== 특정 기간 동안의 리소스 그룹별 예약수 ==========================
     @Override
-    public List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate) {
-//        return reservationRepository.countReservationsByGroupAndDate(companyId, startDate, endDate);
-        return null;
+    public List<Object[]> countReservationByGroupAndDate(Long resourceGroupId, LocalDateTime startDate, LocalDateTime endDate) {
+        return reservationRepository.countReservationByGroupAndDate(resourceGroupId, startDate, endDate);
     }
 
     // ==========================  ==========================

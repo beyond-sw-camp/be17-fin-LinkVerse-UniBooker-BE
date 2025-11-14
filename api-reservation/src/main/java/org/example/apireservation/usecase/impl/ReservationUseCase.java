@@ -5,6 +5,7 @@ import lombok.*;
 import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
 import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
 import org.example.apireservation.domain.model.entity.Users;
@@ -18,10 +19,12 @@ import org.example.apireservation.usecase.port.out.*;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
+import org.example.common.user.AuthDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,10 +48,10 @@ public class ReservationUseCase implements ReservationWebPort {
     // ========================== 예약 요청 ==========================
     @Override
     @Transactional
-    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, Long userId) {
+    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, AuthDto authUser) {
 
         // 도메인 검증 및 생성
-        Reservation domain = Reservation.toDomain(dto, resourceId, userId, reservationService); // command -> entity
+        Reservation domain = Reservation.toDomain(dto, resourceId, authUser.getId(), authUser.getCompanyId(), reservationService); // command -> entity
 
         // 예약 생성 및 저장
         Reservations savedReservation = reservationPersistencePort.save(ReservationMapper.toEntity(domain));
@@ -165,5 +168,25 @@ public class ReservationUseCase implements ReservationWebPort {
         } catch (Exception e) {
             throw new BaseException(BaseResponseStatus.RESERVATION_CANCEL_FAILED);
         }
+    }
+
+
+    // ========================== 특정 기업의 전체 예약 수 조회 ==========================
+    @Override
+    public Integer getAllReservationCountsByCompany(Long companyId) {
+        return reservationPersistencePort.countByCompanyId(companyId);
+    }
+
+
+    // ========================== 특정 기간 동안의 리소스 그룹별 예약 수 조회 ==========================
+    @Override
+    public List<ReservationTrendDto> getReservationCountsByGroupResources(ReservationTrendCommand dto) {
+        List<Object[]> result = new ArrayList<>();
+
+        for(Long resourceGroupId:dto.getGroupIds()) {
+            result.addAll(reservationPersistencePort.countReservationByGroupAndDate(resourceGroupId, dto.getTo(), dto.getFrom()));
+        }
+
+        return ReservationMapper.toResGroupCountList(result);
     }
 }
