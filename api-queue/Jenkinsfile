@@ -76,7 +76,7 @@ spec:
           sh 'git config --global --add safe.directory ${WORKSPACE}'
 
           checkout([$class: 'GitSCM',
-            branches: [[name: '*/main']],
+            branches: [[name: '*/msa-cicd']],
             userRemoteConfigs: [[url: 'https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE']]
           ])
         }
