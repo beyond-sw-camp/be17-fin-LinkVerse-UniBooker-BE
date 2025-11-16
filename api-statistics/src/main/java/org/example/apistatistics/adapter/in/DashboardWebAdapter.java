@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.apistatistics.domain.model.dto.DashboardDto;
 import org.example.apistatistics.usecase.port.in.DashboardWebPort;
 import org.example.common.base.BaseResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Dashboard", description = "대시보드 데이터를 조회합니다.")
 @RestController
@@ -31,6 +28,15 @@ public class DashboardWebAdapter {
     @GetMapping("/super")
     public BaseResponse<DashboardDto.SuperDashboardResponse> getPlatformDashboard(){
         DashboardDto.SuperDashboardResponse response = dashboardWebPort.getPlatformDashboard();
+        return BaseResponse.success(response);
+    }
+
+
+    @Operation(summary = "관리자 리소스 그룹별 대시보드")
+    @GetMapping("/resource-group/{resourceGroupId}")
+    public BaseResponse<DashboardDto.ResourceGroupDashboardData> getResourceGroupDashboard(@PathVariable Long resourceGroupId,
+                                                                                           @RequestHeader("X-Company-Id") Long companyId) {
+        DashboardDto.ResourceGroupDashboardData response = dashboardWebPort.getResourceGroupDashboard(resourceGroupId, companyId);
         return BaseResponse.success(response);
     }
 }
