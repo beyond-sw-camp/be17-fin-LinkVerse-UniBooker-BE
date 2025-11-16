@@ -1,5 +1,6 @@
 package org.example.apiresource.adapter.out.repository;
 
+import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.apiresource.domain.model.entity.ResourceGroups;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -37,4 +38,8 @@ public interface ResourceGroupRepository extends JpaRepository<ResourceGroups, L
 //    Long countByCompanyId(@Param("companyId") Long companyId);
 
     List<ResourceGroups> findAllByCompanyIdAndIsActive(Long companyId, boolean isActive);
+
+    List<ResourceGroups> findAllByIsActiveTrueAndDeletedAtIsNull();
+
+    int countAllByCategoryAndIsActiveTrueAndDeletedAtIsNull(ServiceCategory category);
 }

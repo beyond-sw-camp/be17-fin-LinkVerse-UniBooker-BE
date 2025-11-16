@@ -1,5 +1,6 @@
 package org.example.apireservation.mapper;
 
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
 import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
@@ -8,6 +9,7 @@ import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -209,5 +211,15 @@ public class ReservationMapper {
         return ReservationListDto.ResponseList.builder()
                 .list(List.copyOf(list))
                 .build();
+    }
+
+
+    // ========================= 특정 리소스별 예약 수 조회 =========================
+    public static List<ReservationTrendDto> toResGroupCountList(List<Object[]> result) {
+        return result.stream().map(r -> ReservationTrendDto.builder()
+                        .date((LocalDate) r[0])
+                        .groupId((Long) r[1])
+                        .count(((Long) r[2]).intValue())
+                        .build()).toList();
     }
 }

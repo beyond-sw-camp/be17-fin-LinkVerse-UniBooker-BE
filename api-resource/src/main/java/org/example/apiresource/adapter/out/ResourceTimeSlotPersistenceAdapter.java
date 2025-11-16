@@ -8,7 +8,9 @@ import org.example.apiresource.usecase.port.out.ResourceTimeSlotPersistencePort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -41,5 +43,22 @@ public class ResourceTimeSlotPersistenceAdapter implements ResourceTimeSlotPersi
     @Transactional
     public List<ResourceTimeSlots> findByResource_IdAndDayOfWeekAndIsActiveTrue(Long resourceId, DayOfWeek day) {
         return resourceTimeSlotRepository.findByResource_IdAndDayOfWeekAndIsActiveTrue(resourceId, day);
+    }
+
+
+    @Override
+    @Transactional
+    public Map<DayOfWeek, Integer> countActiveSlotsByResource(Long resourceId) {
+
+        List<Object[]> result = resourceTimeSlotRepository.countActiveSlotsByResource(resourceId);
+
+        Map<DayOfWeek, Integer> map = new EnumMap<>(DayOfWeek.class);
+        for (Object[] row : result) {
+            DayOfWeek day = (DayOfWeek) row[0];
+            Integer count = ((Number) row[1]).intValue();
+            map.put(day, count);
+        }
+
+        return map;
     }
 }

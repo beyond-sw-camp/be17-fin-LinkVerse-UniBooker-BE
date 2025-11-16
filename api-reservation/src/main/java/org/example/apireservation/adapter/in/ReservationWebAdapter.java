@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.usecase.port.in.*;
 import org.example.common.base.BaseResponse;
 import org.example.common.model.dto.AuthDto;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /** ReservationController */
 @Tag(name = "예약 처리 기능", description = "예약 요청, 조회, 취소 등 예약 처리에 대한 전반적인 기능")
@@ -32,7 +34,7 @@ public class ReservationWebAdapter {
             @PathVariable Long resourceId,
             @RequestAttribute("authUser") AuthDto authUser) {
 
-        ReservationDetailDto.Response response = reservationWebPort.reserve(dto, resourceId, authUser.getId());
+        ReservationDetailDto.Response response = reservationWebPort.reserve(dto, resourceId, authUser);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
@@ -82,5 +84,22 @@ public class ReservationWebAdapter {
 
         reservationWebPort.cancel(reservationId, authUser.getId());
         return ResponseEntity.ok(BaseResponse.success("예약이 취소 되었습니다."));
+    }
+
+
+    /** 외부 통신을 위한 api */
+    // ========================== 특정 기업의 전체 예약 수 조회 ==========================
+    @Operation(summary = "특정 기업의 전체 예약수 조회")
+    @PostMapping("/company-counts/{companyId}")
+    public Integer getAllReservationCountsByCompany(@PathVariable Long companyId) {
+        return reservationWebPort.getAllReservationCountsByCompany(companyId);
+    }
+
+
+    // ========================== 특정 기간 동안의 리소스 그룹별 예약 수 조회 ==========================
+    @Operation(summary = "리소스 그룹별 예약수 조회")
+    @PostMapping("/group-counts")
+    public List<ReservationTrendDto> getReservationCountsByGroupResources(@RequestBody ReservationTrendCommand dto) {
+        return reservationWebPort.getReservationCountsByGroupResources(dto);
     }
 }

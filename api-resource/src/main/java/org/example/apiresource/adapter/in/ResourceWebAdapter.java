@@ -8,7 +8,6 @@ import org.example.apiresource.domain.model.dto.ResourceDto;
 import org.example.apiresource.usecase.port.in.ResourceWebPort;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
-import org.example.common.model.dto.AuthDto;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "리소스 관리", description = "리소스에 대한 값들을 관리합니다.")
@@ -21,9 +20,9 @@ public class ResourceWebAdapter {
     // ---------------- 생성 ----------------
     @Operation(summary = "서비스 생성", description = "예약/신청 서비스를 생성합니다.")
     @PostMapping
-    public BaseResponse register(@RequestAttribute("authUser") AuthDto authUser,
+    public BaseResponse register(@RequestHeader("X-User-Id") Long userId,
                                  @RequestBody ResourceDto.ResourceRegisterReq dto) {
-        resourceWebPort.register(dto, authUser.getId());
+        resourceWebPort.register(dto, userId);
         return BaseResponse.success("서비스가 생성되었습니다.");
     }
 
@@ -49,10 +48,10 @@ public class ResourceWebAdapter {
     // ---------------- 수정 ----------------
     @Operation(summary = "서비스 수정", description = "기존의 예약/신청 서비스를 수정합니다.")
     @PutMapping("/{resourceId}")
-    public BaseResponse update(@RequestAttribute("authUser") AuthDto authUser,
+    public BaseResponse update(@RequestHeader("X-User-Id") Long userId,
                                @PathVariable Long resourceId,
                                @RequestBody @Valid ResourceDto.ResourceUpdateReq dto) {
-        resourceWebPort.update(authUser.getId(), resourceId, dto);
+        resourceWebPort.update(userId, resourceId, dto);
         return BaseResponse.success("서비스가 수정되었습니다.");
     }
 
@@ -60,9 +59,9 @@ public class ResourceWebAdapter {
     // ---------------- 삭제 ----------------
     @Operation(summary = "서비스 삭제", description = "기존의 예약/신청 서비스를 삭제합니다.")
     @DeleteMapping("/{resourceId}")
-    public BaseResponse delete(@RequestAttribute("authUser") AuthDto authUser,
+    public BaseResponse delete(@RequestHeader("X-User-Id") Long userId,
                                @PathVariable Long resourceId) {
-        resourceWebPort.deleteResource(resourceId, authUser.getId());
+        resourceWebPort.deleteResource(resourceId, userId);
         return BaseResponse.success("서비스가 삭제되었습니다.");
     }
 
@@ -70,9 +69,9 @@ public class ResourceWebAdapter {
     // ---------------- 서비스 활성화 ----------------
     @Operation(summary = "서비스 활성화", description = "비활성화된 서비스를 활성화합니다.")
     @GetMapping("/active/{resourceId}")
-    public BaseResponse activateResource(@RequestAttribute("authUser") AuthDto authUser,
+    public BaseResponse activateResource(@RequestHeader("X-User-Id") Long userId,
                                          @PathVariable Long resourceId) {
-        resourceWebPort.activate(resourceId, authUser.getId());
+        resourceWebPort.activate(resourceId, userId);
         return BaseResponse.success("서비스가 활성화되었습니다.");
     }
 
@@ -80,9 +79,9 @@ public class ResourceWebAdapter {
     // ---------------- 서비스 비활성화 ----------------
     @Operation(summary = "서비스 비활성화", description = "활성화된 서비스를 비활성화합니다.")
     @GetMapping("/inactive/{resourceId}")
-    public BaseResponse deactivateResource(@RequestAttribute("authUser") AuthDto authUser,
+    public BaseResponse deactivateResource(@RequestHeader("X-User-Id") Long userId,
                                            @PathVariable Long resourceId) {
-        resourceWebPort.deactivate(resourceId, authUser.getId());
+        resourceWebPort.deactivate(resourceId, userId);
         return BaseResponse.success("서비스가 비활성화되었습니다.");
     }
 
@@ -90,10 +89,10 @@ public class ResourceWebAdapter {
     @Operation(summary = "서비스 상태 변경", description = "서비스의 상태를 변경합니다.")
     @PatchMapping("/status")
     public BaseResponse changeResourceStatus(
-            @RequestAttribute("authUser") AuthDto authUser,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestBody ResourceDto.ResourceStatusChangReq req)
     {
-        return resourceWebPort.changeStatus(authUser, req) ?
+        return resourceWebPort.changeStatus(userId, req) ?
                 BaseResponse.success("서비스의 상태가 성공적으로 변경되었습니다.")
                 : BaseResponse.error(BaseResponseStatus.RESOURCE_STATUS_CHANGE_FAILED);
     }

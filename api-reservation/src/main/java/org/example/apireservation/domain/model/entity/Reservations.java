@@ -22,13 +22,19 @@ public class Reservations extends BaseEntity {
     @Column(nullable = false)
     private Long resourceId;
 
+    // 리소스 그룹 키
+    @Column(nullable = false)
+    private Long resourceGroupId;
+
+    // 기업 키
+    @Column(nullable = false)
+    private Long companyId;
+
     // 생성자
     private Long createdBy;
 
-    // 예약 상태
     @Enumerated(EnumType.STRING)
-    private ReservationStatus status;
-
+    private ReservationStatus status;   // 예약 상태
     private Integer attendeeCount;      // 참석 인원
     private LocalDateTime startDate;    // 시작 일시
     private LocalDateTime endDate;      // 종료 일시

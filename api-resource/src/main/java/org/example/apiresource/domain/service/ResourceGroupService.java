@@ -143,7 +143,7 @@ public class ResourceGroupService {
 
 
     // 리소스 그룹 수정
-    public void updateResourceGroup(ResourceGroups resourceGroup, AuthDto authDto, ResourceGroupDto.ResourceGroupUpdateReq dto) {
+    public void updateResourceGroup(ResourceGroups resourceGroup, Long userId, ResourceGroupDto.ResourceGroupUpdateReq dto) {
         List<CustomFieldDefinitions> newCustomFields = dto.getCustomFields() != null
                 ? dto.getCustomFields().stream()
                 .map(customFieldReq -> {
@@ -169,7 +169,7 @@ public class ResourceGroupService {
                 dto.getThumbnail(),
                 dto.getCategory(),
                 dto.getIsAlwaysAvailable(),
-                authDto.getId()
+                userId
         );
     }
 

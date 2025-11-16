@@ -28,7 +28,7 @@ public interface ResourceWebPort {
     void deactivate(Long resourceId, Long id);
 
     // 서비스 상태 변경
-    boolean changeStatus(AuthDto authUser, ResourceDto.ResourceStatusChangReq req);
+    boolean changeStatus(Long userId, ResourceDto.ResourceStatusChangReq req);
 
     // 서비스 존재 여부 확인
     Object getResourceIfExists(Long resourceId);

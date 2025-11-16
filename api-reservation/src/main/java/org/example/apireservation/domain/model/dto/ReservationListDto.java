@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 예약 목록
  * 응답할 데이터를 담은 DTO
- * 변환 로직은 ReservationDtoMapper에 있음 */
+ * 변환 로직은 Reservationapper에 있음 */
 public class ReservationListDto {
 
     // ========================== 플랫폼 관리자 및 기업 관리자 용 ==========================

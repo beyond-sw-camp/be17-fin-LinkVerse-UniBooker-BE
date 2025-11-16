@@ -2,76 +2,122 @@ package org.example.apistatistics.usecase.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.apistatistics.domain.model.dto.DashboardDto;
+import org.example.apistatistics.domain.service.DashboardService;
+import org.example.apistatistics.infrastructure.ReservationFeignAdapter;
+import org.example.apistatistics.infrastructure.ResourceFeignAdapter;
+import org.example.apistatistics.infrastructure.UserFeignAdapter;
 import org.example.apistatistics.usecase.port.in.DashboardWebPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DashboardUseCase implements DashboardWebPort {
 
-    private final DashboardService dashboardService;
-    private final DashboardFeignAdapter dashboardFeignAdapter;
+    private final ResourceFeignAdapter resourceFeignAdapter;
+    private final UserFeignAdapter userFeignAdapter;
+    private final ReservationFeignAdapter reservationFeignAdapter;
 
+
+    // 관리자 전체 대시보드
     @Override
+    @Transactional
     public DashboardDto.AdminDashboardResponse getCompanyDashboard(Long companyId) {
-        // 해당 회사(companyId)에 속한 리소스 그룹 목록 조회
-        List<ResourceGroups> resourceGroups = resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
 
-        //  각 리소스 그룹별 예약 수, 리소스 수, 조회 수 집계
-        int totalReservations = reservationRepository.countByCompanyId(companyId); // 회사 전체 예약
-        int activeServiceGroups = resourceGroups.size(); // 활성화된 그룹 수
-        int activeServices = resourceRepository.countActiveResourcesByCompanyId(companyId); // 활성 리소스 총합
-        int userCount = userRepository.findAllByCompany_IdAndRole(companyId, UserRole.USER).size(); // 해당 회사에 소속된 사용자 수
+        // 해당 회사(companyId)에 속한 리소스 그룹(이름, 아이디, 조회수, 활성화 상태) 정보와 총 그룹 수, 총 리소스 수
+        DashboardDto.AdminDashboardResourceGroup resourceGroups = resourceFeignAdapter.getAdminTotalDashboardInfo(companyId);
+
+        // 해당 회사의 총 고객 수
+        int userCount = userFeignAdapter.getAdminTotalDashboardUserCount(companyId);
+
+        // 해당 회사의 총 예약 수
+        int reservationCount = reservationFeignAdapter.getAdminTotalDashboardReservationCount(companyId);
 
 
         // Summary 데이터 구성
-        DashboardDto.Summary summary = DashboardDto.Summary.builder()
-                .totalReservations(totalReservations)
-                .activeServiceGroups(activeServiceGroups)
-                .activeServices(activeServices)
+        DashboardDto.AdminDashboardSummary summary = DashboardDto.AdminDashboardSummary.builder()
+                .totalReservations(reservationCount)
+                .activeServiceGroups(resourceGroups.getGroupCount())
+                .activeServices(resourceGroups.getResourceCount())
                 .userCount(userCount)
                 .build();
 
+
+        List<Long> groupIds = resourceGroups.getGroups().stream()
+                .map(DashboardDto.AdminDashboardGroupInfo::getId)
+                .toList();
+
+        // 그룹별 예약 수 한 번에 조회
+        List<DashboardDto.GroupReservationCountResponse> reservationCounts =
+                reservationFeignAdapter.getReservationCountsByGroupResources(groupIds);
+
+        // Map으로 변환
+        Map<Long, Integer> reservationMap = reservationCounts.stream()
+                .collect(Collectors.toMap(
+                        DashboardDto.GroupReservationCountResponse::getGroupId,
+                        DashboardDto.GroupReservationCountResponse::getCount
+                ));
+
+
         // ServiceGroups 리스트 구성
         //    - 각 그룹별 이름, 서비스 수, 예약 수, 상태, 조회 수
-        List<DashboardDto.ResourceGroupStats> groupStats = resourceGroups.stream()
-                .map(resourceGroup -> {
-                    int reservationCount = reservationRepository.countByResourceGroupId(resourceGroup.getId());
-                    int serviceCount = resourceRepository.countByResourceGroupIdAndIsActiveTrueAndDeletedAtIsNull(resourceGroup.getId());
-                    String status = resourceGroup.getIsActive() ? "ACTIVE" : "INACTIVE";
-                    int viewCount = resourceGroup.getViewCount();
+        List<DashboardDto.ResourceGroupStats> groupStats = resourceGroups.getGroups().stream()
+                .map(group -> {
+
+                    // 1) 그룹 ID로 예약 수 조회 (없으면 기본값 0)
+                    int reservationCountByGroup = reservationMap.getOrDefault(group.getId(), 0);
+
+                    // 2 ) 상태 설정
+                    String status = group.getIsActive() ? "ACTIVE" : "INACTIVE";
 
                     return DashboardDto.ResourceGroupStats.builder()
-                            .name(resourceGroup.getName())
-                            .serviceCount(serviceCount)
-                            .reservationCount(reservationCount)
+                            .name(group.getName())
+                            .serviceCount(group.getServiceCount())
+                            .reservationCount(reservationCountByGroup)
                             .status(status)
-                            .viewCount(viewCount)
+                            .viewCount(group.getViewCount())
                             .build();
                 })
                 .toList();
 
-        // ReservationTrends 데이터 구성 (예: 최근 31일)
+        // 최근 한 달간 예약 트렌드 조회
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
-        // 실제 예약 데이터 조회
-        List<Object[]> trendRaw = reservationRepository.countReservationsByGroupAndDate(companyId, oneMonthAgo, now);
 
-        // 회사 소속 모든 그룹 조회
-        List<String> groupNames = resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId)
-                .stream().map(rg -> rg.getName()).toList();
+        DashboardDto.ReservationTrendRequest request =
+                DashboardDto.ReservationTrendRequest.builder()
+                        .groupIds(groupIds)      // 리소스 그룹 ID 리스트
+                        .from(oneMonthAgo)
+                        .to(now)
+                        .build();
+
+
+        // 실제 예약 데이터 조회 (예약 API에서 (날짜, 그룹아이디, 예약수) 형식으로 조회)
+        List<DashboardDto.DashboardReservationTrendResponse> trendRaw =
+                reservationFeignAdapter.getAdminReservationTrends(request);
+
+        // groupId → groupName 매핑
+        Map<Long, String> groupIdNameMap = resourceGroups.getGroups().stream()
+                .collect(Collectors.toMap(
+                        DashboardDto.AdminDashboardGroupInfo::getId,
+                        DashboardDto.AdminDashboardGroupInfo::getName
+                ));
 
         // 날짜별 트렌드 Map 초기화 (최근 한 달)
         Map<LocalDate, Map<String, Integer>> trendMap = new TreeMap<>();
+
+        List<String> groupNames = resourceGroups.getGroups().stream()
+                .map(DashboardDto.AdminDashboardGroupInfo::getName)
+                .toList();
+
         for (LocalDate date = oneMonthAgo.toLocalDate(); !date.isAfter(now.toLocalDate()); date = date.plusDays(1)) {
             Map<String, Integer> groups = new HashMap<>();
             for (String groupName : groupNames) {
@@ -80,11 +126,16 @@ public class DashboardUseCase implements DashboardWebPort {
             trendMap.put(date, groups);
         }
 
-        // 실제 예약 데이터로 덮어쓰기
-        for (Object[] row : trendRaw) {
-            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
-            String groupName = (String) row[1];
-            int count = ((Number) row[2]).intValue();
+        // 실제 예약 데이터로 덮어쓰기 (groupId → groupName 변환)
+        for (DashboardDto.DashboardReservationTrendResponse trend : trendRaw) {
+            LocalDate date = trend.getDate();
+            Long groupId = trend.getGroupId();
+            int count = trend.getCount();
+
+            // ID → 이름 변환
+            String groupName = groupIdNameMap.get(groupId);
+            if (groupName == null) continue;
+
             trendMap.get(date).put(groupName, count);
         }
 
@@ -103,6 +154,53 @@ public class DashboardUseCase implements DashboardWebPort {
                 .summary(summary)
                 .serviceGroups(groupStats)
                 .reservationTrends(reservationTrends)
+                .build();
+    }
+
+
+
+    // 플랫폼 관리자 대시보드
+    @Override
+    @Transactional
+    public DashboardDto.SuperDashboardResponse getPlatformDashboard() {
+
+        // 오늘 날짜 기준으로 올해 설정
+        int year = LocalDate.now().getYear();
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+
+        // 단일 요청으로 모든 연간 데이터 조회
+        DashboardDto.YearlyStatisticsResponse stats = userFeignAdapter.getYearlyStatistics(year);
+
+        // 기업 통계
+        DashboardDto.CompanyStats companyStats = DashboardDto.CompanyStats.builder()
+                .currentCompanyCount(stats.getTotalCompanies())
+                .monthlyNewRegistrations(stats.getMonthlyNewCompanies())
+                .build();
+
+        // 고객 통계
+        DashboardDto.CustomerStats customerStats = DashboardDto.CustomerStats.builder()
+                .currentCustomerCount(stats.getTotalCustomers())
+                .cumulativeRegistrations(stats.getMonthlyNewCustomers())
+                .build();
+
+        /** ------------------ 서비스 통계 ------------------ **/
+        DashboardDto.ServiceStatsResponse resourceGroupStates  = resourceFeignAdapter.getServiceStatistics();
+
+        DashboardDto.ServiceStats serviceStats = DashboardDto.ServiceStats.builder()
+                .totalServiceCount(resourceGroupStates.getTotalServiceCount())
+                .categoryCounts(resourceGroupStates.getCategoryCounts())
+                .categoryLabels(resourceGroupStates.getCategoryLabels())
+                .build();
+
+        /** ------------------ 에러 로그 (임시) ------------------ **/
+        List<DashboardDto.ErrorLogs> errorLogs = new ArrayList<>(); // 추후 로깅 서비스 연동 예정
+
+        /** ------------------ 전체 응답 조립 ------------------ **/
+        return DashboardDto.SuperDashboardResponse.builder()
+                .companyStats(companyStats)
+                .customerStats(customerStats)
+                .serviceStats(serviceStats)
+                .errorLogs(errorLogs)
                 .build();
     }
 }
