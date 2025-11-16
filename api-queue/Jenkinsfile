@@ -68,24 +68,16 @@ spec:
     DEPLOY_NAMESPACE = 'unibooker'
   }
 
+  stages {
+
     stage('Gradle Build') {
       steps {
         container('gradle') {
           sh """
             set -x
             cd ${SERVICE_PATH}
-            curl -v https://services.gradle.org
             chmod +x ./gradlew || true
-            ./gradlew build -x test \
-              --no-daemon \
-              --configuration-cache \
-              --build-cache \
-              --parallel \
-              -Dorg.gradle.caching=true \
-              -Dorg.gradle.parallel=true \
-              -Dorg.gradle.vfs.watch=true \
-              -Dorg.gradle.workers.max=2 \
-              -Dorg.gradle.daemon.idletimeout=1800000
+            ./gradlew build -x test --no-daemon --parallel
           """
         }
       }
@@ -96,19 +88,13 @@ spec:
         container('kaniko') {
           sh """
             cd ${WORKSPACE}/${SERVICE_PATH}
-
             /kaniko/executor \
               --context=${WORKSPACE}/${SERVICE_PATH} \
               --dockerfile=${WORKSPACE}/${SERVICE_PATH}/Dockerfile \
               --destination=${IMAGE_NAME}:${IMAGE_TAG} \
               --destination=${IMAGE_NAME}:latest \
               --cache=true \
-              --cache-dir=/cache \
-              --cache-ttl=6h \
-              --use-new-run \
-              --single-snapshot \
-              --snapshot-mode=redo \
-              --cache-repo=${IMAGE_NAME}-cache
+              --cache-dir=/cache
           """
         }
       }
@@ -121,4 +107,6 @@ spec:
         }
       }
     }
+
   }
+}
