@@ -89,8 +89,18 @@ spec:
           sh """
             set -x
             cd ${SERVICE_PATH}
+            curl -v https://services.gradle.org
             chmod +x ./gradlew || true
-            ./gradlew clean bootJar --no-daemon
+            ./gradlew build -x test \
+              --no-daemon \
+              --configuration-cache \
+              --build-cache \
+              --parallel \
+              -Dorg.gradle.caching=true \
+              -Dorg.gradle.parallel=true \
+              -Dorg.gradle.vfs.watch=true \
+              -Dorg.gradle.workers.max=2 \
+              -Dorg.gradle.daemon.idletimeout=1800000
           """
         }
       }
