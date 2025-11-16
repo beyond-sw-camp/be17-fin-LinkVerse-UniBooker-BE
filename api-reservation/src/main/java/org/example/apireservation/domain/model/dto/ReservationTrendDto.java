@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Builder
 public class ReservationTrendDto {
-    LocalDate date;
-    Long groupId;
-    Integer count;
+    private LocalDate date;
+    private Long groupId;
+    private Integer count;
 }
