@@ -76,6 +76,7 @@ spec:
           sh """
             set -x
             cd ${SERVICE_PATH}
+            curl -v https://services.gradle.org
             chmod +x ./gradlew || true
             ./gradlew build -x test --no-daemon --parallel
           """
