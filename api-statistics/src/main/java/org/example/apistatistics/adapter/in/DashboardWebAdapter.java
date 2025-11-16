@@ -27,10 +27,10 @@ public class DashboardWebAdapter {
     }
 
 
-//    @Operation(summary = "플랫폼 관리자 대시보드")
-//    @GetMapping("/super")
-//    public BaseResponse<DashboardDto.SuperDashboardResponse> getPlatformDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
-//        DashboardDto.SuperDashboardResponse response = dashboardService.getPlatformDashboard(authUser);
-//        return BaseResponse.success(response);
-//    }
+    @Operation(summary = "플랫폼 관리자 대시보드")
+    @GetMapping("/super")
+    public BaseResponse<DashboardDto.SuperDashboardResponse> getPlatformDashboard(){
+        DashboardDto.SuperDashboardResponse response = dashboardWebPort.getPlatformDashboard();
+        return BaseResponse.success(response);
+    }
 }

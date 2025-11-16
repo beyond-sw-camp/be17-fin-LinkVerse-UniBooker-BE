@@ -25,4 +25,8 @@ public interface ResourcePersistencePort {
 
     // 리소스 상세 조회 (활성화 & 미삭제 상태 & 비관적 락)
     Optional<Resources> findByIdForUpdate(Long resourceId);
+
+    int countAllByResourceGroup_Id(Long id);
+
+    int countAllByResourceGroup_CompanyId(Long companyId);
 }

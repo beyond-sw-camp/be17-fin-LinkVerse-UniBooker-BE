@@ -61,7 +61,7 @@ class ResourceGroupUpdateIntegrationTest {
 
         // 검증: DB에서 실제 엔티티 조회
         ResourceGroupDto.ResourceGroupDetailRes updatedGroup =
-                resourceGroupWebPort.getResourceGroupById(authDto, existingResourceGroupId);
+                resourceGroupWebPort.getResourceGroupById(authDto.getRole(), existingResourceGroupId);
 
         assertEquals("Updated Name", updatedGroup.getName());
         assertEquals("UPD01", updatedGroup.getGroupCode());
