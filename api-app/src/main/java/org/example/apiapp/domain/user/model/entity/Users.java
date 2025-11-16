@@ -16,8 +16,8 @@ import lombok.*;
         name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_email_company",
-                        columnNames = {"email", "company_id"}
+                        name = "uk_email_company_role",
+                        columnNames = {"email", "company_id", "role"}
                 )
         }
 )
@@ -188,6 +188,13 @@ public class Users extends BaseEntity {
      */
     public void completeFirstLogin() {
         this.isFirstLogin = false;
+    }
+
+    /**
+     * 비밀번호 재설정으로 인한 첫 로그인 요구
+     */
+    public void requireFirstLogin() {
+        this.isFirstLogin = true;
     }
 
     // ========== 상태 확인 메서드 ==========

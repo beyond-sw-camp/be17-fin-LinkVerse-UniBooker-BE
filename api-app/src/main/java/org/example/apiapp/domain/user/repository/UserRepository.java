@@ -38,6 +38,15 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     Optional<Users> findByIdAndDeletedAtIsNull(Long id);
 
+    /**
+     * 이메일 + 기업 + 역할로 사용자 조회 (삭제 제외)
+     */
+    Optional<Users> findByEmailAndCompanyIdAndRoleAndDeletedAtIsNull(
+            String email,
+            Long companyId,
+            UserRole role
+    );
+
     // ========== 중복 확인 ==========
 
     /**
@@ -241,4 +250,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     long countUsersByYear(@Param("year") int year);
 
     long countAllByRoleAndStatus(UserRole userRole, UserStatus userStatus);
+
+    List<Users> IsFirstLogin(Boolean isFirstLogin);
 }

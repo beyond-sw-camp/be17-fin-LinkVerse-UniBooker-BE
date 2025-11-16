@@ -61,6 +61,16 @@ public class AuthService {
         );
         String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
 
+        // Company 정보 조회
+        String companySlug = null;
+        if (user.getCompanyId() != null) {
+            Companies company = companyRepository.findByIdAndDeletedAtIsNull(user.getCompanyId())
+                    .orElse(null);
+            if (company != null) {
+                companySlug = company.getCompanySlug();
+            }
+        }
+
         return AuthDto.LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -295,6 +305,16 @@ public class AuthService {
         );
         String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
 
+        // Company 정보 조회
+        String companySlug = null;
+        if (user.getCompanyId() != null) {
+            Companies company = companyRepository.findByIdAndDeletedAtIsNull(user.getCompanyId())
+                    .orElse(null);
+            if (company != null) {
+                companySlug = company.getCompanySlug();
+            }
+        }
+
         // ✅ Main-Service DTO 사용, Enum 변환 제거
         return org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken.builder()
                 .accessToken(accessToken)
@@ -304,6 +324,7 @@ public class AuthService {
                 .name(user.getName())
                 .role(user.getRole())  // Main-Service Enum 그대로 사용
                 .companyId(user.getCompanyId())
+                .companySlug(companySlug)
                 .isFirstLogin(user.getIsFirstLogin())
                 .build();
     }
@@ -347,24 +368,21 @@ public class AuthService {
 
         log.info("일반 사용자 로그인 시도 - email: {}, companyId: {}", email, companyId);
 
-        // 1. 사용자 조회 (USER role, 기업 ID로 조회)
-        Users user = userRepository.findByEmailAndCompanyIdAndDeletedAtIsNull(email, companyId)
+        // 1. 사용자 조회 (USER role + 기업 ID로 조회)
+        Users user = userRepository.findByEmailAndCompanyIdAndRoleAndDeletedAtIsNull(
+                        email,
+                        companyId,
+                        UserRole.USER)
                 .orElseThrow(() -> new org.example.common.exception.BaseException(
                         org.example.common.base.BaseResponseStatus.USER_NOT_FOUND));
 
-        // 2. USER 역할 확인
-        if (user.getRole() != UserRole.USER) {
-            throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.UNAUTHORIZED_ACTION);
-        }
-
-        // 3. 비밀번호 확인
+        // 2. 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new org.example.common.exception.BaseException(
                     org.example.common.base.BaseResponseStatus.INVALID_PASSWORD);
         }
 
-        // 4. 계정 상태 확인
+        // 3. 계정 상태 확인
         if (!user.isActive()) {
             if (user.isSuspended()) {
                 throw new org.example.common.exception.BaseException(
@@ -374,12 +392,12 @@ public class AuthService {
                     org.example.common.base.BaseResponseStatus.INACTIVE_USER);
         }
 
-        // 5. 기업 조회 (companySlug 제공용)
+        // 4. 기업 조회 (companySlug 제공용)
         Companies company = companyRepository.findByIdAndDeletedAtIsNull(companyId)
                 .orElseThrow(() -> new org.example.common.exception.BaseException(
                         org.example.common.base.BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        // 6. JWT 토큰 생성
+        // 5. JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(
                 user.getId(),
                 user.getEmail(),
@@ -389,7 +407,7 @@ public class AuthService {
         );
         String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
 
-        // 7. Main-Service DTO 반환 (✅ 수정: Main-Service의 UserDto 사용)
+        // 6. Main-Service DTO 반환 (✅ 수정: Main-Service의 UserDto 사용)
         return org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

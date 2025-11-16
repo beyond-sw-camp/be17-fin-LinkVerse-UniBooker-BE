@@ -74,7 +74,7 @@ public class UserController {
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid UserDto.LoginRequest request,
-            HttpServletResponse response) {  // ← HttpServletResponse 추가
+            HttpServletResponse response) {
 
         log.info("일반 사용자 로그인 시도 - email: {}, companyId: {}", request.getEmail(), request.getCompanyId());
 
@@ -94,15 +94,8 @@ public class UserController {
                 loginResponseWithToken.getRole()
         ));
 
-        // 4. Response Body에는 토큰 제외한 정보만 반환
-        UserDto.LoginResponse loginResponse = UserDto.LoginResponse.builder()
-                .userId(loginResponseWithToken.getUserId())
-                .email(loginResponseWithToken.getEmail())
-                .name(loginResponseWithToken.getName())
-                .role(loginResponseWithToken.getRole())
-                .companyId(loginResponseWithToken.getCompanyId())
-                .companySlug(loginResponseWithToken.getCompanySlug())
-                .build();
+        // 4. Response Body에는 토큰 제외한 정보만 반환 (✅ toResponse() 사용)
+        UserDto.LoginResponse loginResponse = loginResponseWithToken.toResponse();
 
         return BaseResponse.success(loginResponse);
     }

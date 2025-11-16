@@ -27,26 +27,31 @@ public class SecurityConfig {
 
     /**
      * Security Filter Chain 설정
-     * - 모든 요청 허용 (JWT 검증은 API Gateway에서)
-     * - CSRF 비활성화
-     * - Session 사용 안함 (Stateless)
+     * - 공개 API 제외하고 인증 요구
+     * - JWT 검증은 API Gateway에서
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 비활성화 (JWT 사용)
                 .csrf(csrf -> csrf.disable())
-
-                // CORS 설정
                 .cors(cors -> cors.disable())
-
-                // Session 사용 안함 (Stateless)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 모든 요청 허용 (인증은 API Gateway에서)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        // ===== 공개 API (인증 불필요) =====
+                        .requestMatchers(
+                                "/api/companies/slug/**",        // Company 정보 조회
+                                "/api/companies/check-slug",      // Slug 중복 확인
+                                "/api/companies/check-business-number", // 사업자번호 확인
+                                "/api/admin/signup",              // 관리자 회원가입
+                                "/api/admin/signup/status",       // 회원가입 상태
+                                "/api/auth/**",                   // 인증 관련 (로그인, 토큰 갱신)
+                                "/api/users/signup",              // 일반 사용자 회원가입
+                                "/api/users/check-email"          // 이메일 중복 확인
+                        ).permitAll()
+
+                        // ===== 나머지는 인증 필요 (Gateway에서 검증) =====
+                        .anyRequest().permitAll() // Gateway에서 이미 검증했으므로 허용
                 );
 
         return http.build();

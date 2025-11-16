@@ -6,79 +6,69 @@ plugins {
 
 group = 'org.example'
 version = '0.0.1-SNAPSHOT'
-description = 'unibooker'
+description = 'UniBooker MSA'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+// =================================================================
+// 루트 프로젝트 설정 (실행 가능한 애플리케이션이 아님)
+// =================================================================
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = false
+}
+
+// =================================================================
+// 모든 프로젝트 공통 설정
+// =================================================================
+allprojects {
+    group = 'org.example'
+    version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
     }
 }
 
-repositories {
-    mavenCentral()
-}
+// =================================================================
+// 서브 프로젝트 공통 설정
+// =================================================================
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
-ext {
-    set('springCloudVersion', '2025.0.0')
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
-}
 
-dependencies {
-    // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    // Spring Cloud 버전 관리
+    ext {
+        set('springCloudVersion', '2025.0.0')
+    }
 
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
 
-    // Database
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
+    // 공통 의존성 (필요한 경우 각 모듈에서 추가)
+    dependencies {
+        // Lombok (모든 모듈 공통)
+        compileOnly 'org.projectlombok:lombok:1.18.36'
+        annotationProcessor 'org.projectlombok:lombok:1.18.36'
+        testCompileOnly 'org.projectlombok:lombok:1.18.36'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 
-    // AWS S3
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0'
+        // Test (모든 모듈 공통)
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
 
-    // Documentation
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
-
-    // JWT
-    implementation platform("io.jsonwebtoken:jjwt-bom:0.11.5")
-    implementation "io.jsonwebtoken:jjwt-api"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson"
-
-    // WebSocket
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
-    // ========== 테스트 의존성 추가 ==========
-
-    // Spring Boot Test (JUnit 5, Mockito, AssertJ 포함)
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    // Spring Security Test (Security 테스트용)
-    testImplementation 'org.springframework.security:spring-security-test'
-
-    // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.36'
-    annotationProcessor 'org.projectlombok:lombok:1.18.36'
-    testCompileOnly 'org.projectlombok:lombok:1.18.36'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
-
-    // Actuator
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    // spring batch
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-
-
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
 }

@@ -34,15 +34,31 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
      * - 로그인, 회원가입, 공개 API
      */
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
+            // ===== Admin 관련 =====
             "/api/admin/signup",
+            "/api/admin/signup/status",  // ✅ 추가
             "/api/admin/login",
+
+            // ===== User 관련 =====
             "/api/users/signup",
             "/api/users/login",
             "/api/users/check-email",
             "/api/users/accounts",
             "/api/users/reset-password",
             "/api/users/find-email",
+
+            // ===== Company 공개 API (일반 사용자용) =====
+            "/api/companies/slug",                    // ✅ 추가
+            "/api/companies/check-slug",              // ✅ 추가
+            "/api/companies/check-business-number",   // ✅ 추가
+
+            // ===== Super Admin =====
             "/api/super/login",
+
+            // ===== Auth =====
+            "/api/auth/refresh",   // ✅ 추가 (토큰 갱신)
+
+            // ===== Actuator =====
             "/actuator"
     );
 

@@ -764,6 +764,7 @@ public class AdminService {
 
         /**
          * 매니저 계정 생성
+         * - 탈퇴한 MANAGER 계정 재활용
          */
         @Transactional
         public ManagerDto.CreateResponse createManager(ManagerDto.CreateRequest request, Long adminUserId) {
@@ -772,11 +773,39 @@ public class AdminService {
             Users admin = validateAdminAuthority(adminUserId);
             Companies company = validateCompanyStatus(admin.getCompanyId());
 
-            validateEmailDuplicate(request.getEmail(), company.getId());
+            // 1. DELETED MANAGER 계정 조회
+            Optional<Users> deletedManager = userRepository.findByEmailAndRoleIn(
+                            request.getEmail(),
+                            List.of(UserRole.ADMIN, UserRole.MANAGER)
+                    ).stream()
+                    .filter(u -> u.getRole() == UserRole.MANAGER && u.getStatus() == UserStatus.DELETED)
+                    .findFirst();
 
             String temporaryPassword = generateTemporaryPassword();
+            Users manager;
 
-            Users manager = createManagerUser(request, company, temporaryPassword);
+            if (deletedManager.isPresent()) {
+                // 2. DELETED MANAGER 재활용
+                manager = deletedManager.get();
+                manager.restore(); // status: DELETED→ACTIVE, deletedAt: NULL
+
+                // 3. 정보 업데이트
+                String encodedPassword = passwordEncoder.encode(temporaryPassword);
+                manager.updatePassword(encodedPassword);
+                manager.updateName(request.getName());
+                manager.updatePhone(request.getPhone());
+                manager.updateCompanyId(company.getId());
+
+                manager = userRepository.save(manager);
+                log.info("DELETED MANAGER 재활용 - managerId: {}, email: {}", manager.getId(), manager.getEmail());
+            } else {
+                // 4. DELETED 없으면 중복 체크
+                validateEmailDuplicate(request.getEmail(), company.getId());
+
+                // 5. 신규 MANAGER 생성
+                manager = createManagerUser(request, company, temporaryPassword);
+                log.info("신규 MANAGER 생성 - managerId: {}, email: {}", manager.getId(), manager.getEmail());
+            }
 
             sendManagerCreationEmail(request, company, temporaryPassword);
 

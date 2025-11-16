@@ -1,6 +1,7 @@
 package org.example.apiapp.domain.user.service;
 
 import org.example.apiapp.domain.user.model.dto.UserDto;
+import org.example.apiapp.infrastructure.email.EmailService;
 import org.example.common.exception.BaseException;
 import org.example.common.base.BaseResponseStatus;
 import org.example.apiapp.domain.company.model.entity.Companies;
@@ -36,7 +37,7 @@ public class UserService {
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
-    // private final EmailService emailService; // 이메일 서비스 (추후 구현)
+    private final EmailService emailService;
 
     private static final int TEMP_PASSWORD_LENGTH = 8;
 
@@ -246,14 +247,21 @@ public class UserService {
         // 4. 비밀번호 암호화 및 저장
         user.updatePassword(passwordEncoder.encode(tempPassword));
 
-        // 5. 기업 정보 조회
+        // 5. 첫 로그인 플래그 설정
+        user.requireFirstLogin();
+
+// 6. 기업 정보 조회
         Companies company = companyRepository.findByIdAndDeletedAtIsNull(companyId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        // 6. 이메일 발송
-        // TODO: EmailService 구현 후 활성화
-        log.info("임시 비밀번호 발송 - email: {}, tempPassword: {}", email, tempPassword);
-        // emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), company.getCompanyName(), tempPassword);
+// 7. 이메일 발송
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                user.getName(),
+                company.getCompanyName(),
+                tempPassword
+        );
+        log.info("임시 비밀번호 발송 완료 - email: {}", email);
     }
 
     // ========== 프로필 관리 ==========

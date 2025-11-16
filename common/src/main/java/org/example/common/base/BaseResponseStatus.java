@@ -34,6 +34,7 @@ public enum BaseResponseStatus {
     MANAGER_ALREADY_EXISTS(30013, "해당 이메일로 이미 매니저가 등록되어 있습니다."),
     ADMIN_MANAGER_EMAIL_EXISTS(30014, "해당 이메일은 이미 관리자 또는 매니저로 등록되어 있습니다."),
     NOT_MANAGER(30015, "매니저 권한이 아닙니다."),
+    ACCOUNT_REACTIVATED(30016, "탈퇴했던 계정이 재활성화되었습니다."),
 
     // ========== 40000: Company 관련 ==========
     COMPANY_NOT_FOUND(40000, "기업 정보를 찾을 수 없습니다."),
