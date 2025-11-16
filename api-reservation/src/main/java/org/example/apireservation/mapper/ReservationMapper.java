@@ -1,11 +1,8 @@
 package org.example.apireservation.mapper;
 
-import org.example.apireservation.domain.model.dto.ReservationTrendDto;
+import org.example.apireservation.domain.model.dto.*;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
-import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
-import org.example.apireservation.domain.model.dto.ReservationDetailDto;
-import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
 
@@ -215,11 +212,51 @@ public class ReservationMapper {
 
 
     // ========================= 특정 리소스별 예약 수 조회 =========================
-    public static List<ReservationTrendDto> toResGroupCountList(List<Object[]> result) {
-        return result.stream().map(r -> ReservationTrendDto.builder()
-                        .date((LocalDate) r[0])
-                        .groupId((Long) r[1])
-                        .count(((Long) r[2]).intValue())
-                        .build()).toList();
+    public static ReservationTrendDto toResGroupCountList(Object[] result) {
+        return ReservationTrendDto.builder()
+                        .date((LocalDate) result[0])
+                        .groupId((Long) result[1])
+                        .count((Integer) result[2])
+                        .build();
+    }
+
+    // ========================= 리소스 별 성과 =========================
+    public static ServiceGroupDashBoardDto.ServicePerformanceCount toResReservationCountByGroupResource(Object[] result) {
+        return ServiceGroupDashBoardDto.ServicePerformanceCount.builder()
+                .resourceId((Long) result[0])
+                .count((Integer) result[1])
+                .build();
+    }
+
+    // ========================= 이용자 수 =========================
+    public static ServiceGroupDashBoardDto.VisitorCount toResVisitorCount(Integer total, Integer count) {
+        return ServiceGroupDashBoardDto.VisitorCount.builder()
+                .total(total)
+                .count(count)
+                .build();
+    }
+
+    // ========================= 성별 =========================
+    public static ServiceGroupDashBoardDto.GenderReservationCount toResGenderCount(Object[] result) {
+        return ServiceGroupDashBoardDto.GenderReservationCount.builder()
+                .gender((Gender) result[0])
+                .count(((Integer) result[1]))
+                .build();
+    }
+
+    // ========================= 나이대 =========================
+    public static ServiceGroupDashBoardDto.AgeReservationCount toResAgeCount(Object[] result) {
+        return ServiceGroupDashBoardDto.AgeReservationCount.builder()
+                .age((Integer) result[0])
+                .count(((Integer) result[1]))
+                .build();
+    }
+
+    // ========================= 시간대별 예약 현황 =========================
+    public static ServiceGroupDashBoardDto.TimeSlotReservationCount toResTimeSlotCount(Object[] reulst) {
+        return ServiceGroupDashBoardDto.TimeSlotReservationCount.builder()
+                .hour((Integer) reulst[0])
+                .count(((Integer) reulst[1]))
+                .build();
     }
 }

@@ -1,11 +1,9 @@
 package org.example.apireservation.usecase.impl;
 
+import com.thoughtworks.xstream.mapper.Mapper;
 import feign.FeignException;
 import lombok.*;
-import org.example.apireservation.domain.model.dto.CustomFieldValueDto;
-import org.example.apireservation.domain.model.dto.ReservationDetailDto;
-import org.example.apireservation.domain.model.dto.ReservationListDto;
-import org.example.apireservation.domain.model.dto.ReservationTrendDto;
+import org.example.apireservation.domain.model.dto.*;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
 import org.example.apireservation.domain.model.entity.Users;
@@ -19,13 +17,14 @@ import org.example.apireservation.usecase.port.out.*;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
-import org.example.common.user.AuthDto;
+import org.example.common.model.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,10 +47,10 @@ public class ReservationUseCase implements ReservationWebPort {
     // ========================== 예약 요청 ==========================
     @Override
     @Transactional
-    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, AuthDto authUser) {
+    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, Long userId, Long companyId) {
 
         // 도메인 검증 및 생성
-        Reservation domain = Reservation.toDomain(dto, resourceId, authUser.getId(), authUser.getCompanyId(), reservationService); // command -> entity
+        Reservation domain = Reservation.toDomain(dto, resourceId, userId, companyId, reservationService); // command -> entity
 
         // 예약 생성 및 저장
         Reservations savedReservation = reservationPersistencePort.save(ReservationMapper.toEntity(domain));
@@ -187,6 +186,61 @@ public class ReservationUseCase implements ReservationWebPort {
             result.addAll(reservationPersistencePort.countReservationByGroupAndDate(resourceGroupId, dto.getTo(), dto.getFrom()));
         }
 
-        return ReservationMapper.toResGroupCountList(result);
+        return result.stream().map(ReservationMapper::toResGroupCountList).toList();
+    }
+
+
+    // ========================== 리소스 그룹의 누적 예약수 ==========================
+    @Override
+    public Integer getCumReservationCount(Long resourceGroupId) {
+        return reservationPersistencePort.getCumReservationCount(resourceGroupId);
+    }
+
+
+    // ========================== 리소스 그룹의 누적 취소 예약 수==========================
+    @Override
+    public Integer getCumCancelCount(Long resourceGroupId) {
+        return reservationPersistencePort.getCumCancelCount(resourceGroupId);
+    }
+
+    // ========================== 리소스 그룹에 속하는 리소스 수 ==========================
+    @Override
+    public List<ServiceGroupDashBoardDto.ServicePerformanceCount> getServicePerformanceCount(Long resourceGroupId) {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+        List<Object[]> result = reservationPersistencePort.getServicePerformanceCount(resourceGroupId, oneMonthAgo);
+
+        return result.stream().map(ReservationMapper::toResReservationCountByGroupResource).toList();
+    }
+
+    // ========================== 리소스 그룹에 속하는 사용자 (중복제거) ==========================
+    @Override
+    public ServiceGroupDashBoardDto.VisitorCount getVisitorCount(Long resourceGroupId, Long companyId, UserRole UserRole) {
+        Integer total = userPersistencePort.getTotalUserCountWithCompanyId(companyId, UserRole);
+        Integer count = reservationPersistencePort.getReservationUserCount(resourceGroupId);
+        return ReservationMapper.toResVisitorCount(total, count);
+    }
+
+    // ========================== 성별 ==========================
+    @Override
+    public List<ServiceGroupDashBoardDto.GenderReservationCount> getGenderReservationCount(Long resourceGroupId) {
+        List<Object[]> result = reservationPersistencePort.getGenderReservationCount(resourceGroupId);
+
+        return result.stream().map(ReservationMapper::toResGenderCount).toList();
+    }
+
+    // ========================== 나이대 ==========================
+    @Override
+    public List<ServiceGroupDashBoardDto.AgeReservationCount> getAgeReservationCount(Long resourceGroupId) {
+        List<Object[]> result = reservationPersistencePort.getAgeReservationCount(resourceGroupId);
+
+        return result.stream().map(ReservationMapper::toResAgeCount).toList();
+    }
+
+    // ========================== 리소스 그룹에 속하는 시간대 별 예약 수 ==========================
+    @Override
+    public List<ServiceGroupDashBoardDto.TimeSlotReservationCount> getTimeSlotReservationCount(Long resourceGroupId) {
+        List<Object[]> result = reservationPersistencePort.getTimeSlotReservationCount(resourceGroupId);
+
+        return result.stream().map(ReservationMapper::toResTimeSlotCount).toList();
     }
 }

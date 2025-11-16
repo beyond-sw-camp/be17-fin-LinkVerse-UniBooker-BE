@@ -345,6 +345,7 @@ public class ResourceGroupUseCase implements ResourceGroupWebPort {
                     // ---------------------------
                     return ResourceGroupDto.ResourcePossibleTimeInfo.builder()
                             .resourceId(resource.getId())
+                            .resourceName(resource.getName())
                             .intervalMinutes(interval)
                             .possibleTimeCount(totalAdjusted)
                             .build();
@@ -354,30 +355,30 @@ public class ResourceGroupUseCase implements ResourceGroupWebPort {
         // ---------------------------
         // 4. 조회수 통계
         // ---------------------------
-        LocalDate now = LocalDate.now();
+        LocalDateTime nowDateTime = LocalDateTime.now();
 
         // 어제 누적 조회수
-        LocalDateTime yesterdayStart = now.minusDays(1).atStartOfDay();
-        LocalDateTime yesterdayEnd = now.atStartOfDay();
+        LocalDateTime yesterdayStart = nowDateTime.minusDays(1).toLocalDate().atStartOfDay();
+        LocalDateTime yesterdayEnd = yesterdayStart.plusHours(nowDateTime.getHour())
+                .plusMinutes(nowDateTime.getMinute())
+                .plusSeconds(nowDateTime.getSecond());
+
         long yesterdayAccumulated = viewCountPersistencePort
                 .sumViewsByResourceGroupIdAndDate(resourceGroupId, yesterdayStart, yesterdayEnd);
 
         // 오늘 전체 조회수
-        LocalDateTime todayStart = now.atStartOfDay();
-        LocalDateTime todayEnd = now.plusDays(1).atStartOfDay();
+        LocalDateTime todayStart = nowDateTime.toLocalDate().atStartOfDay();
+        LocalDateTime todayEnd = nowDateTime;
+
         long todayTotal = viewCountPersistencePort
                 .sumViewsByResourceGroupIdAndDate(resourceGroupId, todayStart, todayEnd);
 
 
         // 시간대별 조회수
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
-
         List<Object[]> results = viewCountPersistencePort.getTodayHourlyViews(
                 resourceGroupId,
-                startOfDay,
-                endOfDay
+                todayStart,
+                todayEnd
         );
 
         Map<Integer, Long> hourMap = new HashMap<>();
@@ -387,8 +388,9 @@ public class ResourceGroupUseCase implements ResourceGroupWebPort {
             hourMap.put(hour, count);
         }
 
+// 시간대별 조회수 리스트 생성 (현재 시각까지만)
         List<ResourceGroupDto.HourlyViewCount> hourlyViewCounts = new ArrayList<>();
-        for (int h = 0; h < 24; h++) {
+        for (int h = 0; h <= nowDateTime.getHour(); h++) {
             hourlyViewCounts.add(
                     ResourceGroupDto.HourlyViewCount.builder()
                             .hour(h)

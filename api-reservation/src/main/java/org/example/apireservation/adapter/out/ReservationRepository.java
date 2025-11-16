@@ -1,6 +1,7 @@
 package org.example.apireservation.adapter.out;
 
 import jakarta.persistence.LockModeType;
+import org.example.apireservation.domain.model.Gender;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.*;
@@ -35,7 +36,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
         FROM Reservations r
         WHERE r.userId = :userId AND r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.row = :row AND r.col = :col AND r.deletedAt IS NULL
     """)
-    List<Reservations> findDuplicatedReservationSeat(@Param("userId") Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
+    List<Reservations> findDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
 
     /** 선택한 일시 예약 조회 */
@@ -65,10 +66,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // ========================== 리소스 그룹의 예약 목록 찾기 ==========================
     @Query("SELECT r FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rs.id = :resourceGroupId")
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);
-
-    // ========================== 특정 리소스 그룹의 예약 수 ==========================
-    @Query("SELECT COUNT(r) FROM Reservations r JOIN r.resources rs JOIN rs.resourceGroup rg WHERE rg.id = :resourceGroupId")
-    int countByResourceGroupId(Long resourceGroupId);
 */
 
     // ========================== 특정 리소스의 예약 목록 조회 ==========================
@@ -105,4 +102,58 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
             LocalDateTime endDate
     );
 */
+
+    // ========================== 특정 리소스 그룹의 모든 예약 수 (예약 + 취소) ==========================
+    Integer countByResourceGroupId(Long resourceGroupId);
+
+    // ========================== 누적 예약 수 ==========================
+    Integer countByResourceGroupIdAndDeletedAtIsNull(Long resourceGroupId);
+
+    // ========================== 누적 취소 수 ==========================
+    Integer countByResourceGroupIdAndDeletedAtIsNotNull(Long resourceGroupId);
+
+    // ========================== 리소스 그룹에 속하는 리소스 수 ==========================
+    @Query("SELECT r.resourceId, COUNT(r) " +
+            "FROM Reservations r " +
+            "WHERE r.resourceGroupId = :resourceGroupId " +
+            "AND r.deletedAt IS NULL " +
+            "AND r.createdAt >= :oneMonthAgo " +
+            "GROUP BY r.resourceId")
+    List<Object[]> getServicePerformanceCount(Long resourceGroupId, LocalDateTime oneMonthAgo);
+
+    // ========================== 리소스 그룹에 속하는 사용자 (중복제거) ==========================
+    @Query("SELECT COUNT(DIStINCT r.userId) FROM Reservations r WHERE r.resourceGroupId=:resourceGroupId")
+    Integer getReservationUserCount(Long resourceGroupId);
+
+    // ========================== 성별 ==========================
+    @Query("SELECT u.gender, COUNT(r) " +
+            "FROM Reservations r " +
+            "JOIN Users u " +
+            "WHERE r.resourceGroupId = :resourceGroupId")
+    List<Object[]> countByGenderReservation(Long resourceGroupId);
+
+    // ========================== 나이대 ==========================
+    // TODO : query 노란 오류 수정 필요
+    @Query(value =
+            "SELECT CASE " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 10 AND 19 THEN 10 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 20 AND 29 THEN 20 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 30 AND 39 THEN 30 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) >= 40 THEN 40 " +
+            "END AS age_group, COUNT(*) AS cnt " +
+            "FROM reservations r " +
+            "JOIN users u ON r.user_id = u.id " +
+            "WHERE r.resource_group_id = :resourceGroupId " +
+            "GROUP BY gender, age_group " +
+            "ORDER BY gender, age_group",
+            nativeQuery = true)
+    List<Object[]> countByAgeReservation(Long resourceGroupId);
+
+    // ========================== 리소스 그룹에 속하는 시간대 별 예약수 ==========================
+    @Query("SELECT HOUR(r.startDate), COUNT(*) "+
+            "FROM Reservations r " +
+            "WHERE DATE(r.startDate) = CURDATE() " +
+            "GROUP BY HOUR(r.startDate) " +
+            "ORDER BY HOUR(r.startDate)")
+    List<Object[]> getTimeSlotReservationCount(Long resourceGroupId);
 }
