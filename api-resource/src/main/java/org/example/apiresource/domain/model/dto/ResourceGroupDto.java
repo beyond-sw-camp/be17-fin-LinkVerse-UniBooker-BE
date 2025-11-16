@@ -184,4 +184,101 @@ public class ResourceGroupDto {
         @Schema(description = "커스텀 필드 목록")
         private List<CustomFieldDto.CustomFieldRes> customFields;
     }
+
+
+    // 관리자 전체 대시보드에 필요한 리소스 그룹 정보
+    @Getter
+    @Builder
+    @Schema(description = "관리자 대시보드 리소스 그룹 정보")
+    public static class AdminDashboardGroupInfo {
+
+        @Schema(description = "리소스 그룹 아이디")
+        private Long id;
+
+        @Schema(description = "리소스 그룹 이름")
+        private String name;
+
+        @Schema(description = "리소스 그룹 조회수")
+        private int viewCount;
+
+        @Schema(description = "리소스 그룹 활성화 여부")
+        private Boolean isActive;
+
+        @Schema(description = "리소스 그룹에 속한 리소스 수")
+        private int serviceCount;
+    }
+
+
+    // 관리자 전체 대시보드에 필요한 리소스/리소스 그룹 데이터
+    @Getter
+    @Builder
+    @Schema(description = "관리자 대시보드 리소스/리소스 그룹 정보")
+    public static class AdminDashboardResourceGroup {
+
+        @Schema(description = "리소스 그룹 정보")
+        private List<AdminDashboardGroupInfo> groups;
+
+        @Schema(description = "리소스 그룹 개수")
+        private int groupCount;
+
+        @Schema(description = "리소스 개수")
+        private int resourceCount;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ServiceStatsResponse {
+        private int totalServiceCount;
+        private List<Integer> categoryCounts;
+        private List<String> categoryLabels;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ResourceGroupDashboardResponse {
+        private Long resourceGroupId;
+
+        // 리소스 개수
+        private int resourceCount;
+
+        // 리소스별 예약 가능 시간 정보
+        private List<ResourcePossibleTimeInfo> resources;
+
+        // 조회수 통계
+        private ViewStats viewStats;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ResourcePossibleTimeInfo {
+        private Long resourceId;
+        private int intervalMinutes;   // 리소스의 시간 간격
+        private int possibleTimeCount; // 이번달 예약 가능한 시간 개수
+    }
+
+
+    @Getter
+    @Builder
+    public static class ViewStats {
+
+        // 어제 ~ 현재 시각 기준 누적 조회수
+        private long yesterdayAccumulatedViewCount;
+
+        // 오늘 전체 누적 조회수
+        private long todayTotalViewCount;
+
+        // 시간대별 조회수 (예: { "00": 23, "01": 55, ... })
+        private List<HourlyViewCount> hourlyViewCounts;
+    }
+
+
+    @Getter
+    @Builder
+    public static class HourlyViewCount {
+        private int hour;     // 0~23
+        private long viewCount;
+    }
 }

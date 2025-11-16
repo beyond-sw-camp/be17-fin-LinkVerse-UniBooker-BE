@@ -1,10 +1,7 @@
 package org.example.apiresource.domain.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.common.base.BaseEntity;
 
@@ -32,6 +29,7 @@ public class ResourceGroups extends BaseEntity {
     private Boolean isActive; // 활성화 여부
 
     // 조회수
+    @Setter
     @JoinColumn(name= "view_count")
     private int viewCount;
 

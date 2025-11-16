@@ -39,4 +39,8 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Resources r WHERE r.id = :resourceId AND r.isActive = true AND r.deletedAt IS NULL")
     Optional<Resources> findByIdForUpdate(Long resourceId);
+
+    int countAllByResourceGroup_Id(Long id);
+
+    int countAllByResourceGroup_CompanyId(Long companyId);
 }
