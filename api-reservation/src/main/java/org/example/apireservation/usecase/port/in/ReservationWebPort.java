@@ -14,7 +14,7 @@ import java.util.*;
 public interface ReservationWebPort {
 
     // 예약 요청
-    ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, AuthDto authUser);
+    ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, Long userId, Long companyId);
 
     // 예약 목록 조회 - 플랫폼 관리자 및 기업 관리자 "리소스 그룹"의 목록
     ReservationListDto.ResponseList getAdminReservations(Long resourceGroupId);

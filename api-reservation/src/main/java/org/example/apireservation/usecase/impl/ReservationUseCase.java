@@ -48,10 +48,10 @@ public class ReservationUseCase implements ReservationWebPort {
     // ========================== 예약 요청 ==========================
     @Override
     @Transactional
-    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, AuthDto authUser) {
+    public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, Long userId, Long companyId) {
 
         // 도메인 검증 및 생성
-        Reservation domain = Reservation.toDomain(dto, resourceId, authUser.getId(), authUser.getCompanyId(), reservationService); // command -> entity
+        Reservation domain = Reservation.toDomain(dto, resourceId, userId, companyId, reservationService); // command -> entity
 
         // 예약 생성 및 저장
         Reservations savedReservation = reservationPersistencePort.save(ReservationMapper.toEntity(domain));

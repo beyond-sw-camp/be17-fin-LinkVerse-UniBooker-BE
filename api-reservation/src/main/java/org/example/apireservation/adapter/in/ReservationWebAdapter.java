@@ -36,9 +36,10 @@ public class ReservationWebAdapter {
     public ResponseEntity<BaseResponse<ReservationDetailDto.Response>> createReservation(
             @Valid @RequestBody ReservationCommand dto,
             @PathVariable Long resourceId,
-            @RequestAttribute("authUser") AuthDto authUser) {
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-Company-Id") Long companyId) {
 
-        ReservationDetailDto.Response response = reservationWebPort.reserve(dto, resourceId, authUser);
+        ReservationDetailDto.Response response = reservationWebPort.reserve(dto, resourceId, userId, companyId);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
@@ -66,8 +67,8 @@ public class ReservationWebAdapter {
     // ========================== 예약 목록 조회- 일반 사용자 ==========================
     @Operation(summary = "일반 사용자 예약 목록 조회", description = "일반 사용자가 예약/신청에 대한 목록 조회를 합니다.")
     @GetMapping("/list")
-    public ResponseEntity<BaseResponse<ReservationListDto.UserResponseList>> getUserReservations(@RequestAttribute("authUser") AuthDto authUser) {
-        return ResponseEntity.ok(BaseResponse.success(reservationWebPort.getUserReservations(authUser.getId())));
+    public ResponseEntity<BaseResponse<ReservationListDto.UserResponseList>> getUserReservations(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(BaseResponse.success(reservationWebPort.getUserReservations(userId)));
     }
 
 
@@ -84,15 +85,15 @@ public class ReservationWebAdapter {
     @DeleteMapping("/cancel/{reservationId}")
     public ResponseEntity<BaseResponse<String>> deleteReservation(
             @PathVariable Long reservationId,
-            @RequestAttribute("authUser") AuthDto authUser) {
+            @RequestHeader("X-User-Id") Long userId) {
 
-        reservationWebPort.cancel(reservationId, authUser.getId());
+        reservationWebPort.cancel(reservationId, userId);
         return ResponseEntity.ok(BaseResponse.success("예약이 취소 되었습니다."));
     }
 
 
     /**
-     * 외부 통신을 위한 api
+     * 내부 통신을 위한 api
      * 관리자 전체 대시보드 */
     // ========================== 특정 기업의 전체 예약 수 조회 ==========================
     @Operation(summary = "특정 기업의 전체 예약수 조회")
@@ -111,7 +112,7 @@ public class ReservationWebAdapter {
 
 
     /**
-     * 외부 통신을 위한 api
+     * 내부 통신을 위한 api
      * 리소스 그룹별 대시보드 */
     // ========================== 리소스 그룹의 누적 예약수 ==========================
     @Operation(summary = "누적 예약수")
