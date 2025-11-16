@@ -68,21 +68,6 @@ spec:
     DEPLOY_NAMESPACE = 'unibooker'
   }
 
-  stages {
-    stage('Checkout') {
-      steps {
-        container('gradle') {
-
-          sh 'git config --global --add safe.directory ${WORKSPACE}'
-
-          checkout([$class: 'GitSCM',
-            branches: [[name: '*/msa-cicd']],
-            userRemoteConfigs: [[url: 'https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE']]
-          ])
-        }
-      }
-    }
-
     stage('Gradle Build') {
       steps {
         container('gradle') {
