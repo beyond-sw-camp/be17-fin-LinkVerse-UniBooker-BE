@@ -17,17 +17,15 @@ import org.example.apireservation.usecase.port.out.*;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
-import org.example.common.user.UserRole;
+import org.example.common.model.UserRole;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -244,8 +242,8 @@ public class ReservationUseCase implements ReservationWebPort {
 
     // ========================== 리소스 그룹에 속하는 사용자 (중복제거) ==========================
     @Override
-    public ServiceGroupDashBoardDto.VisitorCount getVisitorCount(Long resourceGroupId, Long companyId, UserRole UserRole) {
-        Integer total = userPersistencePort.getTotalUserCountWithCompanyId(companyId, UserRole);
+    public ServiceGroupDashBoardDto.VisitorCount getVisitorCount(Long resourceGroupId, Long companyId, UserRole userRole) {
+        Integer total = userPersistencePort.getTotalUserCountWithCompanyId(companyId, userRole);
         Integer count = reservationPersistencePort.getReservationUserCount(resourceGroupId);
         return ReservationMapper.toResVisitorCount(total, count);
     }
