@@ -5,7 +5,6 @@ import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.dto.ServiceGroupDashBoardDto;
-import org.example.common.model.dto.AuthDto;
 import org.example.common.model.UserRole;
 
 import java.time.LocalDateTime;

@@ -11,7 +11,6 @@ import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.dto.ServiceGroupDashBoardDto;
 import org.example.apireservation.usecase.port.in.*;
 import org.example.common.base.BaseResponse;
-import org.example.common.model.dto.AuthDto;
 import org.example.common.model.UserRole;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
