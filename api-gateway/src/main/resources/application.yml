@@ -26,6 +26,18 @@ spring:
                 maxAge: 3600
 
       routes:
+        - id: resource-service
+          uri: lb://api-resource
+          predicates:
+            - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
+        - id: reservation-service
+          uri: lb://api-reservation
+          predicates:
+            - Path=/api/reservation/**
+        - id: statistics-service
+          uri: lb://api-statistics
+          predicates:
+            - Path=/api/dashboard/**
         - id: queue-service
           uri: lb://api-queue
           predicates:
