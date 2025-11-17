@@ -6,16 +6,21 @@ import org.example.apiapp.domain.user.model.dto.UserDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.apiapp.domain.user.model.dto.AuthDto;
 import org.example.apiapp.domain.user.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 인증 컨트롤러
+ * 공통 인증 컨트롤러
+ * - 모든 권한(USER, ADMIN, MANAGER, SUPER)에서 사용하는 공통 인증 기능
+ * - 토큰 갱신
+ *
+ * [변경 이력]
+ * - 권한별 로그인/회원가입 기능은 각 권한별 Controller로 분리
+ *   (UserController, AdminController, SuperController)
+ * - 토큰 갱신 기능만 공통 기능으로 유지
  */
 @Slf4j
 @RestController
@@ -26,37 +31,7 @@ public class AuthController {
     private final AuthService authService;
 
     /**
-     * 로그인
-     */
-    @PostMapping("/login")
-    public ResponseEntity<AuthDto.LoginResponse> login(@RequestBody AuthDto.LoginRequest request) {
-        log.info("POST /api/auth/login - 로그인: {}", request.getEmail());
-        AuthDto.LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * 일반 사용자 회원가입
-     */
-    @PostMapping("/signup")
-    public ResponseEntity<AuthDto.SignUpResponse> signUp(@RequestBody AuthDto.SignUpRequest request) {
-        log.info("POST /api/auth/signup - 회원가입: {}", request.getEmail());
-        AuthDto.SignUpResponse response = authService.signUp(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    /**
-     * 관리자 회원가입
-     */
-    @PostMapping("/admin/signup")
-    public ResponseEntity<AuthDto.SignUpResponse> adminSignUp(@RequestBody AuthDto.AdminSignUpRequest request) {
-        log.info("POST /api/auth/admin/signup - 관리자 회원가입: {}", request.getEmail());
-        AuthDto.SignUpResponse response = authService.adminSignUp(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    /**
-     * 토큰 갱신
+     * 토큰 갱신 (모든 권한 공통)
      * - 쿠키에서 refreshToken 추출
      * - 갱신된 토큰을 쿠키에 저장
      * - Response Body에는 토큰 제외

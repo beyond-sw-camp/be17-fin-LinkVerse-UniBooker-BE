@@ -2,7 +2,6 @@ package org.example.apiapp.domain.user.service;
 
 import org.example.common.util.JwtUtil;
 import org.example.apiapp.domain.company.model.entity.Companies;
-import org.example.apiapp.domain.user.model.dto.AuthDto;
 import org.example.apiapp.domain.user.model.entity.Users;
 import org.example.apiapp.domain.company.repository.CompanyRepository;
 import org.example.apiapp.domain.user.repository.UserRepository;
@@ -12,12 +11,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.example.common.model.CompanyStatus;
-import org.example.common.model.Gender;
 import org.example.common.model.UserRole;
 
+import java.util.Optional;
+
 /**
- * 인증 서비스
+ * 공통 인증 서비스
+ * - 권한별 로그인 (loginWithRoles, loginWithCompany)
+ * - 토큰 갱신
+ * - 로그아웃
+ *
+ * [변경 이력]
+ * - 레거시 login, signUp, adminSignUp 메서드 제거
+ * - 권한별 로그인 메서드만 유지 (loginWithRoles, loginWithCompany)
+ * - 토큰 갱신은 refreshTokenWithRole만 사용
  */
 @Slf4j
 @Service
@@ -31,200 +38,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     /**
-     * 로그인
-     */
-    public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
-        log.info("로그인 시도: {}", request.getEmail());
-
-        // 사용자 조회
-        Users user = userRepository
-                .findByEmailAndCompanyIdAndDeletedAtIsNull(request.getEmail(), request.getCompanyId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 비밀번호 확인
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
-        // 계정 상태 확인
-        if (!user.isActive()) {
-            throw new IllegalArgumentException("활성화되지 않은 계정입니다.");
-        }
-
-        // JWT 토큰 생성 (수정된 부분)
-        String accessToken = jwtUtil.createAccessToken(
-                user.getId(),
-                user.getEmail(),
-                user.getRole().name(),
-                user.getCompanyId(),
-                user.getName()
-        );
-        String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
-
-        // Company 정보 조회
-        String companySlug = null;
-        if (user.getCompanyId() != null) {
-            Companies company = companyRepository.findByIdAndDeletedAtIsNull(user.getCompanyId())
-                    .orElse(null);
-            if (company != null) {
-                companySlug = company.getCompanySlug();
-            }
-        }
-
-        return AuthDto.LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .userId(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .role(user.getRole())
-                .companyId(user.getCompanyId())
-                .build();
-    }
-
-    /**
-     * 일반 사용자 회원가입
-     */
-    @Transactional
-    public AuthDto.SignUpResponse signUp(AuthDto.SignUpRequest request) {
-        log.info("회원가입: {}", request.getEmail());
-
-        // 이메일 중복 확인
-        if (userRepository.existsByEmailAndCompanyIdAndDeletedAtIsNull(request.getEmail(), request.getCompanyId())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-
-        // 기업 확인
-        Companies company = companyRepository.findByIdAndDeletedAtIsNull(request.getCompanyId())
-                .orElseThrow(() -> new IllegalArgumentException("기업을 찾을 수 없습니다."));
-
-        if (!company.isApproved()) {
-            throw new IllegalArgumentException("승인되지 않은 기업입니다.");
-        }
-
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-        // 성별 변환
-        Gender gender = null;
-        if (request.getGender() != null) {
-            gender = Gender.valueOf(request.getGender().toUpperCase());
-        }
-
-        // 사용자 생성
-        Users user = Users.createWithCompany(
-                request.getEmail(),
-                encodedPassword,
-                request.getName(),
-                request.getCompanyId(),
-                UserRole.USER
-        );
-        user.updatePhone(request.getPhone());
-        user.updateBirthDate(request.getBirthDate());
-        user.updateGender(gender);
-
-        Users saved = userRepository.save(user);
-
-        return AuthDto.SignUpResponse.builder()
-                .userId(saved.getId())
-                .email(saved.getEmail())
-                .name(saved.getName())
-                .role(saved.getRole())
-                .message("회원가입이 완료되었습니다.")
-                .build();
-    }
-
-    /**
-     * 관리자 회원가입
-     */
-    @Transactional
-    public AuthDto.SignUpResponse adminSignUp(AuthDto.AdminSignUpRequest request) {
-        log.info("관리자 회원가입: {}", request.getEmail());
-
-        // 사업자등록번호 중복 확인
-        if (companyRepository.existsByBusinessNumberAndDeletedAtIsNull(request.getBusinessNumber())) {
-            throw new IllegalArgumentException("이미 등록된 사업자등록번호입니다.");
-        }
-
-        // Slug 중복 확인
-        if (companyRepository.existsByCompanySlugAndDeletedAtIsNull(request.getCompanySlug())) {
-            throw new IllegalArgumentException("이미 사용 중인 기업 Slug입니다.");
-        }
-
-        // 기업 생성
-        Companies company = Companies.builder()
-                .businessNumber(request.getBusinessNumber())
-                .companyName(request.getCompanyName())
-                .companySlug(request.getCompanySlug())
-                .status(CompanyStatus.PENDING)
-                .build();
-        Companies savedCompany = companyRepository.save(company);
-
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-        // 관리자 사용자 생성
-        Users admin = Users.createWithCompany(
-                request.getEmail(),
-                encodedPassword,
-                request.getName(),
-                savedCompany.getId(),
-                UserRole.ADMIN
-        );
-        admin.updatePhone(request.getPhone());
-
-        Users savedAdmin = userRepository.save(admin);
-
-        return AuthDto.SignUpResponse.builder()
-                .userId(savedAdmin.getId())
-                .email(savedAdmin.getEmail())
-                .name(savedAdmin.getName())
-                .role(savedAdmin.getRole())
-                .message("관리자 회원가입이 완료되었습니다. 승인을 기다려주세요.")
-                .build();
-    }
-
-    /**
-     * 토큰 갱신
-     */
-    public AuthDto.LoginResponse refreshToken(String refreshToken) {
-        log.info("토큰 갱신");
-
-        // Refresh Token 검증
-        if (!jwtUtil.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다.");
-        }
-
-        // 사용자 ID 추출 (수정된 부분)
-        Long userId = jwtUtil.getUserId(refreshToken);
-
-        // 사용자 조회
-        Users user = userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 새 토큰 생성 (수정된 부분)
-        String newAccessToken = jwtUtil.createAccessToken(
-                user.getId(),
-                user.getEmail(),
-                user.getRole().name(),
-                user.getCompanyId(),
-                user.getName()
-        );
-        String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
-
-        return AuthDto.LoginResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .userId(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .role(user.getRole())
-                .companyId(user.getCompanyId())
-                .build();
-    }
-
-    /**
      * 토큰 갱신 (쿠키 방식용 - 권한 정보 포함 반환)
+     * - AuthController의 /api/auth/refresh에서 사용
      */
     public org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken refreshTokenWithRole(String refreshToken) {
         log.info("토큰 갱신 (쿠키 방식)");
@@ -251,7 +66,6 @@ public class AuthService {
         );
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
 
-        // ✅ companySlug 제거 (토큰 갱신 시 불필요)
         return org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
@@ -260,27 +74,36 @@ public class AuthService {
                 .name(user.getName())
                 .role(user.getRole())
                 .companyId(user.getCompanyId())
-                .companySlug(null)  // ← null로 설정 (필요 없음)
+                .companySlug(null)  // 토큰 갱신 시 불필요
                 .isFirstLogin(user.getIsFirstLogin())
                 .build();
     }
 
-    public org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken loginWithRoles(  // ✅ Main-Service
-                                                                                                    String email,
-                                                                                                    String password,
-                                                                                                    java.util.List<UserRole> allowedRoles) {
+    /**
+     * 역할 제한 로그인 (ADMIN, MANAGER, SUPER용)
+     * - AdminService, SuperService에서 사용
+     */
+    public org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken loginWithRoles(
+            String email,
+            String password,
+            java.util.List<UserRole> allowedRoles) {
 
         log.info("역할 제한 로그인 시도 - email: {}, allowedRoles: {}", email, allowedRoles);
 
-        // 이메일로 사용자 조회 (기업 ID 없이)
-        Users user = userRepository.findByEmailAndDeletedAtIsNull(email)
-                .orElseThrow(() -> new org.example.common.exception.BaseException(
-                        org.example.common.base.BaseResponseStatus.USER_NOT_FOUND));
+        // 역할 중 하나로 사용자 조회 시도
+        Users user = null;
+        for (UserRole role : allowedRoles) {
+            Optional<Users> foundUser = userRepository.findByEmailAndRoleAndDeletedAtIsNull(email, role);
+            if (foundUser.isPresent()) {
+                user = foundUser.get();
+                break;
+            }
+        }
 
-        // 역할 확인
-        if (!allowedRoles.contains(user.getRole())) {
+        // 사용자를 찾지 못한 경우
+        if (user == null) {
             throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.UNAUTHORIZED_ACTION);
+                    org.example.common.base.BaseResponseStatus.USER_NOT_FOUND);
         }
 
         // 비밀번호 확인
@@ -315,14 +138,13 @@ public class AuthService {
             }
         }
 
-        // ✅ Main-Service DTO 사용, Enum 변환 제거
         return org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .userId(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
-                .role(user.getRole())  // Main-Service Enum 그대로 사용
+                .role(user.getRole())
                 .companyId(user.getCompanyId())
                 .companySlug(companySlug)
                 .isFirstLogin(user.getIsFirstLogin())
@@ -330,35 +152,8 @@ public class AuthService {
     }
 
     /**
-     * 로그아웃
-     * - 현재는 Stateless JWT 사용으로 로그만 기록
-     * - 추후 Redis 기반 Refresh Token 저장소 구현 시 실제 토큰 삭제
-     */
-    @Transactional
-    public org.example.apiapp.domain.user.model.dto.AuthDto.LogoutResponse logout(Long userId) {
-        log.info("로그아웃 - userId: {}", userId);
-
-        // TODO: Redis 기반 Refresh Token 삭제
-        // tokenStorageService.deleteRefreshToken(userId);
-
-        return org.example.apiapp.domain.user.model.dto.AuthDto.LogoutResponse.builder()
-                .message("로그아웃되었습니다.")
-                .build();
-    }
-
-    /**
-     * 모든 토큰 무효화 (비밀번호 변경 시)
-     * - 현재는 Stateless JWT 사용으로 실제 무효화 없음
-     * - 향후 Redis 기반 토큰 블랙리스트 구현 예정
-     */
-    public void invalidateAllTokens(Long userId) {
-        log.info("모든 토큰 무효화 요청 - userId: {}", userId);
-        // TODO: Redis 기반 토큰 블랙리스트 구현
-        // 현재는 로그만 남김
-    }
-
-    /**
      * 일반 사용자 로그인 (이메일 + 기업 ID)
+     * - UserService에서 사용
      * - USER 역할만 허용
      */
     public org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken loginWithCompany(
@@ -407,7 +202,7 @@ public class AuthService {
         );
         String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
 
-        // 6. Main-Service DTO 반환 (✅ 수정: Main-Service의 UserDto 사용)
+        // 6. DTO 반환
         return org.example.apiapp.domain.user.model.dto.UserDto.LoginResponseWithToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -419,5 +214,33 @@ public class AuthService {
                 .companySlug(company.getCompanySlug())
                 .isFirstLogin(user.getIsFirstLogin())
                 .build();
+    }
+
+    /**
+     * 로그아웃
+     * - 현재는 Stateless JWT 사용으로 로그만 기록
+     * - 추후 Redis 기반 Refresh Token 저장소 구현 시 실제 토큰 삭제
+     */
+    @Transactional
+    public org.example.apiapp.domain.user.model.dto.AuthDto.LogoutResponse logout(Long userId) {
+        log.info("로그아웃 - userId: {}", userId);
+
+        // TODO: Redis 기반 Refresh Token 삭제
+        // tokenStorageService.deleteRefreshToken(userId);
+
+        return org.example.apiapp.domain.user.model.dto.AuthDto.LogoutResponse.builder()
+                .message("로그아웃되었습니다.")
+                .build();
+    }
+
+    /**
+     * 모든 토큰 무효화 (비밀번호 변경 시)
+     * - 현재는 Stateless JWT 사용으로 실제 무효화 없음
+     * - 향후 Redis 기반 토큰 블랙리스트 구현 예정
+     */
+    public void invalidateAllTokens(Long userId) {
+        log.info("모든 토큰 무효화 요청 - userId: {}", userId);
+        // TODO: Redis 기반 토큰 블랙리스트 구현
+        // 현재는 로그만 남김
     }
 }

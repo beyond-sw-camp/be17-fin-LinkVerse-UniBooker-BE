@@ -24,16 +24,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     // ========== 기본 조회 ==========
 
     /**
-     * 이메일로 사용자 조회 (삭제 제외)
-     */
-    Optional<Users> findByEmailAndDeletedAtIsNull(String email);
-
-    /**
-     * 이메일과 기업 ID로 사용자 조회 (삭제 제외)
-     */
-    Optional<Users> findByEmailAndCompanyIdAndDeletedAtIsNull(String email, Long companyId);
-
-    /**
      * ID로 조회 (삭제 제외)
      */
     Optional<Users> findByIdAndDeletedAtIsNull(Long id);
@@ -47,12 +37,13 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             UserRole role
     );
 
-    // ========== 중복 확인 ==========
-
     /**
-     * 이메일 중복 확인 (기업별)
+     * 이메일 + 역할로 사용자 조회 (삭제 제외)
+     * - 관리자 로그인 시 역할 구분용
      */
-    boolean existsByEmailAndCompanyIdAndDeletedAtIsNull(String email, Long companyId);
+    Optional<Users> findByEmailAndRoleAndDeletedAtIsNull(String email, UserRole role);
+
+    // ========== 중복 확인 ==========
 
     /**
      * ADMIN/MANAGER 이메일 존재 여부 확인 (특정 상태 제외)
@@ -92,11 +83,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     Long countByCompanyIdAndStatusNot(Long companyId, UserStatus status);
 
     // ========== 기존 메서드 유지 ==========
-
-    /**
-     * 기업별 사용자 목록 조회 (삭제 제외)
-     */
-    List<Users> findByCompanyIdAndDeletedAtIsNull(Long companyId);
 
     /**
      * 기업별 특정 권한 사용자 목록 조회 (삭제 제외)
@@ -190,15 +176,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     );
 
     /**
-     * 기업별 + 역할별 + suspendedByCompany 조건으로 사용자 조회
-     * - 기업 상태 변경 시 기업 정지로 인해 정지된 관리자 복구용
-     */
-    List<Users> findByCompanyIdAndRoleInAndSuspendedByCompany(
-            Long companyId,
-            List<UserRole> roles,
-            boolean suspendedByCompany);
-
-    /**
      * 기업별 + 상태별 모든 사용자 조회 (역할 무관)
      * - Company 정지 시 모든 ACTIVE 사용자 정지용
      */
@@ -212,15 +189,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             Long companyId,
             Boolean suspendedByCompany
     );
-
-    /**
-     * 기업별 + 역할별 + 상태별 사용자 조회
-     * - 기업 정지 시 ACTIVE 관리자만 정지용
-     */
-    List<Users> findByCompanyIdAndRoleInAndStatus(
-            Long companyId,
-            List<UserRole> roles,
-            UserStatus status);
 
     /**
      * 기업별 + 역할별 사용자 수 카운트
@@ -250,6 +218,4 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     long countUsersByYear(@Param("year") int year);
 
     long countAllByRoleAndStatus(UserRole userRole, UserStatus userStatus);
-
-    List<Users> IsFirstLogin(Boolean isFirstLogin);
 }

@@ -1,5 +1,6 @@
 package org.example.apiapp.domain.user.service;
 
+import org.example.apiapp.domain.user.kafka.UserEventProducer;
 import org.example.apiapp.domain.user.model.dto.UserDto;
 import org.example.apiapp.infrastructure.email.EmailService;
 import org.example.common.exception.BaseException;
@@ -38,6 +39,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final EmailService emailService;
+    private final UserEventProducer userEventProducer;
 
     private static final int TEMP_PASSWORD_LENGTH = 8;
 
@@ -108,6 +110,9 @@ public class UserService {
         }
 
         Users savedUser = userRepository.save(user);
+
+        // ✅ Kafka 이벤트 발행 (User 생성)
+        userEventProducer.publishUserCreated(savedUser);
 
         return UserDto.SignUpResponse.builder()
                 .id(savedUser.getId())
@@ -216,6 +221,9 @@ public class UserService {
         if (user.getIsFirstLogin()) {
             user.completeFirstLogin();
         }
+
+        // ✅ Kafka 이벤트 발행 (User 수정 - 비밀번호 변경)
+        userEventProducer.publishUserUpdated(user);
 
         // 비밀번호 변경 시 모든 Refresh Token 삭제 (보안 강화)
         authService.invalidateAllTokens(userId);
@@ -336,6 +344,10 @@ public class UserService {
             user.updateGender(request.getGender());
         }
 
+        // ✅ Kafka 이벤트 발행 (User 수정)
+        // JPA dirty checking으로 자동 저장되므로, 트랜잭션 커밋 전에 발행
+        userEventProducer.publishUserUpdated(user);
+
         // 3. 변경 후 프로필 반환
         return getMyProfile(userId);
     }
@@ -360,6 +372,9 @@ public class UserService {
 
         // 3. 회원 탈퇴 처리 (소프트 삭제)
         user.delete();
+
+        // ✅ Kafka 이벤트 발행 (User 삭제)
+        userEventProducer.publishUserDeleted(user.getId(), user.getDeletedAt());
 
         // 4. 응답 생성
         return UserDto.WithdrawResponse.builder()
