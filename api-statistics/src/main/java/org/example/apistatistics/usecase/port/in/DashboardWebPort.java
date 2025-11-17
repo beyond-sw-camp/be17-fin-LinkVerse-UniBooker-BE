@@ -9,4 +9,7 @@ public interface DashboardWebPort {
 
     // 플랫폼 관리자 대시보드 조회
     DashboardDto.SuperDashboardResponse getPlatformDashboard();
+
+    // 관리자 리소스 그룹별 대시보드 조회
+    DashboardDto.ResourceGroupDashboardData getResourceGroupDashboard(Long resourceGroupId, Long companyId);
 }

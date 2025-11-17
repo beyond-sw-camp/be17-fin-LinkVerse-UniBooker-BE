@@ -255,6 +255,7 @@ public class ResourceGroupDto {
     @Builder
     public static class ResourcePossibleTimeInfo {
         private Long resourceId;
+        private String resourceName;
         private int intervalMinutes;   // 리소스의 시간 간격
         private int possibleTimeCount; // 이번달 예약 가능한 시간 개수
     }

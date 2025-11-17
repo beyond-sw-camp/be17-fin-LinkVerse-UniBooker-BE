@@ -19,4 +19,10 @@ public interface ResourceFeignAdapter {
     @CircuitBreaker(name = "GET_SUPER_TOTAL_DASHBOARD_INFO_API")
     @GetMapping("/api/resource-group/total-dashboard")
     DashboardDto.ServiceStatsResponse getServiceStatistics();
+
+
+    // 관리자 리소스 그룹별 대시보드에 필요한 데이터 조회
+    @CircuitBreaker(name = "GET_REOSURCE_GROUP_DASHBOARD_INFO_API")
+    @GetMapping("/api/resource-group/group-dashboard/{resourceGroupId}")
+    DashboardDto.ResourceGroupDashboardResponse getResourceGroupDashboard(@PathVariable("resourceGroupId") Long resourceGroupId);
 }

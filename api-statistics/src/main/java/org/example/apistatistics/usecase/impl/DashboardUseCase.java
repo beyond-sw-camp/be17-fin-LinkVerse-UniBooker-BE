@@ -164,6 +164,7 @@ public class DashboardUseCase implements DashboardWebPort {
     @Transactional
     public DashboardDto.SuperDashboardResponse getPlatformDashboard() {
 
+
         // 오늘 날짜 기준으로 올해 설정
         int year = LocalDate.now().getYear();
         LocalDate startOfYear = LocalDate.of(year, 1, 1);
@@ -202,5 +203,81 @@ public class DashboardUseCase implements DashboardWebPort {
                 .serviceStats(serviceStats)
                 .errorLogs(errorLogs)
                 .build();
+    }
+
+
+
+    // 관리자 리소스 그룹별 대시보드
+    @Override
+    @Transactional
+    public DashboardDto.ResourceGroupDashboardData getResourceGroupDashboard(Long resourceGroupId, Long companyId) {
+        // 총 서비스 수
+        // 서비스 그룹에 속하는 서비스의 예약 가능 수
+        // 서비스 그룹의 조회수 (어제, 오늘, 시간대별)
+        DashboardDto.ResourceGroupDashboardResponse resourceData = resourceFeignAdapter.getResourceGroupDashboard(resourceGroupId);
+
+        // 리소스 그룹의 누적 예약수
+        Integer cumReservationCount = reservationFeignAdapter.getCumReservationCount(resourceGroupId);
+
+        // 리소스 그룹의 누적 취소수
+        Integer cumCancalCount = reservationFeignAdapter.getCumCancleCount(resourceGroupId);
+
+        // 리소스 그룹별 예약 수
+        List<DashboardDto.ServicePerformanceCount> servicePerReservationCount = reservationFeignAdapter.getServicePerformanceCount(resourceGroupId);
+
+        // possibleTimeCount - reservedCount (리소스 별 성과 계산
+        // (1) 예약 맵으로 변환
+        Map<Long, Integer> reservedMap = servicePerReservationCount.stream()
+                .collect(Collectors.toMap(
+                        DashboardDto.ServicePerformanceCount::getResourceId,
+                        DashboardDto.ServicePerformanceCount::getCount
+                ));
+
+        // (2) 리소스 정보 기반으로 PerformancePerResource 리스트 생성
+        List<DashboardDto.PerformancePerResource> performancePerResources =
+                resourceData.getResources().stream()
+                        .map(info -> {
+                            int reserved = reservedMap.getOrDefault(info.getResourceId(), 0);
+                            int remaining = info.getPossibleTimeCount() - reserved;
+
+                            return DashboardDto.PerformancePerResource.builder()
+                                    .resourceName(info.getResourceName())
+                                    .count(remaining)
+                                    .build();
+                        })
+                        .collect(Collectors.toList());
+
+
+
+        // 리소스 그룹에 속하는 사용자 수
+        DashboardDto.UserCountResponse userCount = reservationFeignAdapter.getUserCount(resourceGroupId, companyId);
+
+        // 성별
+        List<DashboardDto.ReservationGenderInfo> genderCount = reservationFeignAdapter.getGenderCount(resourceGroupId);
+
+        // 나이
+        List<DashboardDto.ReservationAgeInfo> ageCount = reservationFeignAdapter.getAgeCount(resourceGroupId);
+
+        // 시간대 별 예약 수
+        List<DashboardDto.TimeSlotReservationCount> hourlyReservationCounts = reservationFeignAdapter.getHourlyReservationCount(resourceGroupId);
+
+
+
+        // 최종 응답 DTO 생성
+        return DashboardDto.ResourceGroupDashboardData.builder()
+                .resourceCount(resourceData.getResourceCount())
+                .cumReservationCount(cumReservationCount)
+                .cumCancleCount(cumCancalCount)
+                .totalCustomerCount(userCount.getTotal())
+                .useCustomerCount(userCount.getCount())
+                .performanceByResources(performancePerResources)
+                .reservationGenderInfos(genderCount)
+                .reservationAgeInfos(ageCount)
+                .yesterDayViewCount(resourceData.getViewStats().getYesterdayAccumulatedViewCount())
+                .todayViewCount(resourceData.getViewStats().getTodayTotalViewCount())
+                .hourlyViewCounts(resourceData.getViewStats().getHourlyViewCounts())
+                .houlryReservationCounts(hourlyReservationCounts)
+                .build();
+
     }
 }

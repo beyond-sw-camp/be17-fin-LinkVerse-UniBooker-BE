@@ -221,4 +221,135 @@ public class DashboardDto {
         private List<Integer> categoryCounts;
         private List<String> categoryLabels;
     }
+
+
+
+
+
+
+    // 그룹별 대시보드
+    @Getter
+    @Builder
+    public static class ResourceGroupDashboardResponse {
+        private Long resourceGroupId;
+
+        // 리소스 개수
+        private int resourceCount;
+
+        // 리소스별 예약 가능 시간 정보
+        private List<ResourcePossibleTimeInfo> resources;
+
+        // 조회수 통계
+        private ViewStats viewStats;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ResourcePossibleTimeInfo {
+        private Long resourceId;
+        private String resourceName;
+        private int intervalMinutes;   // 리소스의 시간 간격
+        private int possibleTimeCount; // 이번달 예약 가능한 시간 개수
+    }
+
+
+    @Getter
+    @Builder
+    public static class ViewStats {
+
+        // 어제 ~ 현재 시각 기준 누적 조회수
+        private int yesterdayAccumulatedViewCount;
+
+        // 오늘 전체 누적 조회수
+        private int todayTotalViewCount;
+
+        // 시간대별 조회수 (예: { "00": 23, "01": 55, ... })
+        private List<HourlyViewCount> hourlyViewCounts;
+    }
+
+
+    @Getter
+    @Builder
+    public static class HourlyViewCount {
+        private int hour;     // 0~23
+        private long viewCount;
+    }
+
+
+    // 응답
+    @Getter
+    @Builder
+    public static class ResourceGroupDashboardData {
+        private int resourceCount;
+        private int cumReservationCount;
+        private int cumCancleCount;
+        private int totalCustomerCount;
+        private int useCustomerCount;
+        private List<PerformancePerResource> performanceByResources;
+        private List<ReservationGenderInfo> reservationGenderInfos;
+        private List<ReservationAgeInfo> reservationAgeInfos;
+        private int yesterDayViewCount;
+        private int todayViewCount;
+        private List<HourlyViewCount> hourlyViewCounts;
+        private List<TimeSlotReservationCount> houlryReservationCounts;
+    }
+
+
+    @Getter
+    @Builder
+    public static class PerformancePerResource {
+        private String resourceName;
+        private Integer count;
+    }
+
+
+    @Getter
+    @Setter
+    public class UserCountResponse {
+        private int total;
+        private int count;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ReservationGenderInfo {
+        private boolean isMale;
+        private Integer count;
+    }
+
+
+    @Getter
+    @Builder
+    public static class ReservationAgeInfo {
+        private Integer age;
+        private Integer count;
+    }
+
+
+
+    // ========================== 서비스별 성과 ==========================
+    @Getter
+    @Builder
+    public static class ServicePerformanceCount {
+        private Long resourceId;
+        private Integer count;
+    }
+
+    // ========================== 이용자 수 ==========================
+    @Getter
+    @Builder
+    public static class VisitorCount {
+        private Integer total;
+        private Integer count;
+    }
+
+    // ========================== 시간대별 에약 현황 ==========================
+    @Getter
+    @Builder
+    public static class TimeSlotReservationCount {
+        private Integer hour;
+        private Integer count;
+    }
 }

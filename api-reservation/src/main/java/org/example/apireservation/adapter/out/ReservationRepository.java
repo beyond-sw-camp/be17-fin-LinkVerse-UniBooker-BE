@@ -117,7 +117,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Object[]> getServicePerformanceCount(Long resourceGroupId, LocalDateTime oneMonthAgo);
 
     // ========================== 리소스 그룹에 속하는 사용자 (중복제거) ==========================
-    @Query("SELECT COUNT(DIStINCT r.userId) FROM Reservations r WHERE r.resourceGroupId=:resourceGorupId")
+    @Query("SELECT COUNT(DIStINCT r.userId) FROM Reservations r WHERE r.resourceGroupId=:resourceGroupId")
     Integer getReservationUserCount(Long resourceGroupId);
 
     // ========================== 성별 ==========================
