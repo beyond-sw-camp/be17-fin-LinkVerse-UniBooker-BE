@@ -106,7 +106,7 @@ public class ReservationService {
 
         if(resource.getCategory().equals(ServiceCategory.SEAT)) { // 요일 별 설정 수용인원 만큼 해당 시간대에 수용 가능
             Integer currentCount = reservationPersistencePort.countBySeatReservation(resource.getId(), dates[0], dates[1], dto.getRow(), dto.getCol()).size();
-            if (currentCount+dto.getHeadCount() >= resource.getCapacity() || dto.getHeadCount() > 1) {
+            if (currentCount > 0 || currentCount+dto.getHeadCount() >= resource.getCapacity() || dto.getHeadCount() > 1) {
                 throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
             }
         } else if(resource.getCategory().equals(ServiceCategory.RESERVATION)) { // 시간대별 한 타임 예약 가능

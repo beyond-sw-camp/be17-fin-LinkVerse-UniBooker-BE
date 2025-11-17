@@ -93,6 +93,7 @@ public enum BaseResponseStatus {
     // ========== 100000: ResourceGroup 관련 ==========
     RESOURCE_GROUP_NOT_FOUND(100001, "리소스 그룹 정보를 찾을 수 없습니다."),
     INVALID_SERVICE_CATEGORY(100002, "유효하지 않는 카테고리입니다."),
+    RESOURCE_BUSY(100003, "해당 리소스는 예약 중인 슬롯입니다."),
 
     // ========== 200000: Resource 관련 ==========
     RESOURCE_NOT_FOUND(200000, "리소스 정보를 찾을 수 없습니다."),

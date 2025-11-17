@@ -60,16 +60,6 @@ spring:
 
 
   # =================================================================
-  # Redis 설정
-  # =================================================================
-  #  data:
-  #    redis:
-  #      host: ${REDIS_HOST}
-  #      port: ${REDIS_PORT}
-  #      password: ${REDIS_PASSWORD}
-
-
-  # =================================================================
   # AWS 클라우드 설정 (S3)
   # =================================================================
   cloud:
@@ -81,6 +71,25 @@ spring:
         bucket: ${MY_BUCKET}
       region:
         static: ${AWS_REGION}
+
+  # =================================================================
+  # Redis 설정
+  # =================================================================
+  data:
+    redis:
+      sentinel:
+        master: ${REDIS_MASTER_NAME}
+        nodes:
+          - ${REDIS_SENTINEL_1}
+          - ${REDIS_SENTINEL_2}
+          - ${REDIS_SENTINEL_3}
+      timeout: ${REDIS_TIMEOUT:3000}
+
+reservation:
+  lock:
+    wait-seconds: ${RESERVATION_WAIT:3}
+    lease-seconds: ${RESERVATION_LEASE:15}
+
 
 eureka:
   client:

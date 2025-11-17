@@ -1,0 +1,62 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: api-reservation
+
+  # =================================================================
+  # 데이터베이스 설정
+  # =================================================================
+  datasource:
+    url: ${RESERVATION_DB_URL}
+    username: ${RESERVATION_DB_USERNAME}
+    password: ${RESERVATION_DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+#    hikari:
+#      maximum-pool-size: 100
+
+
+  # =================================================================
+  # JPA/Hibernate 설정
+  # =================================================================
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_OPTION:update}
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+
+
+  # =================================================================
+  # AWS 클라우드 설정 (S3)
+  # =================================================================
+  cloud:
+    aws:
+      credentials:
+        access-key: ${S3_ACCESS_KEY}
+        secret-key: ${S3_SECRET_KEY}
+      s3:
+        bucket: ${MY_BUCKET}
+      region:
+        static: ${AWS_REGION}
+
+  # =================================================================
+  # Redis 설정
+  # =================================================================
+  data:
+    redis:
+      sentinel:
+        master: ${REDIS_MASTER_NAME}
+        nodes:
+          - ${REDIS_SENTINEL_1}
+          - ${REDIS_SENTINEL_2}
+          - ${REDIS_SENTINEL_3}
+      timeout: ${REDIS_TIMEOUT:3000}
+
+reservation:
+  lock:
+    wait-seconds: ${RESERVATION_WAIT:5}
+    lease-seconds: ${RESERVATION_LEASE:15}

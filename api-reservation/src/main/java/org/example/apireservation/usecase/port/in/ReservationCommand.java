@@ -8,6 +8,7 @@ import java.util.List;
 
 /** Adapter.in 으로 들어오는 예약 요청 DTO */
 @Getter
+@Builder
 @Schema(description = "예약시 필요 요청 정보")
 public class ReservationCommand {
 

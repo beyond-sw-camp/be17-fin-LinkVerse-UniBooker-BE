@@ -1,14 +1,14 @@
 package org.example.apireservation.usecase.impl;
 
-import com.thoughtworks.xstream.mapper.Mapper;
-import feign.FeignException;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.example.apireservation.domain.model.dto.*;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
 import org.example.apireservation.domain.model.entity.Users;
 import org.example.apireservation.domain.service.*;
 import org.example.apireservation.infrastructure.*;
+import org.example.apireservation.lock.config.LockKeyGenerator;
 import org.example.apireservation.mapper.CustomFieldValueMapper;
 import org.example.apireservation.mapper.ReservationMapper;
 import org.example.apireservation.mapper.UserMapper;
@@ -17,20 +17,23 @@ import org.example.apireservation.usecase.port.out.*;
 import org.example.common.base.BaseResponse;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
-import org.example.common.model.dto.AuthDto;
-import org.example.common.model.UserRole;
+import org.example.common.user.UserRole;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * 실제 유즈케이스 구현체
  * Service 비즈니스 로직 수행 */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservationUseCase implements ReservationWebPort {
@@ -38,11 +41,16 @@ public class ReservationUseCase implements ReservationWebPort {
     private final ReservationPersistencePort reservationPersistencePort;
     private final UserPersistencePort userPersistencePort;
 
-    private final ResourceFeignAdapter resourceFeignAdapter;                    // 리소스 외부 API 호출
-    private final ResourceGroupFeignAdapter resourceGroupFeignAdapter;          // 리소스 그룹 외부 API 호출
-    private final CustomFieldValueFeignAdapter customFieldValueFeignAdapter;    // 사용자 커스텀 입력 필드 외부 API 호출
+    /** api 호출 */
+    private final ResourceFeignAdapter resourceFeignAdapter;                    // 리소스 API 호출
+    private final ResourceGroupFeignAdapter resourceGroupFeignAdapter;          // 리소스 그룹 API 호출
+    private final CustomFieldValueFeignAdapter customFieldValueFeignAdapter;    // 사용자 커스텀 입력 필드 API 호출
 
+    /** 도메인 서비스 */
     private final ReservationService reservationService;                        // Domain Validator
+
+    /** 락 관련 */
+    private final RedissonClient redisson;                                      // Redisson 분산락
 
 
     // ========================== 예약 요청 ==========================
@@ -50,25 +58,46 @@ public class ReservationUseCase implements ReservationWebPort {
     @Transactional
     public ReservationDetailDto.Response reserve(ReservationCommand dto, Long resourceId, Long userId, Long companyId) {
 
-        // 도메인 검증 및 생성
-        Reservation domain = Reservation.toDomain(dto, resourceId, userId, companyId, reservationService); // command -> entity
+        // 리소스 조회 (락 키 생성하는데 필요)
+        Resource resource = reservationService.validateResource(resourceId);
+        ServiceCategory category = resource.getCategory();
 
-        // 예약 생성 및 저장
-        Reservations savedReservation = reservationPersistencePort.save(ReservationMapper.toEntity(domain));
-        Reservation reservation = ReservationMapper.from(savedReservation, domain); // entity -> domain
+        // 락 키 생성
+        String lockKey = LockKeyGenerator.buildLockKey(category, resourceId, dto);
+        RLock lock = redisson.getLock(lockKey);
 
+        try {
+            lock.lock();
 
-        // 사용자 커스텀 필드 값 저장 (외부 호출)
-        List<CustomFieldValueDto> userCustomFieldValuesDto = null;
-        if(dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
-            List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
-            userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).toList();
+            // 락 획득 후 도메인 검증 및 생성
+            Reservation domain = Reservation.toDomain(dto, resourceId, userId, companyId, reservationService);
+
+            // 예약 생성 및 저장
+            Reservations savedReservation = reservationPersistencePort.save(ReservationMapper.toEntity(domain));
+            Reservation reservation = ReservationMapper.from(savedReservation, domain); // entity -> domain
+
+            // 사용자 커스텀 필드 값 저장 (내부 호출)
+            List<CustomFieldValueDto> userCustomFieldValuesDto = null;
+            if (dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
+                try {
+                    List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
+                    userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).toList();
+                } catch (Exception fe) {
+                    // TODO : 내부 호출 실패 시 예약 롤백
+                    log.warn("[reserve] custom field registration failed for reservation {}: {}", reservation.getId(), fe.getMessage());
+                }
+            }
+
+            // TODO: 예약 확정 알림 발송 (내부 호출, 트랜잭션 커밋 후 비동기로 처리)
+
+            return ReservationMapper.toRes(reservation, userCustomFieldValuesDto); // domain -> dto
         }
 
-        // TODO: 예약 확정 알림 발송 (외부 호출)
-
-        // 카테고리 별 알맞은 형식으로 응답
-        return ReservationMapper.toRes(reservation, userCustomFieldValuesDto); // domain -> dto;
+        finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
 
