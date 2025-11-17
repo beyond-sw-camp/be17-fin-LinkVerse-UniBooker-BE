@@ -35,9 +35,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
      */
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
             // ===== Admin 관련 =====
-            "/api/admin/signup",
-            "/api/admin/signup/status",  // ✅ 추가
-            "/api/admin/login",
+            "/api/admins/signup",
+            "/api/admins/signup/status",  // ✅ 추가
+            "/api/admins/login",
 
             // ===== User 관련 =====
             "/api/users/signup",
@@ -132,7 +132,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
      * JWT 검증 제외 경로 확인
      */
     private boolean isExcludedPath(String path) {
-        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
+        return EXCLUDED_PATHS.contains(path);
     }
 
     /**

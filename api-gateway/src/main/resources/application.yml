@@ -19,7 +19,7 @@ spring:
                 maxAge: 3600
 
           default-filters:
-            - JwtAuthenticationFilter
+            - name: JwtAuthenticationFilter
 
           routes:
             - id: resource-service
