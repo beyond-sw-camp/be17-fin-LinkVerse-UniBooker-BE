@@ -1,6 +1,8 @@
 package org.example.apireservation.adapter.out;
 
 import lombok.RequiredArgsConstructor;
+import org.example.apireservation.domain.model.Gender;
+import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
 import org.springframework.stereotype.Component;
@@ -84,20 +86,6 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
     }
 */
 
-    // ========================== 특정 기업의 모든 예약 수 카운트 ==========================
-    @Override
-    public Integer countByCompanyId(Long companyId) {
-//        return reservationRepository.countByCompanyId(companyId);
-        return null;
-    }
-
-    // ========================== 특정 리소스 그룹의 예약 수 ==========================
-    @Override
-    public Integer countByResourceGroupId(Long resourceGroupId) {
-//        return reservationRepository.countByResourceGroupId(resourceGroupId);
-        return null;
-    }
-
     // ========================== 특정 리소스의 예약 목록 조회 ==========================
     @Override
     public List<Reservations> findAllByResourceId(Long resourceId) {
@@ -110,11 +98,16 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
         return reservationRepository.findAllByResourceIdAndStartDateBetween(resourceId, startDate, endDate);
     }
 
+    // ========================== 특정 기업의 모든 예약 수 카운트 ==========================
+    @Override
+    public Integer countByCompanyId(Long companyId) {
+        return reservationRepository.countByCompanyId(companyId);
+    }
+
     // ========================== 특정 기간 동안의 리소스 그룹별 예약수 ==========================
     @Override
-    public List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate) {
-//        return reservationRepository.countReservationsByGroupAndDate(companyId, startDate, endDate);
-        return null;
+    public List<Object[]> countReservationByGroupAndDate(Long resourceGroupId, LocalDateTime startDate, LocalDateTime endDate) {
+        return reservationRepository.countReservationByGroupAndDate(resourceGroupId, startDate, endDate);
     }
 
     // ==========================  ==========================
@@ -122,5 +115,54 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
     public Integer countConfirmedByResourceAndRange(Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
 //        return reservationRepository.countConfirmedByResourceAndRange(resourceId, startDate, endDate);
         return null;
+    }
+
+    // ========================== 리소스 그룹의 모든 예약 수 (예약 + 취소) ==========================
+    @Override
+    public Integer countByResourceGroupId(Long resourceGroupId) {
+        return reservationRepository.countByResourceGroupId(resourceGroupId);
+    }
+
+    // ========================== 리소스 그룹의 누적 예약수 ==========================
+    @Override
+    public Integer getCumReservationCount(Long resourceGroupId) {
+        return reservationRepository.countByResourceGroupIdAndDeletedAtIsNull(resourceGroupId);
+    }
+
+    // ========================== 리소스 그룹의 누적 취소 예약 수==========================
+    @Override
+    public Integer getCumCancelCount(Long resourceGroupId) {
+        return reservationRepository.countByResourceGroupIdAndDeletedAtIsNotNull(resourceGroupId);
+    }
+
+    // ========================== 리소스 그룹에 속하는 리소스 수 ==========================
+    @Override
+    public List<Object[]> getServicePerformanceCount(Long resourceGroupId, LocalDateTime oneMonthAgo) {
+        return reservationRepository.getServicePerformanceCount(resourceGroupId, oneMonthAgo);
+    }
+
+    // ========================== 리소스 그룹에 속하는 사용자 (중복제거) ==========================
+    @Override
+    public Integer getReservationUserCount(Long resourceGroupId) {
+        return reservationRepository.getReservationUserCount(resourceGroupId);
+    }
+
+
+    // ========================== 성별 ==========================
+    @Override
+    public List<Object[]> getGenderReservationCount(Long resourceGroupId) {
+        return reservationRepository.countByGenderReservation(resourceGroupId);
+    }
+
+    // ========================== 나이대 ==========================
+    @Override
+    public List<Object[]> getAgeReservationCount(Long resourceGroupId) {
+        return reservationRepository.countByAgeReservation(resourceGroupId);
+    }
+
+    // ========================== 리소스 그룹에 속하는 시간대 별 예약 수 ==========================
+    @Override
+    public List<Object[]> getTimeSlotReservationCount(Long resourceGroupId) {
+        return reservationRepository.getTimeSlotReservationCount(resourceGroupId);
     }
 }

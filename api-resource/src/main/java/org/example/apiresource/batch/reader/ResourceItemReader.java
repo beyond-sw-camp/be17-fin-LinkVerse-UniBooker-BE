@@ -28,4 +28,3 @@ public class ResourceItemReader implements ItemReader<Resources> {
         return resourceIterator.hasNext() ? resourceIterator.next() : null;
     }
 }
-

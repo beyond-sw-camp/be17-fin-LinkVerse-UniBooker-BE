@@ -62,11 +62,11 @@ spring:
   # =================================================================
   # Redis 설정
   # =================================================================
-#  data:
-#    redis:
-#      host: ${REDIS_HOST}
-#      port: ${REDIS_PORT}
-#      password: ${REDIS_PASSWORD}
+  #  data:
+  #    redis:
+  #      host: ${REDIS_HOST}
+  #      port: ${REDIS_PORT}
+  #      password: ${REDIS_PASSWORD}
 
 
   # =================================================================
@@ -81,3 +81,10 @@ spring:
         bucket: ${MY_BUCKET}
       region:
         static: ${AWS_REGION}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    registerWithEureka: true
+    fetchRegistry: true

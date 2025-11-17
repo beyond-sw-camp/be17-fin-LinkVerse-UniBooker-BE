@@ -25,10 +25,13 @@ public class Reservation {
     private LocalDateTime updatedAt;                // 수정일
     private LocalDateTime deletedAt;                // 삭제일
 
-    /* user 관련 */
+    /* 사용자 관련 */
     private Long userId;                            // 사용자 ID
     private String userName;                        // 사용자 이름
     private String email;                           // 사용자 이메일
+
+    /* 기업 관련 */
+    private Long companyId;                         // 기업 ID
 
     /* 리소스 관련*/
     private Long resourceId;                        // 리소스 ID
@@ -36,12 +39,13 @@ public class Reservation {
     private String resourceImage;                   // 리소스 이미지
 
     /* 리소스 그룹 관련 */
+    private Long resourceGroupId;                   // 리소스 그룹 ID
     private String resourceGroupName;               // 리소스 그룹 명
     private ServiceCategory serviceCategory;        // 서비스 카테고리
 
 
     // ========================== Command -> Domain (예약하기) ==========================
-    public static Reservation toDomain(ReservationCommand dto, Long resourceId, Long userId, ReservationService reservationService) {
+    public static Reservation toDomain(ReservationCommand dto, Long resourceId, Long userId, Long companyId, ReservationService reservationService) {
 
         // 유저 및 리소스 유효성 검증
         User user = reservationService.validateUser(userId);
@@ -60,9 +64,11 @@ public class Reservation {
                 .userId(userId)
                 .userName(user.getUserName())
                 .email(user.getEmail())
+                .companyId(companyId)
                 .resourceId(resourceId)
                 .resourceName(resource.getName())
                 .resourceImage(resource.getResourceImage())
+                .resourceGroupId(resource.getResourceGroupId())
                 .resourceGroupName(resource.getResourceGroupName())
                 .serviceCategory(resource.getCategory())
                 .startDate(dates[0])

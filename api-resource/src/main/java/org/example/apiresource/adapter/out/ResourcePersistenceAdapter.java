@@ -74,4 +74,18 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
     public Optional<Resources> findByIdForUpdate(Long resourceId) {
         return resourceRepository.findByIdForUpdate(resourceId);
     }
+
+
+    @Override
+    @Transactional
+    public int countAllByResourceGroup_Id(Long id) {
+        return resourceRepository.countAllByResourceGroup_Id(id);
+    }
+
+
+    @Override
+    @Transactional
+    public int countAllByResourceGroup_CompanyId(Long companyId) {
+        return resourceRepository.countAllByResourceGroup_CompanyId(companyId);
+    }
 }

@@ -22,8 +22,8 @@ public interface CustomFieldDefinitionPersistencePort {
     List<CustomFieldDefinitions> findByResourceGroupAndDeletedAtIsNull(ResourceGroups group);
 
     // 커스텀 필드 옵션 조회
-   List<CustomFieldSelectDefinitions> findSelectOptions(CustomFieldDefinitions f);
+    List<CustomFieldSelectDefinitions> findSelectOptions(CustomFieldDefinitions f);
 
-   // 커스텀 필드 존재 여부 확인
+    // 커스텀 필드 존재 여부 확인
     Optional<CustomFieldDefinitions> findByIdAndDeletedAtIsNull(Long customFieldId);
 }

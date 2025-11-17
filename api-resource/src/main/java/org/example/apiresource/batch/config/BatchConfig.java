@@ -31,7 +31,7 @@ public class BatchConfig {
 
     // ========== Resource Status Job ==========
 
-//    Job 정의
+    //    Job 정의
 //    Job = 배치 단위 작업
 //    "resourceStatusJob -> Job 이름"
 //    jobRepository -> 배치 실행 정보(DB에 상태 저장 등)를 관리
@@ -69,4 +69,3 @@ public class BatchConfig {
 
 
 }
-

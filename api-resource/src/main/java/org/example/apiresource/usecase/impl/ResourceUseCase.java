@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -166,7 +167,7 @@ public class ResourceUseCase implements ResourceWebPort {
     // 서비스 상태 변경
     @Override
     @Transactional
-    public boolean changeStatus(AuthDto authUser, ResourceDto.ResourceStatusChangReq req) {
+    public boolean changeStatus(Long userId, ResourceDto.ResourceStatusChangReq req) {
         try {
             Resources resource = resourcePersistencePort.findById(req.getResourceId())
                     .orElseThrow(() -> new IllegalArgumentException("리소스를 찾을 수 없습니다."));
@@ -177,7 +178,7 @@ public class ResourceUseCase implements ResourceWebPort {
             }
 
             // 상태 변경 로직 도메인 서비스에 위임
-            boolean changed = resourceService.changeStatus(resource, req.getTargetStatus(), authUser.getId());
+            boolean changed = resourceService.changeStatus(resource, req.getTargetStatus(), userId);
 
             if (changed) resourcePersistencePort.save(resource);
 

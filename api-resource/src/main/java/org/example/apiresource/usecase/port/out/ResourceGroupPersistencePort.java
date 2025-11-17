@@ -1,8 +1,10 @@
 package org.example.apiresource.usecase.port.out;
 
+import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.apiresource.domain.model.entity.CustomFieldDefinitions;
 import org.example.apiresource.domain.model.entity.CustomFieldSelectDefinitions;
 import org.example.apiresource.domain.model.entity.ResourceGroups;
+import org.example.common.model.UserRole;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,4 +33,10 @@ public interface ResourceGroupPersistencePort {
     ResourceGroups findByIdAndDeletedAtIsNull(Long resourceGroupId);
 
     Optional<ResourceGroups> findById(Long resourceGroupId);
+
+    List<ResourceGroups> findAllByCompanyIdAndDeletedAtIsNull(Long companyId);
+
+    List<ResourceGroups> findAllByIsActiveTrueAndDeletedAtIsNull();
+
+    int countAllByCategoryAndIsActiveTrueAndDeletedAtIsNull(ServiceCategory category);
 }

@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.apiresource.adapter.out.repository.CustomFieldDefinitionRepository;
 import org.example.apiresource.adapter.out.repository.CustomFieldSelectRepository;
 import org.example.apiresource.adapter.out.repository.ResourceGroupRepository;
+import org.example.apiresource.domain.model.ServiceCategory;
 import org.example.apiresource.domain.model.entity.CustomFieldDefinitions;
 import org.example.apiresource.domain.model.entity.CustomFieldSelectDefinitions;
 import org.example.apiresource.domain.model.entity.ResourceGroups;
 import org.example.apiresource.usecase.port.out.ResourceGroupPersistencePort;
+import org.example.common.model.UserRole;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ public class ResourceGroupPersistenceAdapter implements ResourceGroupPersistence
 
     // 기업 별 리소스 그룹 조회
     @Override
+    @Transactional
     public List<ResourceGroups> findAllByCompanyIdAndRole(Long companyId, boolean isUser) {
         if (isUser) {
             return resourceGroupRepository.findAllByCompanyIdAndIsActive(companyId, true);
@@ -57,25 +60,47 @@ public class ResourceGroupPersistenceAdapter implements ResourceGroupPersistence
 
     // 리소스 그룹 단일 조회
     @Override
+    @Transactional
     public Optional<ResourceGroups> findByIdAndNotDeleted(Long id) {
         return resourceGroupRepository.findByIdAndDeletedAtIsNull(id);
     }
 
     // 리소스 그룹 조회수 증가
     @Override
+    @Transactional
     public void incrementViewCount(Long resourceGroupId) {
         resourceGroupRepository.incrementViewCount(resourceGroupId);
     }
 
 
     @Override
+    @Transactional
     public ResourceGroups findByIdAndDeletedAtIsNull(Long resourceGroupId) {
         return resourceGroupRepository.findByIdAndDeletedAtIsNull(resourceGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리소스 그룹이 존재하지 않습니다."));
     }
 
     @Override
+    @Transactional
     public Optional<ResourceGroups> findById(Long resourceGroupId) {
         return resourceGroupRepository.findById(resourceGroupId);
+    }
+
+    @Override
+    @Transactional
+    public List<ResourceGroups> findAllByCompanyIdAndDeletedAtIsNull(Long companyId) {
+        return resourceGroupRepository.findAllByCompanyIdAndDeletedAtIsNull(companyId);
+    }
+
+    @Override
+    @Transactional
+    public List<ResourceGroups> findAllByIsActiveTrueAndDeletedAtIsNull() {
+        return resourceGroupRepository.findAllByIsActiveTrueAndDeletedAtIsNull();
+    }
+
+    @Override
+    @Transactional
+    public int countAllByCategoryAndIsActiveTrueAndDeletedAtIsNull(ServiceCategory category) {
+        return resourceGroupRepository.countAllByCategoryAndIsActiveTrueAndDeletedAtIsNull(category);
     }
 }
