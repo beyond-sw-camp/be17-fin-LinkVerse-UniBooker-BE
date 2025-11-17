@@ -19,7 +19,7 @@ spec:
           image: linkverseunibooker/queue:1
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: 8083
           envFrom:
             - configMapRef:
                 name: backend-queue-config
@@ -35,21 +35,21 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
