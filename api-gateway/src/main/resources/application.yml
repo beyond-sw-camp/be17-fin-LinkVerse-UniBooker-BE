@@ -7,90 +7,71 @@ spring:
 
   cloud:
     gateway:
-      # 글로벌 CORS 설정
       server:
         webflux:
           globalcors:
             cors-configurations:
               '[/**]':
                 allowedOriginPatterns: "*"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - PATCH
-                  - OPTIONS
+                allowedMethods: "*"
                 allowedHeaders: "*"
                 allowCredentials: true
                 maxAge: 3600
 
-      routes:
-        - id: resource-service
-          uri: lb://api-resource
-          predicates:
-            - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
-        - id: reservation-service
-          uri: lb://api-reservation
-          predicates:
-            - Path=/api/reservation/**
-        - id: statistics-service
-          uri: lb://api-statistics
-          predicates:
-            - Path=/api/dashboard/**
-        - id: queue-service
-          uri: lb://api-queue
-          predicates:
-            - Path=/api/queues/**
-        - id: main-service
-          uri: lb://api-app
-          predicates:
-            - Path=/api/**
+          default-filters:
+            - JwtAuthenticationFilter
+
+          routes:
+            - id: resource-service
+              uri: lb://api-resource
+              predicates:
+                - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
+            - id: reservation-service
+              uri: lb://api-reservation
+              predicates:
+                - Path=/api/reservation/**
+            - id: statistics-service
+              uri: lb://api-statistics
+              predicates:
+                - Path=/api/dashboard/**
+            - id: queue-service
+              uri: lb://api-queue
+              predicates:
+                - Path=/api/queues/**
+            - id: websocket-route
+              uri: lb://api-app
+              predicates:
+                - Path=/ws/**
+            - id: main-service
+              uri: lb://api-app
+              predicates:
+                - Path=/api/**
 
 
-      # 기본 필터 설정
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
 
-# JWT 설정
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
 jwt:
   secret: ${JWT_SECRET}
-  access-token-validity: 3600000      # 1시간 (밀리초)
-  refresh-token-validity: 604800000   # 7일 (밀리초)
+  access-token-validity: 3600000
+  refresh-token-validity: 604800000
 
-# App 설정 (신규 추가)
-app:
-  main-service:
-    url: lb://api-app
-
-# Actuator 설정
 management:
   endpoints:
     web:
       exposure:
         include: health,info,gateway
-  endpoint:
-    health:
-      show-details: always
-      redis:
-        enabled: false
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-
-# Logging 설정
 logging:
   level:
-    org.example.apigateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

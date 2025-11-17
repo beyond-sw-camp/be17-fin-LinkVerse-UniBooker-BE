@@ -1,9 +1,7 @@
 package org.example.apiqueue.adapter.in.web;
 
 import lombok.RequiredArgsConstructor;
-import org.example.apiqueue.adapter.out.persistence.RedisQueueRepository;
 import org.example.apiqueue.application.service.QueueService;
-import org.example.apiqueue.domain.port.out.QueueRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

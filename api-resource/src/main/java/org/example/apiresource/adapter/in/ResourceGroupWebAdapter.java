@@ -44,7 +44,7 @@ public class ResourceGroupWebAdapter {
     @Operation(summary = "특정 기업의 서비스 그룹 목록 조회", description = "특정 기업의 서비스 그룹 목록을 조회합니다.")
     @GetMapping("/company")
     public BaseResponse<ResourceGroupDto.ResourceGroupListRes> getAllResourceGroups(@RequestHeader("X-User-Role") UserRole userRole,
-                                                                                    @RequestParam("X-Company-Id") Long companyId) {
+                                                                                    @RequestHeader("X-Company-Id") Long companyId) {
         ResourceGroupDto.ResourceGroupListRes response = resourceGroupWebPort.getResourceGroupsByCompanyId(userRole, companyId);
         return BaseResponse.success(response);
     }
