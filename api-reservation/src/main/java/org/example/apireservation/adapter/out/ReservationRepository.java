@@ -21,7 +21,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
     /** 사용자의 중복 예약 존재 하는지 조회 */
     // ========================== 사용자의 중복 예약 존재 하는지 조회 - 예약형, 신청형 ==========================
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT r
         FROM Reservations r
@@ -30,7 +29,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
     // ========================== 사용자의 중복 예약 존재 하는지 조회 - 좌석형 ==========================
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT r
         FROM Reservations r
@@ -41,7 +39,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
     /** 선택한 일시 예약 조회 */
     // ========================== 선택한 일시 예약 조회 - 예약형 ==========================
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT r
         FROM Reservations r
@@ -50,7 +47,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Reservations> countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
     // ========================== 선택한 일시 예약 조회 - 좌석형 ==========================
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT r
         FROM Reservations r
@@ -59,7 +55,6 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Reservations> countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
     // ========================== 선택한 일시 예약 조회 - 신청형 ==========================
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
 /*
