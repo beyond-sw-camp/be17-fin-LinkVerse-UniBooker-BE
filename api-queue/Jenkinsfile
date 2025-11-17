@@ -90,7 +90,7 @@ spec:
             /kaniko/executor \
               --context=${WORKSPACE}/${SERVICE_PATH} \
               --dockerfile=${WORKSPACE}/${SERVICE_PATH}/Dockerfile \
-              --destination=${IMAGE_NAME}:${IMAGE_TAG} \
+              --destination=${IMAGE_NAME}:1 \
               --destination=${IMAGE_NAME}:latest \
               --cache=true \
               --cache-dir=/cache
