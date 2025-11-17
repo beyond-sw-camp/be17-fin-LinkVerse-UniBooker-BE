@@ -1,34 +1,34 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: backend-rollout
+  name: backend-queue-rollout
   namespace: unibooker
 spec:
   replicas: 2
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      app: backend
+      app: queue
   template:
     metadata:
       labels:
-        app: backend
+        app: queue
     spec:
       containers:
-        - name: backend
-          image: linkverseunibooker/backend:latest
+        - name: queue
+          image: linkverseunibooker/queue:1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: backend-config
+                name: backend-queue-config
             - secretRef:
-                name: backend-secret
+                name: backend-queue-secret
           resources:
             limits:
-              cpu: "1000m"
-              memory: "1Gi"
+              cpu: "500m"
+              memory: "768Mi"
             requests:
               cpu: "250m"
               memory: "512Mi"
@@ -55,6 +55,6 @@ spec:
             failureThreshold: 3
   strategy:
     blueGreen:
-      activeService: backend-service
+      activeService: backend-queue-service
       autoPromotionEnabled: true
       autoPromotionSeconds: 30
