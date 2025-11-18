@@ -40,9 +40,9 @@ public interface ReservationFeignAdapter {
     );
 
     // 리소스 그룹의 누적 취소수
-    @CircuitBreaker(name = "GET_CUM_CANCLE_COUNT_BY_GROUP_API")
-    @GetMapping("/api/reservation/cum-cancle/{resourceGroupId}")
-    Integer getCumCancleCount(
+    @CircuitBreaker(name = "GET_CUM_CANCEL_COUNT_BY_GROUP_API")
+    @GetMapping("/api/reservation/cum-cancel/{resourceGroupId}")
+    Integer getCumCancelCount(
             @PathVariable("resourceGroupId") Long resourceGroupId
     );
 

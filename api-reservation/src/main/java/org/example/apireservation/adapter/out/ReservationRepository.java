@@ -1,11 +1,8 @@
 package org.example.apireservation.adapter.out;
 
-import jakarta.persistence.LockModeType;
-import org.example.apireservation.domain.model.Gender;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.*;
-import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,13 +17,21 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
 
 
     /** 사용자의 중복 예약 존재 하는지 조회 */
-    // ========================== 사용자의 중복 예약 존재 하는지 조회 - 예약형, 신청형 ==========================
+    // ========================== 사용자의 중복 예약 존재 하는지 조회 - 예약형, 신청형(상시 모집x) ==========================
     @Query("""
         SELECT r
         FROM Reservations r
         WHERE r.userId = :userId AND r.resourceId = :resourceId AND (r.startDate < :endDate AND r.endDate > :startDate) AND r.deletedAt IS NULL
     """)
     List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // ========================== 사용자의 중복 예약 존재 하는지 조회 - 신청형(상시 모집) ==========================
+    @Query("""
+        SELECT r
+        FROM Reservations r
+        WHERE r.userId = :userId AND r.resourceId = :resourceId AND r.deletedAt IS NULL
+    """)
+    List<Reservations> findDuplicatedReservation(Long userId, Long resourceId);
 
     // ========================== 사용자의 중복 예약 존재 하는지 조회 - 좌석형 ==========================
     @Query("""
@@ -55,7 +60,7 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Reservations> countBySeatReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
 
     // ========================== 선택한 일시 예약 조회 - 신청형 ==========================
-    List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
+    Integer countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
 /*
     // ========================== 리소스 그룹의 예약 목록 찾기 ==========================
@@ -123,32 +128,41 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     // ========================== 성별 ==========================
     @Query("SELECT u.gender, COUNT(r) " +
             "FROM Reservations r " +
-            "JOIN Users u " +
-            "WHERE r.resourceGroupId = :resourceGroupId")
+            "JOIN Users u ON r.userId = u.id " +
+            "WHERE r.resourceGroupId = :resourceGroupId " +
+            "GROUP BY u.gender" )
     List<Object[]> countByGenderReservation(Long resourceGroupId);
 
     // ========================== 나이대 ==========================
     // TODO : query 노란 오류 수정 필요
+/*
     @Query(value =
             "SELECT CASE " +
-                    "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 10 AND 19 THEN 10 " +
-                    "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 20 AND 29 THEN 20 " +
-                    "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 30 AND 39 THEN 30 " +
-                    "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) >= 40 THEN 40 " +
-                    "END AS age_group, COUNT(*) AS cnt " +
-                    "FROM reservations r " +
-                    "JOIN users u ON r.user_id = u.id " +
-                    "WHERE r.resource_group_id = :resourceGroupId " +
-                    "GROUP BY gender, age_group " +
-                    "ORDER BY gender, age_group",
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 0 AND 9 THEN 0 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 10 AND 19 THEN 10 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 20 AND 29 THEN 20 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 30 AND 39 THEN 30 " +
+            "WHEN TIMESTAMPDIFF(YEAR, STR_TO_DATE(u.birth_date, '%Y-%m-%d'), CURDATE()) >= 40 THEN 40 " +
+            "END AS age_group, COUNT(r) " +
+            "FROM Reservations r " +
+            "JOIN Users u ON r.user_id = u.id " +
+            "WHERE r.resource_group_id = :resourceGroupId " +
+            "GROUP BY gender, age_group " +
+            "ORDER BY gender, age_group",
             nativeQuery = true)
-    List<Object[]> countByAgeReservation(Long resourceGroupId);
-
-    // ========================== 리소스 그룹에 속하는 시간대 별 예약수 ==========================
+*/
     @Query("SELECT HOUR(r.startDate), COUNT(*) "+
             "FROM Reservations r " +
             "WHERE DATE(r.startDate) = CURDATE() " +
             "GROUP BY HOUR(r.startDate) " +
             "ORDER BY HOUR(r.startDate)")
+    List<Object[]> countByAgeReservation(Long resourceGroupId);
+
+    // ========================== 리소스 그룹에 속하는 시간대 별 예약수 ==========================
+    @Query("SELECT HOUR(r.createdAt), COUNT(*) "+
+            "FROM Reservations r " +
+            "WHERE DATE(r.createdAt) = CURDATE() " +
+            "GROUP BY HOUR(r.createdAt) " +
+            "ORDER BY HOUR(r.createdAt)")
     List<Object[]> getTimeSlotReservationCount(Long resourceGroupId);
 }
