@@ -79,28 +79,28 @@ public class RedisQueueRepository implements QueueRepository {
         return found;
     }
 
+    @Override
+    public String getTokenState(String token) {
+        return (String) redis.opsForHash().get(tokenKey(token), "state");
+    }
+
 
     @Override
     public Long addToWaitQueue(Long resourceId, String token, Long userId) {
 
-        // 1) 중복 참여 방지 (userKey SETNX)
-        Boolean created = redis.opsForValue().setIfAbsent(
+        // 1) 유저 → 토큰 매핑 (재참여 방지 제거 → 항상 새로운 토큰으로 덮어쓰기)
+        redis.opsForValue().set(
                 userKey(resourceId, userId),
                 token,
                 userMappingTtlSeconds,
                 TimeUnit.SECONDS
         );
-        if (Boolean.FALSE.equals(created)) {
-            String existing = redis.opsForValue().get(userKey(resourceId, userId));
-            Long rank = redis.opsForZSet().rank(waitKey(resourceId), existing);
-            return (rank == null) ? 1 : rank + 1;
-        }
 
-        // 2) 순번 발급 & waiting zset 삽입
-        Long seq = redis.opsForValue().increment(seqKey(resourceId));
+        // 2) WAIT ZSET에 순번 발급 후 삽입
+        Long seq = redis.opsForValue().increment(seqKey(resourceId)); // 증가된 시퀀스
         redis.opsForZSet().add(waitKey(resourceId), token, seq);
 
-        // 3) 토큰 정보 저장 + TTL (Redisson)
+        // 3) 토큰 상세 정보 저장
         String tKey = tokenKey(token);
         long now = Instant.now().getEpochSecond();
 
@@ -109,13 +109,19 @@ public class RedisQueueRepository implements QueueRepository {
         redis.opsForHash().put(tKey, "userId", userId.toString());
         redis.opsForHash().put(tKey, "joinedAt", String.valueOf(now));
 
-        // 여기만 Redisson 사용 → StackOverflowError 방지
+        // 4) TTL 설정 (Redisson 통해서)
         redisson.getBucket(tKey).expire(tokenTtlSeconds, TimeUnit.SECONDS);
 
+        // 5) WAIT ZSET에서 내 순번 계산 (0부터니까 +1)
         Long rank = redis.opsForZSet().rank(waitKey(resourceId), token);
         return (rank == null) ? 1 : rank + 1;
     }
 
+
+    @Override
+    public String getTokenForUser(Long resourceId, Long userId) {
+        return redis.opsForValue().get(userKey(resourceId, userId));
+    }
 
     @Override
     public void activateNext(Long resourceId, long count) {

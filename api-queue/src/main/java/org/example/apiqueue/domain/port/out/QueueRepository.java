@@ -16,6 +16,9 @@ public interface QueueRepository {
     List<TokenView> listActive(Long resourceId, long offset, long limit);
     Set<Long> findResourcesWithWaiters();
     Set<Long> findResourcesWithActives();
+    String getTokenForUser(Long resourceId, Long userId);
+
+    String getTokenState(String existingToken);
 
     // DTO
     public static final class TokenView {

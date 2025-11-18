@@ -17,15 +17,16 @@ spring:
             maxAge: 3600
 
       routes:
-        # ===== WebSocket (필터 없음 - 최우선) =====
+        # ===== WebSocket (최우선) =====
         - id: websocket-route
+          order: -2
           uri: lb://api-app
           predicates:
             - Path=/ws/**
-          # filters 없음 ✅
 
         # ===== Resource Service =====
         - id: resource-service
+          order: -1
           uri: lb://api-resource
           predicates:
             - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
@@ -34,6 +35,7 @@ spring:
 
         # ===== Reservation Service =====
         - id: reservation-service
+          order: -1
           uri: lb://api-reservation
           predicates:
             - Path=/api/reservation/**
@@ -42,6 +44,7 @@ spring:
 
         # ===== Statistics Service =====
         - id: statistics-service
+          order: -1
           uri: lb://api-statistics
           predicates:
             - Path=/api/dashboard/**
@@ -50,14 +53,16 @@ spring:
 
         # ===== Queue Service =====
         - id: queue-service
+          order: -1
           uri: lb://api-queue
           predicates:
             - Path=/api/queues/**
           filters:
             - JwtAuthenticationFilter
 
-        # ===== Main Service (API) =====
+        # ===== Main Service (가장 마지막 매칭) =====
         - id: main-service
+          order: 0
           uri: lb://api-app
           predicates:
             - Path=/api/**
@@ -90,4 +95,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
-    org.example.apigateway: DEBUG  # ✅ 추가
+    org.example.apigateway: DEBUG

@@ -13,12 +13,40 @@ public class QueueService {
 
     private final QueueRepository repo;
 
-    /** 대기열 합류: 토큰 생성 후 대기열 추가 */
+    /** 대기열 합류 */
     public JoinResult join(Long resourceId, Long userId) {
-        String token = UUID.randomUUID().toString();
-        Long position = repo.addToWaitQueue(resourceId, token, userId);
-        return new JoinResult(token, position == null ? 1 : position);
+
+        String existingToken = repo.getTokenForUser(resourceId, userId);
+
+        if (existingToken != null) {
+
+            // 토큰 상태 읽기
+            String state = repo.getTokenState(existingToken);
+
+            if ("ACTIVE".equals(state)) {
+                // 이미 입장 허용된 사용자
+                return new JoinResult(existingToken, -1);
+            }
+
+            if ("WAITING".equals(state)) {
+                Long rank = repo.rankInWait(resourceId, existingToken);
+                if (rank != null) {
+                    return new JoinResult(existingToken, rank + 1);
+                }
+                // WAIT 상태지만 ZSET에서 누락 → 재참여 처리해야 함
+            }
+
+            // EXPIRED 혹은 WAIT/ACTIVE에서 사라진 잘못된 토큰 → 새로 join
+        }
+
+        // 여기에 오면 반드시 신규 토큰 생성
+        String newToken = UUID.randomUUID().toString();
+        Long pos = repo.addToWaitQueue(resourceId, newToken, userId);
+
+        return new JoinResult(newToken, (pos == null ? 1 : pos));
     }
+
+
 
     /** 앞 n명 입장 허용 */
     public void promote(Long resourceId, long count) {
@@ -32,14 +60,29 @@ public class QueueService {
 
     /** 대기 상태 조회 */
     public StatusResult status(Long resourceId, String token) {
+
+        boolean isActive = repo.isActive(resourceId, token);
         Long r0 = repo.rankInWait(resourceId, token);
-        Long sz = repo.waitSize(resourceId);
-        long position = (r0 == null) ? 0 : r0 + 1;
-        long length = (sz == null) ? 0 : sz;
-        // 임시 ETA 계산(초): 초당 0.5명 처리 가정
-        long etaSeconds = (position == 0) ? 0 : Math.round(position / 0.5);
-        return new StatusResult(position, length, etaSeconds);
+        Long waitSize = repo.waitSize(resourceId);
+
+        // ACTIVE 상태 → position = 0
+        if (isActive) {
+            return new StatusResult(0, waitSize, 0);
+        }
+
+        // WAITING에도 없고 ACTIVE에도 없음 → 유효하지 않은 토큰
+        if (!isActive && r0 == null) {
+            return new StatusResult(-1, waitSize, 0);
+        }
+
+        // WAITING 상태 → rank 기반으로 1부터 계산
+        long position = (r0 + 1);
+
+        long etaSeconds = Math.round(position / 0.5);
+
+        return new StatusResult(position, waitSize, etaSeconds);
     }
+
 
     /** 소비(사용 완료) */
     public void consume(Long resourceId, String token) {
