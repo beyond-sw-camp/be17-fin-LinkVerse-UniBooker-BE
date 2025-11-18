@@ -8,11 +8,6 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-/**
- * CORS 설정
- * - 모든 Origin 허용 (개발 환경)
- * - 프로덕션 환경에서는 특정 도메인만 허용해야 함
- */
 @Configuration
 public class CorsConfig {
 
@@ -20,25 +15,33 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // 허용할 Origin (개발: 모두 허용, 프로덕션: 특정 도메인만)
-        corsConfig.addAllowedOriginPattern("*");
+        // ⭐ WebSocket + 쿠키 사용 시 절대로 "*" 쓰면 안 됨
+        corsConfig.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "https://unibooker.kro.kr"
+        ));
 
-        // 허용할 HTTP 메서드
+        // 허용 메서드
         corsConfig.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        // 허용할 헤더
-        corsConfig.addAllowedHeader("*");
+        // 허용 헤더
+        corsConfig.setAllowedHeaders(Arrays.asList("*"));
+        corsConfig.setExposedHeaders(Arrays.asList("*"));
 
-        // 자격증명(쿠키) 허용
+        // 쿠키 허용
         corsConfig.setAllowCredentials(true);
 
-        // Preflight 요청 캐시 시간 (1시간)
+        // preflight 캐시
         corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        // ⭐ WebSocket 경로 포함해서 등록
         source.registerCorsConfiguration("/**", corsConfig);
+        source.registerCorsConfiguration("/ws/**", corsConfig);
 
         return new CorsWebFilter(source);
     }

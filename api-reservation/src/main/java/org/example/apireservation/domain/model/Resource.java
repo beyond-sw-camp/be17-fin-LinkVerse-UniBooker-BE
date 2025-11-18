@@ -20,4 +20,5 @@ public class Resource {
     private String status;                  // 리소스 상태
     private Long resourceGroupId;           // 리소스 그룹 아이디
     private String resourceGroupName;       // 리소스 그룹명
+    private Boolean isAlwaysAvailable;      // 상시 모집 여부
 }

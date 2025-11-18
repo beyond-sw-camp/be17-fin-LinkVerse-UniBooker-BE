@@ -1,6 +1,5 @@
 package org.example.apireservation.usecase.port.in;
 
-import org.example.apireservation.domain.model.Gender;
 import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.apireservation.domain.model.dto.ReservationTrendDto;

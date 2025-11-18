@@ -4,7 +4,6 @@ import lombok.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.example.apireservation.domain.model.Gender;
 import org.example.apireservation.domain.model.dto.ReservationDetailDto;
 import org.example.apireservation.domain.model.dto.ReservationListDto;
 import org.example.apireservation.domain.model.dto.ReservationTrendDto;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /** ReservationController */
 @Tag(name = "예약 처리 기능", description = "예약 요청, 조회, 취소 등 예약 처리에 대한 전반적인 기능")

@@ -1,8 +1,6 @@
 package org.example.apireservation.adapter.out;
 
 import lombok.RequiredArgsConstructor;
-import org.example.apireservation.domain.model.Gender;
-import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.usecase.port.out.ReservationPersistencePort;
 import org.springframework.stereotype.Component;
@@ -41,10 +39,16 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
         return reservationRepository.save(reservation);
     }
 
-    // ========================== 사용자의 중복 예약 존재하는지 조회 - 예약형, 신청형 ==========================
+    // ========================== 사용자의 중복 예약 존재하는지 조회 - 예약형, 신청형(상시 모집x) ==========================
     @Override
     public List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate) {
         return reservationRepository.findDuplicatedReservation(userId, resourceId, startDate, endDate);
+    }
+
+    // ========================== 사용자의 중복 예약 존재하는지 조회 - 신청형(상시 모집) ==========================
+    @Override
+    public List<Reservations> findDuplicatedReservation(Long userId, Long resourceId) {
+        return reservationRepository.findDuplicatedReservation(userId, resourceId);
     }
 
     // ========================== 사용자의 중복 예약 존재하는지 조회 - 좌석형 ==========================
@@ -67,7 +71,7 @@ public class ReservationPersistenceAdapter implements ReservationPersistencePort
 
     // ========================== 선택한 일시 예약 조회 - 신청형 ==========================
     @Override
-    public List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId) {
+    public Integer countByResourceIdAndDeletedAtIsNull(Long resourceId) {
         return reservationRepository.countByResourceIdAndDeletedAtIsNull(resourceId);
     }
 

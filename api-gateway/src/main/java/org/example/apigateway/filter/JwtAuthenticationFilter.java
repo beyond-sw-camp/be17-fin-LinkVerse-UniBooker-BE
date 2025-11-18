@@ -60,6 +60,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
             // ===== WebSocket ===== ✅ 추가!
             "/ws",
+            "/ws/",
 
             // ===== Actuator =====
             "/actuator",
@@ -140,15 +141,20 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
      * - startsWith 패턴 확인 (하위 경로 포함)
      */
     private boolean isExcludedPath(String path) {
-        // 정확히 일치하는 경로 확인
-        if (EXCLUDED_PATHS.contains(path)) {
-            return true;
-        }
+        for (String excluded : EXCLUDED_PATHS) {
+            // 1) 정확히 같은 경우 제외 (/ws == /ws)
+            if (path.equals(excluded)) {
+                return true;
+            }
 
-        // 하위 경로 패턴 확인
-        return EXCLUDED_PATHS.stream()
-                .anyMatch(excludedPath -> path.startsWith(excludedPath + "/"));
+            // 2) 하위 경로까지 포함해서 제외 (/ws/**)
+            if (path.startsWith(excluded + "/")) {
+                return true;
+            }
+        }
+        return false;
     }
+
 
     /**
      * JWT 토큰 추출 (우선순위: Authorization 헤더 → Cookie)

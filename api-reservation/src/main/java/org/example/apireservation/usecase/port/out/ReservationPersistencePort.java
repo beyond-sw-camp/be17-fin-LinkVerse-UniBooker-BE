@@ -1,12 +1,9 @@
 package org.example.apireservation.usecase.port.out;
 
-import org.example.apireservation.domain.model.Gender;
-import org.example.apireservation.domain.model.dto.ReservationTrendDto;
 import org.example.apireservation.domain.model.entity.Reservations;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface ReservationPersistencePort {
@@ -23,8 +20,11 @@ public interface ReservationPersistencePort {
     // 예약하기
     Reservations save(Reservations reservation);
 
-    // 사용자의 중복 예약 존재하는지 조회 - 예약형, 신청형
+    // 사용자의 중복 예약 존재하는지 조회 - 예약형, 신청형(상시 모집x)
     List<Reservations> findDuplicatedReservation(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // 사용자의 중복 예약 존재하는지 조회 - 신청형(상시 모집)
+    List<Reservations> findDuplicatedReservation(Long userId, Long resourceId);
 
     // 사용자의 중복 예약 존재하는지 조회 - 좌석형
     List<Reservations> findDuplicatedReservationSeat(Long userId, Long resourceId, LocalDateTime startDate, LocalDateTime endDate, Integer row, Integer col);
@@ -36,7 +36,7 @@ public interface ReservationPersistencePort {
     List<Reservations> countByReservation(Long resourceId, LocalDateTime startDate, LocalDateTime endDate);
 
     // 선택한 일시 예약 조회 - 신청형
-    List<Reservations> countByResourceIdAndDeletedAtIsNull(Long resourceId);
+    Integer countByResourceIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스 그룹의 예약 목록 찾기
     List<Reservations> findAllByResourceGroupIdWithReservation(Long resourceGroupId);

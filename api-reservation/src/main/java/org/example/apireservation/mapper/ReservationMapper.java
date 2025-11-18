@@ -5,6 +5,7 @@ import org.example.apireservation.domain.model.entity.Reservations;
 import org.example.apireservation.domain.model.*;
 import org.example.common.base.BaseResponseStatus;
 import org.example.common.exception.BaseException;
+import org.example.common.model.Gender;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -227,7 +228,7 @@ public class ReservationMapper {
     public static ServiceGroupDashBoardDto.ServicePerformanceCount toResReservationCountByGroupResource(Object[] result) {
         return ServiceGroupDashBoardDto.ServicePerformanceCount.builder()
                 .resourceId((Long) result[0])
-                .count((Integer) result[1])
+                .count(((Long) result[1]).intValue())
                 .build();
     }
 
@@ -241,25 +242,27 @@ public class ReservationMapper {
 
     // ========================= 성별 =========================
     public static ServiceGroupDashBoardDto.GenderReservationCount toResGenderCount(Object[] result) {
+        Gender gender = result[0] != null ? (Gender) result[0] : Gender.UNDEFINED;
+
         return ServiceGroupDashBoardDto.GenderReservationCount.builder()
-                .gender((Gender) result[0])
-                .count(((Integer) result[1]))
+                .gender(gender)
+                .count(((Long) result[1]).intValue())
                 .build();
     }
 
     // ========================= 나이대 =========================
     public static ServiceGroupDashBoardDto.AgeReservationCount toResAgeCount(Object[] result) {
         return ServiceGroupDashBoardDto.AgeReservationCount.builder()
-                .age((Integer) result[0])
-                .count(((Integer) result[1]))
+                .age(((Long) result[1]).intValue())
+                .count(((Long) result[1]).intValue())
                 .build();
     }
 
     // ========================= 시간대별 예약 현황 =========================
-    public static ServiceGroupDashBoardDto.TimeSlotReservationCount toResTimeSlotCount(Object[] reulst) {
+    public static ServiceGroupDashBoardDto.TimeSlotReservationCount toResTimeSlotCount(Object[] result) {
         return ServiceGroupDashBoardDto.TimeSlotReservationCount.builder()
-                .hour((Integer) reulst[0])
-                .count(((Integer) reulst[1]))
+                .hour(((Number) result[0]).intValue())
+                .count(((Number) result[1]).intValue())
                 .build();
     }
 }

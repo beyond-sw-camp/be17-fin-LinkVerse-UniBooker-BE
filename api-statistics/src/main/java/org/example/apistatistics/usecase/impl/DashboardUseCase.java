@@ -221,7 +221,7 @@ public class DashboardUseCase implements DashboardWebPort {
         Integer cumReservationCount = reservationFeignAdapter.getCumReservationCount(resourceGroupId);
 
         // 리소스 그룹의 누적 취소수
-        Integer cumCancalCount = reservationFeignAdapter.getCumCancleCount(resourceGroupId);
+        Integer cumCancelCount = reservationFeignAdapter.getCumCancelCount(resourceGroupId);
 
         // 리소스 그룹별 예약 수
         List<DashboardDto.ServicePerformanceCount> servicePerReservationCount =
@@ -238,16 +238,20 @@ public class DashboardUseCase implements DashboardWebPort {
         List<DashboardDto.PerformancePerResource> performancePerResources =
                 resourceData.getResources().stream()
                         .map(info -> {
-                            int reserved = reservedMap.getOrDefault(info.getResourceId(), 0);
-                            int remaining = info.getPossibleTimeCount() - reserved;
+                            int possible = info.getPossibleTimeCount();  // 전체 가능 횟수
+                            int reserved = reservedMap.getOrDefault(info.getResourceId(), 0); // 예약된 수
+
+                            double percent = 0.0;
+                            if (possible > 0) {
+                                percent = (reserved * 100.0) / possible; // 퍼센트 계산
+                            }
 
                             return DashboardDto.PerformancePerResource.builder()
                                     .resourceName(info.getResourceName())
-                                    .count(remaining)
+                                    .count(percent)   // ⬅ 기존 count 대신 퍼센트로 변경
                                     .build();
                         })
                         .collect(Collectors.toList());
-
 
 
         // 리소스 그룹에 속하는 사용자 수
@@ -268,7 +272,7 @@ public class DashboardUseCase implements DashboardWebPort {
         return DashboardDto.ResourceGroupDashboardData.builder()
                 .resourceCount(resourceData.getResourceCount())
                 .cumReservationCount(cumReservationCount)
-                .cumCancleCount(cumCancalCount)
+                .cumCancleCount(cumCancelCount)
                 .totalCustomerCount(userCount.getTotal())
                 .useCustomerCount(userCount.getCount())
                 .performanceByResources(performancePerResources)

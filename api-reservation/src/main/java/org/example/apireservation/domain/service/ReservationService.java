@@ -19,6 +19,7 @@ import org.example.common.exception.BaseException;
 import org.example.common.model.UserRole;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -91,7 +92,14 @@ public class ReservationService {
         List<Reservations> duplicatedReservations = switch (resource.getCategory()) {
             case RESERVATION -> reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId(), dates[0], dates[1]);
             case SEAT -> reservationPersistencePort.findDuplicatedReservationSeat(user.getId(), resource.getId(), dates[0], dates[1], dto.getRow(), dto.getCol());
-            case EVENT -> reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+//            case EVENT -> reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+            case EVENT -> {
+                // 상시 모집 체크
+                if (Boolean.TRUE.equals(resource.getIsAlwaysAvailable())) {
+                    yield reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId());
+                }
+                yield reservationPersistencePort.findDuplicatedReservation(user.getId(), resource.getId(), resource.getStartDate().atStartOfDay(), resource.getEndDate().atStartOfDay());
+            }
             default -> throw new BaseException(BaseResponseStatus.INVALID_SERVICE_CATEGORY);
         };
 
@@ -115,7 +123,7 @@ public class ReservationService {
                 throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
             }
         } else if(resource.getCategory().equals(ServiceCategory.EVENT)) { // 수용인원 만큼 수용 가능
-            Integer currentCount = reservationPersistencePort.countByResourceIdAndDeletedAtIsNull(resource.getId()).size();
+            Integer currentCount = reservationPersistencePort.countByResourceIdAndDeletedAtIsNull(resource.getId());
             if(currentCount+dto.getHeadCount() >= resource.getCapacity()) {
                 throw new BaseException(BaseResponseStatus.RESOURCE_OVER_CAPACITY);
             }

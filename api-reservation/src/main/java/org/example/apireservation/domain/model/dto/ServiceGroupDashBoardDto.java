@@ -2,7 +2,7 @@ package org.example.apireservation.domain.model.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.example.apireservation.domain.model.Gender;
+import org.example.common.model.Gender;
 
 /**
  * 서비스 그룹별 대시보드에 필요한 DTO

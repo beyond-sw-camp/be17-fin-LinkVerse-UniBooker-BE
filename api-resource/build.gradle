@@ -40,6 +40,10 @@ dependencies {
     // Database
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
 
+    // Kafka / Redis
+//    implementation 'org.springframework.kafka:spring-kafka'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
