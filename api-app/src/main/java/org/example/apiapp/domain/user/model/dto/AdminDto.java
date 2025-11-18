@@ -3,6 +3,7 @@ package org.example.apiapp.domain.user.model.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -236,7 +237,7 @@ public class AdminDto {
         @Schema(description = "변경할 계정 상태", example = "ACTIVE",
                 allowableValues = {"ACTIVE", "INACTIVE", "SUSPENDED", "DELETED"},
                 required = true)
-        @NotBlank(message = "상태는 필수입니다")
+        @NotNull(message = "상태는 필수입니다")
         private UserStatus status;
     }
 

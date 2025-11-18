@@ -102,7 +102,7 @@ public class ResourceGroupWebAdapter {
     @Operation(summary = "서비스 그룹 활성화", description = "비활성화된 서비스 그룹을 활성화합니다. (플랫폼 관리자 전용)")
     @PatchMapping("/{resourceGroupId}/activate")
     public BaseResponse activateResourceGroup(
-            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") UserRole userRole,
             @PathVariable Long resourceGroupId) {
 

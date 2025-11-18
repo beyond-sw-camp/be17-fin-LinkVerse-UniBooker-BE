@@ -1,5 +1,7 @@
 package org.example.apiapp.domain.user.service;
 
+import org.example.common.base.BaseResponseStatus;
+import org.example.common.exception.BaseException;
 import org.example.common.util.JwtUtil;
 import org.example.apiapp.domain.company.model.entity.Companies;
 import org.example.apiapp.domain.user.model.entity.Users;
@@ -100,22 +102,27 @@ public class AuthService {
             }
         }
 
-        // 사용자를 찾지 못한 경우
+        // 사용자를 찾지 못한 경우 (보안)
         if (user == null) {
-            throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.USER_NOT_FOUND);
+            throw new BaseException(BaseResponseStatus.INVALID_CREDENTIALS);  // ✅ 통합 메시지
         }
 
-        // 비밀번호 확인
+        // 비밀번호 확인 (보안)
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.INVALID_PASSWORD);
+            throw new BaseException(BaseResponseStatus.INVALID_CREDENTIALS);  // ✅ 통합 메시지
         }
 
-        // 계정 상태 확인
-        if (!user.isActive()) {
-            throw new org.example.common.exception.BaseException(
-                    org.example.common.base.BaseResponseStatus.INACTIVE_USER);
+        // 계정 상태 확인 (DELETED, SUSPENDED, INACTIVE 순서로 체크)
+        if (user.isDeleted()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_DELETED);
+        }
+
+        if (user.isSuspended()) {
+            throw new BaseException(BaseResponseStatus.ACCOUNT_SUSPENDED);
+        }
+
+        if (user.isInactive()) {
+            throw new BaseException(BaseResponseStatus.INACTIVE_USER);
         }
 
         // JWT 토큰 생성
