@@ -1,6 +1,11 @@
 server:
   port: 8081
 
+app:
+  batch:
+    viewcount:
+      enabled: false
+
 spring:
   application:
     name: api-resource
