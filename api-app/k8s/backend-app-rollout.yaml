@@ -15,11 +15,11 @@ spec:
         app: app
     spec:
       containers:
-        - name: queue
+        - name: app
           image: linkverseunibooker/app:1
           imagePullPolicy: Always
           ports:
-            - containerPort: 8083
+            - containerPort: 8085
           envFrom:
             - configMapRef:
                 name: backend-app-config
@@ -35,14 +35,14 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8083
+              port: 8085
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8083
+              port: 8085
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30

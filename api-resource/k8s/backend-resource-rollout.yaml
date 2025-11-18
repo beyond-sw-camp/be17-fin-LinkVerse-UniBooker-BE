@@ -15,7 +15,7 @@ spec:
         app: resource
     spec:
       containers:
-        - name: queue
+        - name: resource
           image: linkverseunibooker/resource:1
           imagePullPolicy: Always
           ports:
