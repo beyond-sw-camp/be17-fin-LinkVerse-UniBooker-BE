@@ -3,7 +3,6 @@ package org.example.apireservation.domain.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.common.model.Gender;
-import org.example.common.base.BaseEntity;
 import org.example.common.model.UserRole;
 import org.example.common.model.UserStatus;
 
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
-public class Users extends BaseEntity {
+public class Users  {
 
     @Id
     private Long id;

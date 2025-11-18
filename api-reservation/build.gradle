@@ -63,6 +63,9 @@ dependencies {
     // eureka
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+    // actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
