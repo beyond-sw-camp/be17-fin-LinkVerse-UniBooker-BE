@@ -110,3 +110,16 @@ eureka:
       defaultZone: http://localhost:9090/eureka/
     registerWithEureka: true
     fetchRegistry: true
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
