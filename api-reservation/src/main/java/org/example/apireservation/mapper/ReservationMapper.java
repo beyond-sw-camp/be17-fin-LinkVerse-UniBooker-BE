@@ -261,8 +261,8 @@ public class ReservationMapper {
     // ========================= 시간대별 예약 현황 =========================
     public static ServiceGroupDashBoardDto.TimeSlotReservationCount toResTimeSlotCount(Object[] result) {
         return ServiceGroupDashBoardDto.TimeSlotReservationCount.builder()
-                .hour(((Long) result[0]).intValue())
-                .count(((Long) result[1]).intValue())
+                .hour(((Number) result[0]).intValue())
+                .count(((Number) result[1]).intValue())
                 .build();
     }
 }

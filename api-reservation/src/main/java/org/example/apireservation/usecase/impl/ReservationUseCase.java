@@ -43,8 +43,6 @@ public class ReservationUseCase implements ReservationWebPort {
 
     /** api 호출 */
     private final ResourceFeignAdapter resourceFeignAdapter;                    // 리소스 API 호출
-    private final ResourceGroupFeignAdapter resourceGroupFeignAdapter;          // 리소스 그룹 API 호출
-    private final CustomFieldValueFeignAdapter customFieldValueFeignAdapter;    // 사용자 커스텀 입력 필드 API 호출
 
     /** 도메인 서비스 */
     private final ReservationService reservationService;                        // Domain Validator
@@ -80,7 +78,7 @@ public class ReservationUseCase implements ReservationWebPort {
             List<CustomFieldValueDto> userCustomFieldValuesDto = null;
             if (dto.getCustomFieldValues() != null && !dto.getCustomFieldValues().isEmpty()) {
                 try {
-                    List<CustomFieldValue> userCustomFieldValues = customFieldValueFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
+                    List<CustomFieldValue> userCustomFieldValues = resourceFeignAdapter.register(reservation.getId(), dto.getCustomFieldValues());
                     userCustomFieldValuesDto = userCustomFieldValues.stream().map(CustomFieldValueMapper::toDto).toList();
                 } catch (Exception fe) {
                     // TODO : 내부 호출 실패 시 예약 롤백
@@ -106,7 +104,7 @@ public class ReservationUseCase implements ReservationWebPort {
     public ReservationListDto.ResponseList getAdminReservations(Long resourceGroupId) {
 
         // 리소스 그룹 존재 여부 체크 (외부 호출)
-        ResourceGroup resourceGroups = resourceGroupFeignAdapter.findByIdAndDeletedAtIsNull(resourceGroupId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_GROUP_NOT_FOUND));
+        ResourceGroup resourceGroups = resourceFeignAdapter.findByIdAndDeletedAtIsNull(resourceGroupId).orElseThrow(() -> new BaseException(BaseResponseStatus.RESOURCE_GROUP_NOT_FOUND));
 
         // 리소스 그룹 별 전체 예약 목록 조회
         List<Reservations> result = reservationPersistencePort.findAllByResourceGroupIdWithReservation(resourceGroupId);
@@ -160,7 +158,7 @@ public class ReservationUseCase implements ReservationWebPort {
         Reservation reservation = Reservation.toDomain(entity, entity.getResourceId(), entity.getUserId(), reservationService);
 
         // 하나의 예약에 대한 사용자 압력 커스텀 필드 값 리스트 조회 (외부 호출)
-        BaseResponse<List<CustomFieldValue>> userCustomFieldValues = customFieldValueFeignAdapter.getUserFieldValuesByReservation(reservationId);
+        BaseResponse<List<CustomFieldValue>> userCustomFieldValues = resourceFeignAdapter.getUserFieldValuesByReservation(reservationId);
         List<CustomFieldValue> res = userCustomFieldValues.getData();
         List<CustomFieldValueDto> userCustomFieldValuesDto = res.stream().map(CustomFieldValueMapper::toDto).collect(Collectors.toList()); // domain -> dto
 

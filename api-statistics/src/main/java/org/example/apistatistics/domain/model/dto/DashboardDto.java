@@ -308,7 +308,7 @@ public class DashboardDto {
     @Builder
     public static class PerformancePerResource {
         private String resourceName;
-        private Integer count;
+        private Double count;
     }
 
 

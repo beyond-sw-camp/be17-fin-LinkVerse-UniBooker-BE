@@ -159,9 +159,9 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Object[]> countByAgeReservation(Long resourceGroupId);
 
     // ========================== 리소스 그룹에 속하는 시간대 별 예약수 ==========================
-    @Query("SELECT HOUR(r.createdAt), COUNT(*) "+
+    @Query("SELECT HOUR(r.createdAt), COUNT(r) "+
             "FROM Reservations r " +
-            "WHERE DATE(r.createdAt) = CURDATE() " +
+            "WHERE DATE(r.createdAt) = CURDATE() AND r.resourceGroupId = :resourceGroupId " +
             "GROUP BY HOUR(r.createdAt) " +
             "ORDER BY HOUR(r.createdAt)")
     List<Object[]> getTimeSlotReservationCount(Long resourceGroupId);
