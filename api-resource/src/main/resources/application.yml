@@ -71,10 +71,12 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:9090/eureka/
-    registerWithEureka: true
-    fetchRegistry: true
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
+    register-with-eureka: true
+    fetch-registry: true
 
+  instance:
+    prefer-ip-address: true
 
 management:
   endpoints:
