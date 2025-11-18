@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.Optional;
 
-@FeignClient(name="resourceClient", url = "http://localhost:8081")
+@FeignClient(name="api-resource")
 public interface ResourceFeignAdapter {
     // ========================== 상세 조회 ==========================
     @CircuitBreaker(name = "")
