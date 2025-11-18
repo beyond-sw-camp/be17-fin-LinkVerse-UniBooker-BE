@@ -82,3 +82,7 @@ management:
   health:
     mail:
       enabled: false
+
+# CloudFront 설정 추가
+cloudfront:
+  url: ${CLOUDFRONT_URL:https://d2h9e9y86awp4t.cloudfront.net}

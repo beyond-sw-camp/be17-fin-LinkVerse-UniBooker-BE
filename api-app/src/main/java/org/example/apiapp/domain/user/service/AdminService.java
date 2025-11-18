@@ -1,5 +1,6 @@
 package org.example.apiapp.domain.user.service;
 
+import org.example.apiapp.domain.user.kafka.UserEventProducer;
 import org.example.apiapp.domain.user.model.dto.AdminDto;
 import org.example.apiapp.domain.company.model.dto.CompanyDto;
 import org.example.apiapp.domain.user.model.dto.ManagerDto;
@@ -49,6 +50,7 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuthService authService;
+    private final UserEventProducer userEventProducer;
 
     /**
      * AdminService 생성자 (DI)
@@ -58,14 +60,16 @@ public class AdminService {
                         PasswordEncoder passwordEncoder,
                         EmailService emailService,
                         AuthService authService,
+                        UserEventProducer userEventProducer,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.authService = authService;
+        this.userEventProducer = userEventProducer;
 
-        this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder);
+        this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, userEventProducer);
         this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder,
                 authService, emailService, baseUrl);
         this.managerManagement = new ManagerManagement(userRepository, companyRepository,
@@ -222,6 +226,7 @@ public class AdminService {
         private final UserRepository userRepository;
         private final CompanyRepository companyRepository;
         private final PasswordEncoder passwordEncoder;
+        private final UserEventProducer userEventProducer;
 
         // 상수 정의
         private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9-]{3,30}$");
@@ -235,10 +240,12 @@ public class AdminService {
 
         public SignUp(UserRepository userRepository,
                       CompanyRepository companyRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      UserEventProducer userEventProducer) {
             this.userRepository = userRepository;
             this.companyRepository = companyRepository;
             this.passwordEncoder = passwordEncoder;
+            this.userEventProducer = userEventProducer;
         }
 
         /**
@@ -294,7 +301,11 @@ public class AdminService {
                 admin = createAdmin(request, company, encodedPassword);
             }
 
+            // DB 저장
             userRepository.save(admin);
+
+            // Kafka 이벤트 발행 추가
+            userEventProducer.publishUserCreated(admin);
 
             // TODO: Kafka로 슈퍼 관리자에게 알림 발송
 
