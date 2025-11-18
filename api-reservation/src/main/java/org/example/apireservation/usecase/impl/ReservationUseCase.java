@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -270,5 +271,27 @@ public class ReservationUseCase implements ReservationWebPort {
         List<Object[]> result = reservationPersistencePort.getTimeSlotReservationCount(resourceGroupId);
 
         return result.stream().map(ReservationMapper::toResTimeSlotCount).toList();
+    }
+
+
+    @Override
+    public List<ServiceGroupDashBoardDto.GroupReservationCountResponse> getCumReservationCountsByGroupResources(List<Long> groupIds) {
+        // 빈 결과 리스트 초기화
+        List<ServiceGroupDashBoardDto.GroupReservationCountResponse> result = new ArrayList<>();
+
+        for (Long groupId : groupIds) {
+            // groupId 기준으로 예약 수 조회
+            int count = reservationPersistencePort.countByResourceGroupId(groupId);
+
+            // DTO 생성 후 결과 리스트에 추가
+            ServiceGroupDashBoardDto.GroupReservationCountResponse dto = ServiceGroupDashBoardDto.GroupReservationCountResponse.builder()
+                    .groupId(groupId)
+                    .count(count)
+                    .build();
+
+            result.add(dto);
+        }
+
+        return result;
     }
 }

@@ -62,7 +62,10 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             "/ws",
 
             // ===== Actuator =====
-            "/actuator"
+            "/actuator",
+
+            // ===== 이미지 업로드 =====
+            "/api/image-upload"
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {

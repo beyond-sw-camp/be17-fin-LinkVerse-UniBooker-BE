@@ -125,4 +125,7 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
     long countCompaniesByYear(@Param("year") int year);
 
     long countAllByStatus(CompanyStatus companyStatus);
+
+    @Query("SELECT COUNT(u) FROM Users u WHERE u.companyId = :companyId")
+    int countUsersByCompanyId(@Param("companyId") Long companyId);
 }

@@ -118,6 +118,14 @@ public class DashboardDto {
         private long viewCount;
     }
 
+    @Getter
+    @Builder
+    public static class ReservationTrendCommand {
+        private List<Long> groupIds;
+        private LocalDateTime from;
+        private LocalDateTime to;
+    }
+
 
     @Getter
     @Builder
@@ -306,7 +314,7 @@ public class DashboardDto {
 
     @Getter
     @Setter
-    public class UserCountResponse {
+    public static class UserCountResponse {
         private int total;
         private int count;
     }

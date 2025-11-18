@@ -48,4 +48,12 @@ public class ServiceGroupDashBoardDto {
         private Integer hour;
         private Integer count;
     }
+
+
+    @Getter
+    @Builder
+    public static class GroupReservationCountResponse {
+        private Long groupId;
+        private int count;
+    }
 }

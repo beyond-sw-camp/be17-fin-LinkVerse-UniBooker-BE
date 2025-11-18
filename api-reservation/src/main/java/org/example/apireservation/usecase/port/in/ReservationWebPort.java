@@ -56,4 +56,7 @@ public interface ReservationWebPort {
 
     // 시간대별 예약 현황
     List<ServiceGroupDashBoardDto.TimeSlotReservationCount> getTimeSlotReservationCount(Long resourceGroupId);
+
+    // 리소스 그룹별 예약 수
+    List<ServiceGroupDashBoardDto.GroupReservationCountResponse> getCumReservationCountsByGroupResources(List<Long> groupIds);
 }

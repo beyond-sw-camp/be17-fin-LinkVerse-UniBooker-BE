@@ -424,17 +424,9 @@ public class CompanyService {
                 .build();
     }
 
-    /**
-     * 기업별 사용자 수 조회 (Statistics Service 전용)
-     */
-    public int getUserCountByCompany(Long companyId) {
-        log.info("[내부 API] 기업별 사용자 수 조회 - companyId: {}", companyId);
 
-        // 기업 존재 여부 확인
-        companyRepository.findByIdAndDeletedAtIsNull(companyId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.COMPANY_NOT_FOUND));
 
-        // USER 역할의 사용자 수 반환
-        return (int) userRepository.countByCompanyIdAndRole(companyId, UserRole.USER);
+    public int getUserCountByCompanyId(Long companyId) {
+        return companyRepository.countUsersByCompanyId(companyId);
     }
 }

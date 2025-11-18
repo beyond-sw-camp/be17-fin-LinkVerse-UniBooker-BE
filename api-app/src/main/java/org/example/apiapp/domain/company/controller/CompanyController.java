@@ -253,13 +253,8 @@ public class CompanyController {
 
     @Operation(summary = "플랫폼 대시보드 데이터 조회", description = "기간별 사용자(기업, 고객) 가입 수, 현재 활성화된 사용자(기업, 고객) 수를 조회합니다.")
     @GetMapping("/statistics/{year}")
-    public BaseResponse<CompanyDto.StatisticsResponse> getStatistics(
-            @PathVariable int year
-    ) {
-        CompanyDto.StatisticsResponse response =
-                companyService.getStatisticsByYear(year);
-
-        return BaseResponse.success(response);
+    public CompanyDto.StatisticsResponse getStatistics(@PathVariable int year) {
+        return companyService.getStatisticsByYear(year);
     }
 
     // ========== 내부 API (Gateway 전용) ==========
@@ -308,5 +303,16 @@ public class CompanyController {
 
         int userCount = companyService.getUserCountByCompany(companyId);
         return BaseResponse.success(userCount);
+    }
+
+
+
+    /**
+     * 관리자 전체 대시보드에 필요한 회사 가입 고객 수 조회
+     */
+    @Operation(summary = "관리자 전체 대시보드 데이터 조회", description = "기업의 전체 고객수를 반환합니다.")
+    @GetMapping("/user-count/{companyId}")
+    public int getAdminTotalDashboardUserCount(@PathVariable Long companyId) {
+        return companyService.getUserCountByCompanyId(companyId);
     }
 }
