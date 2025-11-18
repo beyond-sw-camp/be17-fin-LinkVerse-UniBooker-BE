@@ -96,7 +96,7 @@ spring:
           - ${REDIS_SENTINEL_1}
           - ${REDIS_SENTINEL_2}
           - ${REDIS_SENTINEL_3}
-      timeout: ${REDIS_TIMEOUT:3000}
+      timeout: ${REDIS_TIMEOUT}
 
 reservation:
   lock:

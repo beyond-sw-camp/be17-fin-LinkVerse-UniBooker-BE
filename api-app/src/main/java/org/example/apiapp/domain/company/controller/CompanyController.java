@@ -286,4 +286,27 @@ public class CompanyController {
         CompanyDto.StatusOnlyResponse response = companyService.getCompanyStatusBySlug(companySlug);
         return BaseResponse.success(response);
     }
+
+    /**
+     * [내부 API] 기업별 사용자 수 조회 (Statistics Service 전용)
+     */
+    @Operation(
+            summary = "[내부] 기업별 사용자 수 조회",
+            description = "특정 기업에 가입한 일반 사용자(USER 역할) 수를 조회합니다. (Statistics Service 전용)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "404", description = "기업을 찾을 수 없음")
+            }
+    )
+    @GetMapping("/user-count/{companyId}")
+    public BaseResponse<Integer> getUserCountByCompany(
+            @PathVariable
+            @Schema(description = "기업 ID", required = true, example = "1")
+            Long companyId) {
+
+        log.info("[내부 API] 기업별 사용자 수 조회 - companyId: {}", companyId);
+
+        int userCount = companyService.getUserCountByCompany(companyId);
+        return BaseResponse.success(userCount);
+    }
 }

@@ -7,47 +7,62 @@ spring:
 
   cloud:
     gateway:
-      server:
-        webflux:
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOriginPatterns: "*"
-                allowedMethods: "*"
-                allowedHeaders: "*"
-                allowCredentials: true
-                maxAge: 3600
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
-          default-filters:
-            - name: JwtAuthenticationFilter
+      routes:
+        # ===== WebSocket (필터 없음 - 최우선) =====
+        - id: websocket-route
+          uri: lb://api-app
+          predicates:
+            - Path=/ws/**
+          # filters 없음 ✅
 
-          routes:
-            - id: resource-service
-              uri: lb://api-resource
-              predicates:
-                - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
-            - id: reservation-service
-              uri: lb://api-reservation
-              predicates:
-                - Path=/api/reservation/**
-            - id: statistics-service
-              uri: lb://api-statistics
-              predicates:
-                - Path=/api/dashboard/**
-            - id: queue-service
-              uri: lb://api-queue
-              predicates:
-                - Path=/api/queues/**
-            - id: websocket-route
-              uri: lb://api-app
-              predicates:
-                - Path=/ws/**
-            - id: main-service
-              uri: lb://api-app
-              predicates:
-                - Path=/api/**
+        # ===== Resource Service =====
+        - id: resource-service
+          uri: lb://api-resource
+          predicates:
+            - Path=/api/resource/**,/api/resource-group/**,/api/custom-field/**,/api/category-field/**,/api/timeslot/**
+          filters:
+            - JwtAuthenticationFilter
 
+        # ===== Reservation Service =====
+        - id: reservation-service
+          uri: lb://api-reservation
+          predicates:
+            - Path=/api/reservation/**
+          filters:
+            - JwtAuthenticationFilter
 
+        # ===== Statistics Service =====
+        - id: statistics-service
+          uri: lb://api-statistics
+          predicates:
+            - Path=/api/dashboard/**
+          filters:
+            - JwtAuthenticationFilter
+
+        # ===== Queue Service =====
+        - id: queue-service
+          uri: lb://api-queue
+          predicates:
+            - Path=/api/queues/**
+          filters:
+            - JwtAuthenticationFilter
+
+        # ===== Main Service (API) =====
+        - id: main-service
+          uri: lb://api-app
+          predicates:
+            - Path=/api/**
+          filters:
+            - JwtAuthenticationFilter
 
 eureka:
   client:
@@ -75,3 +90,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
+    org.example.apigateway: DEBUG  # ✅ 추가

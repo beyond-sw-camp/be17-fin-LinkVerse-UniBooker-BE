@@ -58,6 +58,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             // ===== Auth =====
             "/api/auth/refresh",   // ✅ 추가 (토큰 갱신)
 
+            // ===== WebSocket ===== ✅ 추가!
+            "/ws",
+
             // ===== Actuator =====
             "/actuator"
     );
@@ -130,9 +133,18 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
     /**
      * JWT 검증 제외 경로 확인
+     * - 정확히 일치하는 경로 확인
+     * - startsWith 패턴 확인 (하위 경로 포함)
      */
     private boolean isExcludedPath(String path) {
-        return EXCLUDED_PATHS.contains(path);
+        // 정확히 일치하는 경로 확인
+        if (EXCLUDED_PATHS.contains(path)) {
+            return true;
+        }
+
+        // 하위 경로 패턴 확인
+        return EXCLUDED_PATHS.stream()
+                .anyMatch(excludedPath -> path.startsWith(excludedPath + "/"));
     }
 
     /**

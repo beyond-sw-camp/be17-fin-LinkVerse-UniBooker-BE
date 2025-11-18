@@ -2,6 +2,7 @@ package org.example.apistatistics.usecase.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.apistatistics.domain.model.dto.DashboardDto;
+import org.example.apistatistics.domain.model.dto.ReservationTrendCommand;
 import org.example.apistatistics.domain.service.DashboardService;
 import org.example.apistatistics.infrastructure.ReservationFeignAdapter;
 import org.example.apistatistics.infrastructure.ResourceFeignAdapter;
@@ -35,10 +36,10 @@ public class DashboardUseCase implements DashboardWebPort {
         DashboardDto.AdminDashboardResourceGroup resourceGroups = resourceFeignAdapter.getAdminTotalDashboardInfo(companyId);
 
         // 해당 회사의 총 고객 수
-        int userCount = userFeignAdapter.getAdminTotalDashboardUserCount(companyId);
+        int userCount = userFeignAdapter.getAdminTotalDashboardUserCount(companyId).getData();
 
         // 해당 회사의 총 예약 수
-        int reservationCount = reservationFeignAdapter.getAdminTotalDashboardReservationCount(companyId);
+        int reservationCount = reservationFeignAdapter.getAdminTotalDashboardReservationCount(companyId).getData();
 
 
         // Summary 데이터 구성
@@ -55,8 +56,17 @@ public class DashboardUseCase implements DashboardWebPort {
                 .toList();
 
         // 그룹별 예약 수 한 번에 조회
+        // 그룹별 예약 수 한 번에 조회
+// ✅ 1단계: Command 객체 생성
+        ReservationTrendCommand command = ReservationTrendCommand.builder()
+                .groupIds(groupIds)                           // 리소스 그룹 ID 리스트
+                .from(LocalDateTime.now().minusMonths(1))     // 최근 1개월 전
+                .to(LocalDateTime.now())                      // 현재
+                .build();
+
+// ✅ 2단계: Command 객체로 호출
         List<DashboardDto.GroupReservationCountResponse> reservationCounts =
-                reservationFeignAdapter.getReservationCountsByGroupResources(groupIds);
+                reservationFeignAdapter.getReservationCountsByGroupResources(command).getData();
 
         // Map으로 변환
         Map<Long, Integer> reservationMap = reservationCounts.stream()
@@ -102,7 +112,7 @@ public class DashboardUseCase implements DashboardWebPort {
 
         // 실제 예약 데이터 조회 (예약 API에서 (날짜, 그룹아이디, 예약수) 형식으로 조회)
         List<DashboardDto.DashboardReservationTrendResponse> trendRaw =
-                reservationFeignAdapter.getAdminReservationTrends(request);
+                reservationFeignAdapter.getAdminReservationTrends(request).getData();
 
         // groupId → groupName 매핑
         Map<Long, String> groupIdNameMap = resourceGroups.getGroups().stream()
@@ -217,14 +227,14 @@ public class DashboardUseCase implements DashboardWebPort {
         DashboardDto.ResourceGroupDashboardResponse resourceData = resourceFeignAdapter.getResourceGroupDashboard(resourceGroupId);
 
         // 리소스 그룹의 누적 예약수
-        Integer cumReservationCount = reservationFeignAdapter.getCumReservationCount(resourceGroupId);
+        Integer cumReservationCount = reservationFeignAdapter.getCumReservationCount(resourceGroupId).getData();
 
         // 리소스 그룹의 누적 취소수
-        Integer cumCancalCount = reservationFeignAdapter.getCumCancleCount(resourceGroupId);
+        Integer cumCancalCount = reservationFeignAdapter.getCumCancleCount(resourceGroupId).getData();
 
         // 리소스 그룹별 예약 수
-        List<DashboardDto.ServicePerformanceCount> servicePerReservationCount = reservationFeignAdapter.getServicePerformanceCount(resourceGroupId);
-
+        List<DashboardDto.ServicePerformanceCount> servicePerReservationCount =
+                reservationFeignAdapter.getServicePerformanceCount(resourceGroupId).getData();
         // possibleTimeCount - reservedCount (리소스 별 성과 계산
         // (1) 예약 맵으로 변환
         Map<Long, Integer> reservedMap = servicePerReservationCount.stream()
@@ -250,17 +260,17 @@ public class DashboardUseCase implements DashboardWebPort {
 
 
         // 리소스 그룹에 속하는 사용자 수
-        DashboardDto.UserCountResponse userCount = reservationFeignAdapter.getUserCount(resourceGroupId, companyId);
-
+        DashboardDto.UserCountResponse userCount =
+                reservationFeignAdapter.getUserCount(resourceGroupId, companyId).getData();
         // 성별
-        List<DashboardDto.ReservationGenderInfo> genderCount = reservationFeignAdapter.getGenderCount(resourceGroupId);
-
+        List<DashboardDto.ReservationGenderInfo> genderCount =
+                reservationFeignAdapter.getGenderCount(resourceGroupId).getData();
         // 나이
-        List<DashboardDto.ReservationAgeInfo> ageCount = reservationFeignAdapter.getAgeCount(resourceGroupId);
-
+        List<DashboardDto.ReservationAgeInfo> ageCount =
+                reservationFeignAdapter.getAgeCount(resourceGroupId).getData();
         // 시간대 별 예약 수
-        List<DashboardDto.TimeSlotReservationCount> hourlyReservationCounts = reservationFeignAdapter.getHourlyReservationCount(resourceGroupId);
-
+        List<DashboardDto.TimeSlotReservationCount> hourlyReservationCounts =
+                reservationFeignAdapter.getHourlyReservationCount(resourceGroupId).getData();
 
 
         // 최종 응답 DTO 생성

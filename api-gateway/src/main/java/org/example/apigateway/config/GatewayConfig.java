@@ -113,8 +113,15 @@ public class GatewayConfig {
 
                 // ========== Main Service - Company API ==========
 
+                // Company 공개 API (인증 불필요)
+                .route("company-public", r -> r
+                        .path("/api/companies/slug/**",           // 기업 정보 조회
+                                "/api/companies/check-slug",        // Slug 중복 확인
+                                "/api/companies/check-business-number") // 사업자번호 확인
+                        .uri("lb://api-app"))
+
                 // Company API (인증 필요)
-                .route("company-api", r -> r
+                .route("company-protected", r -> r
                         .path("/api/companies/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
@@ -126,6 +133,14 @@ public class GatewayConfig {
                         .path("/api/notifications/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
+
+                // ========== Statistics Service - Dashboard API ==========
+
+                // Dashboard API (인증 필요)
+                .route("dashboard-api", r -> r
+                        .path("/api/dashboard/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri("lb://api-statistics"))
 
                 // ========== Actuator (Health Check) ==========
 
