@@ -19,7 +19,7 @@ spec:
           image: linkverseunibooker/resource:1
           imagePullPolicy: Always
           ports:
-            - containerPort: 8083
+            - containerPort: 8081
           envFrom:
             - configMapRef:
                 name: backend-resource-config
@@ -35,14 +35,14 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8083
+              port: 8081
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8083
+              port: 8081
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
