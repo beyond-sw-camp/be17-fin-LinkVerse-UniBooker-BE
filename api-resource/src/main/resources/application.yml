@@ -69,3 +69,16 @@ eureka:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
     registerWithEureka: true
     fetchRegistry: true
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
