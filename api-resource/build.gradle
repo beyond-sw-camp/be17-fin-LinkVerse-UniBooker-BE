@@ -40,8 +40,8 @@ dependencies {
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
 
     // Kafka / Redis
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//    implementation 'org.springframework.kafka:spring-kafka'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
@@ -61,6 +61,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
 
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // 엑츄에이터
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {

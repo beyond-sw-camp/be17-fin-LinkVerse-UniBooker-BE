@@ -20,6 +20,8 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.example.apiresource.domain.model.ServiceCategory.*;
+
 @Service
 @RequiredArgsConstructor
 public class ResourceGroupUseCase implements ResourceGroupWebPort {
@@ -277,78 +279,76 @@ public class ResourceGroupUseCase implements ResourceGroupWebPort {
         // 3. 리소스별 예약 가능 시간 개수 계산
         List<ResourceGroupDto.ResourcePossibleTimeInfo> resourceInfos = resources.stream()
                 .map(resource -> {
-                    int interval = resource.getTimeInterval();  // ex) 30분
+                    int interval = resource.getTimeInterval();
+                    int possibleTimeCount = 0;
 
-                    // ---------------------------
-                    // A. 이번 달 날짜/요일 개수 계산
-                    // ---------------------------
-                    LocalDate today = LocalDate.now();
-                    YearMonth ym = YearMonth.from(today);
-                    int daysInMonth = ym.lengthOfMonth();
+                    switch (resource.getResourceGroup().getCategory()) {
+                        case RESERVATION -> {
+                            // ---------------------------
+                            // 기존 RESERVATION 계산 로직
+                            // ---------------------------
+                            LocalDate today = LocalDate.now();
+                            YearMonth ym = YearMonth.from(today);
+                            int daysInMonth = ym.lengthOfMonth();
 
-                    Map<DayOfWeek, Integer> dayCountMap = new EnumMap<>(DayOfWeek.class);
-                    for (DayOfWeek d : DayOfWeek.values()) dayCountMap.put(d, 0);
+                            Map<DayOfWeek, Integer> dayCountMap = new EnumMap<>(DayOfWeek.class);
+                            for (DayOfWeek d : DayOfWeek.values()) dayCountMap.put(d, 0);
 
-                    for (int d = 1; d <= daysInMonth; d++) {
-                        LocalDate date = ym.atDay(d);
-                        dayCountMap.computeIfPresent(date.getDayOfWeek(), (k, v) -> v + 1);
-                    }
+                            for (int d = 1; d <= daysInMonth; d++) {
+                                LocalDate date = ym.atDay(d);
+                                dayCountMap.computeIfPresent(date.getDayOfWeek(), (k, v) -> v + 1);
+                            }
 
-                    // ---------------------------
-                    // B. 요일별 정규 슬롯 is_active 개수 조회
-                    // ---------------------------
-                    Map<org.example.apiresource.domain.model.DayOfWeek, Integer> regularActiveSlots =
-                            resourceTimeSlotPersistencePort.countActiveSlotsByResource(resource.getId());
+                            Map<org.example.apiresource.domain.model.DayOfWeek, Integer> regularActiveSlots =
+                                    resourceTimeSlotPersistencePort.countActiveSlotsByResource(resource.getId());
 
-                    // 이번 달 전체 정규 슬롯 개수
-                    int totalRegularSlots = regularActiveSlots.entrySet().stream()
-                            .mapToInt(e -> e.getValue() * dayCountMap.getOrDefault(e.getKey(), 0))
-                            .sum();
+                            int totalRegularSlots = regularActiveSlots.entrySet().stream()
+                                    .mapToInt(e -> e.getValue() * dayCountMap.getOrDefault(e.getKey(), 0))
+                                    .sum();
 
-                    // ---------------------------
-                    // C. 예외시간 적용
-                    // ---------------------------
-                    List<ResourceTimeSlotExceptions> exceptions =
-                            resourceTimeSlotExceptionPersistencePort.findByResourceId(resource.getId());
+                            List<ResourceTimeSlotExceptions> exceptions =
+                                    resourceTimeSlotExceptionPersistencePort.findByResourceId(resource.getId());
 
-                    int totalAdjusted = totalRegularSlots;
+                            int totalAdjusted = totalRegularSlots;
+                            Map<LocalDate, List<ResourceTimeSlotExceptions>> byDate =
+                                    exceptions.stream().collect(Collectors.groupingBy(ResourceTimeSlotExceptions::getDate));
 
-                    // 날짜별로 묶기
-                    Map<LocalDate, List<ResourceTimeSlotExceptions>> byDate =
-                            exceptions.stream().collect(Collectors.groupingBy(ResourceTimeSlotExceptions::getDate));
+                            for (LocalDate date : byDate.keySet()) {
+                                List<ResourceTimeSlotExceptions> list = byDate.get(date);
+                                DayOfWeek dow = date.getDayOfWeek();
+                                int regularOfDay = regularActiveSlots.getOrDefault(dow, 0);
+                                totalAdjusted -= regularOfDay;
 
-                    for (LocalDate date : byDate.keySet()) {
+                                boolean isClosed = list.stream().anyMatch(ResourceTimeSlotExceptions::getIsClosed);
+                                if (isClosed) continue;
 
-                        List<ResourceTimeSlotExceptions> list = byDate.get(date);
-                        DayOfWeek dow = date.getDayOfWeek();
+                                int restore = 0;
+                                for (ResourceTimeSlotExceptions ex : list) {
+                                    long minutes = Duration.between(ex.getStartTime(), ex.getEndTime()).toMinutes();
+                                    restore += (int) (minutes / interval);
+                                }
+                                totalAdjusted += restore;
+                            }
 
-                        // 정규 슬롯 제거
-                        int regularOfDay = regularActiveSlots.getOrDefault(dow, 0);
-                        totalAdjusted -= regularOfDay;
-
-                        // 휴무면 끝
-                        boolean isClosed = list.stream().anyMatch(ResourceTimeSlotExceptions::getIsClosed);
-                        if (isClosed) continue;
-
-                        // 시간대별 추가 슬롯 계산
-                        int restore = 0;
-
-                        for (ResourceTimeSlotExceptions ex : list) {
-                            long minutes = Duration.between(ex.getStartTime(), ex.getEndTime()).toMinutes();
-                            restore += (int) (minutes / interval);
+                            possibleTimeCount = totalAdjusted;
                         }
-
-                        totalAdjusted += restore;
+                        case EVENT -> {
+                            possibleTimeCount = resource.getCapacity(); // 인원 수 그대로
+                        }
+                        case SEAT -> {
+                            // RESERVATION 방식으로 계산 후 인원수 곱하기
+                            int totalRegularSlots = resourceTimeSlotPersistencePort.countActiveSlotsByResource(resource.getId())
+                                    .values().stream().mapToInt(Integer::intValue).sum();
+                            // 예외 적용 생략하지 않고 필요하면 동일하게 처리
+                            possibleTimeCount = totalRegularSlots * resource.getCapacity();
+                        }
                     }
 
-                    // ---------------------------
-                    // D. DTO 생성
-                    // ---------------------------
                     return ResourceGroupDto.ResourcePossibleTimeInfo.builder()
                             .resourceId(resource.getId())
                             .resourceName(resource.getName())
                             .intervalMinutes(interval)
-                            .possibleTimeCount(totalAdjusted)
+                            .possibleTimeCount(possibleTimeCount)
                             .build();
                 })
                 .collect(Collectors.toList());

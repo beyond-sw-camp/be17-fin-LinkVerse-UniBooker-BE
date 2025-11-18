@@ -1,5 +1,8 @@
 package org.example.apiapp.domain.user.service;
 
+import lombok.RequiredArgsConstructor;
+import org.example.apiapp.domain.notification.model.NotificationType;
+import org.example.apiapp.domain.notification.service.NotificationService;
 import org.example.apiapp.domain.user.kafka.UserEventProducer;
 import org.example.apiapp.domain.user.model.dto.AdminDto;
 import org.example.apiapp.domain.company.model.dto.CompanyDto;
@@ -50,6 +53,7 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuthService authService;
+    private final NotificationService notificationService;
     private final UserEventProducer userEventProducer;
 
     /**
@@ -60,6 +64,7 @@ public class AdminService {
                         PasswordEncoder passwordEncoder,
                         EmailService emailService,
                         AuthService authService,
+                        NotificationService notificationService,
                         UserEventProducer userEventProducer,
                         @Value("${app.base-url:http://localhost:5173}") String baseUrl) {
         this.userRepository = userRepository;
@@ -72,6 +77,7 @@ public class AdminService {
         this.signUpService = new SignUp(userRepository, companyRepository, passwordEncoder, userEventProducer);
         this.approvalService = new Approval(companyRepository, userRepository, passwordEncoder,
                 authService, emailService, baseUrl);
+        this.notificationService = notificationService;
         this.managerManagement = new ManagerManagement(userRepository, companyRepository,
                 passwordEncoder, emailService);
     }
@@ -304,6 +310,10 @@ public class AdminService {
             // DB 저장
             userRepository.save(admin);
 
+            notificationService.sendNotificationToRole(
+                    NotificationType.NEW_COMPANY_REQUEST,
+                    UserRole.SUPER
+            );
             // Kafka 이벤트 발행 추가
             userEventProducer.publishUserCreated(admin);
 

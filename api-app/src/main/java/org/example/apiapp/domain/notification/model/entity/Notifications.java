@@ -1,10 +1,12 @@
 package org.example.apiapp.domain.notification.model.entity;
 
+import org.example.apiapp.domain.user.model.entity.Users;
 import org.example.common.base.BaseEntity;
 import org.example.apiapp.domain.notification.model.NotificationType;
 import org.example.apiapp.domain.notification.model.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
 
@@ -19,10 +21,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Notifications extends BaseEntity {
-
-    /** 사용자 ID */
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
 
     /** 알림 카테고리 */
     @Enumerated(EnumType.STRING)
@@ -59,4 +57,9 @@ public class Notifications extends BaseEntity {
     @Column(name = "retry_count")
     @Builder.Default
     private Integer retryCount = 0;
+
+    @Comment("사용자 ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private Users user;
 }
