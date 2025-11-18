@@ -5,6 +5,8 @@ import org.example.apiapp.domain.notification.model.NotificationType;
 import org.example.apiapp.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.apiapp.domain.user.model.entity.Users;
+import org.example.apiapp.domain.user.repository.UserRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,7 @@ public class NotificationConsumer {
 
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     /**
      * 예약 완료 이벤트 수신
@@ -36,12 +39,16 @@ public class NotificationConsumer {
             Long userId = ((Number) event.get("userId")).longValue();
             String resourceName = (String) event.get("resourceName");
 
+            // DB에서 사용자 조회
+            Users targetUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
             // 알림 전송
             String notificationMessage = String.format("'%s' 예약이 완료되었습니다.", resourceName);
             notificationService.sendNotificationToUser(
-                    userId,
                     NotificationType.RESERVATION_CONFIRMED,
-                    notificationMessage
+                    targetUser,
+                    resourceName
             );
 
             log.info("✅ 예약 완료 알림 전송 완료 - userId: {}", userId);

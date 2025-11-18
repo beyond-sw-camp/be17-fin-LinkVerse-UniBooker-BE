@@ -1,10 +1,13 @@
 package org.example.apiapp.utils;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.common.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
@@ -25,9 +28,22 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         String query = request.getURI().getQuery();
+        String token = null;
 
-        if (query != null && query.contains("token=")) {
-            String token = query.split("token=")[1].split("&")[0];
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+            HttpServletRequest httpRequest = servletRequest.getServletRequest();
+
+            if (httpRequest.getCookies() != null) {
+                for (Cookie cookie : httpRequest.getCookies()) {
+                    if (cookie.getValue() != null && cookie.getName().contains("Token")) { // 값 확인
+                        token = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+        if (query != null && query.contains("t=")) {
+//            String token = query.split("t=")[1].split("&")[0];
 
             if (jwtUtil.validateToken(token)) {
                 Long userId = jwtUtil.getUserId(token);

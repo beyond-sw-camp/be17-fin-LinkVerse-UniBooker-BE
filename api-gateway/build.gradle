@@ -42,7 +42,7 @@ dependencies {
     }
 
     // ===== Spring Cloud Gateway =====
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // ===== Spring Security WebFlux =====

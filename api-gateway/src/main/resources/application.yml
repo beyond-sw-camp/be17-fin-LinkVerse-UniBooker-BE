@@ -7,6 +7,9 @@ spring:
 
   cloud:
     gateway:
+      httpclient:
+        websocket:
+          enabled: true
       globalcors:
         cors-configurations:
           '[/**]':
@@ -18,11 +21,11 @@ spring:
 
       routes:
         # ===== WebSocket (최우선) =====
-        - id: websocket-route
-          order: -2
-          uri: lb://api-app
-          predicates:
-            - Path=/ws/**
+#        - id: websocket-route
+#          order: 0
+#          uri: lb://api-app
+#          predicates:
+#            - Path=/ws/**
 
         # ===== Resource Service =====
         - id: resource-service

@@ -39,6 +39,7 @@ public class ReservationUseCase implements ReservationWebPort {
 
     private final ReservationPersistencePort reservationPersistencePort;
     private final UserPersistencePort userPersistencePort;
+    private final ReservationKafkaPort reservationKafkaPort;
 
     /** api 호출 */
     private final ResourceFeignAdapter resourceFeignAdapter;                    // 리소스 API 호출
@@ -87,7 +88,7 @@ public class ReservationUseCase implements ReservationWebPort {
                 }
             }
 
-            // TODO: 예약 확정 알림 발송 (내부 호출, 트랜잭션 커밋 후 비동기로 처리)
+            reservationKafkaPort.publishReservationCompleted(userId, resource.getName());
 
             return ReservationMapper.toRes(reservation, userCustomFieldValuesDto); // domain -> dto
         }
