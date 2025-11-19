@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         // 환경 변수 설정,
-        DOCKER_REGISTRY = "your-docker-registry.com" // Docker Registry 주소 (예: ghcr.io, docker.io)
-        DOCKER_CREDENTIAL_ID = "docker-hub-credentials" // Jenkins에 저장된 Docker Credential ID
+        DOCKER_REGISTRY = "docker.io" // Docker Registry 주소 (예: ghcr.io, docker.io)
+        DOCKER_CREDENTIAL_ID = "dockerhub-cred" // Jenkins에 저장된 Docker Credential ID
         GIT_CREDENTIAL_ID = "github-user-auth"        // Jenkins에 저장된 GitHub Credential ID (Manifest Push용)
 
         PROJECT_NAME = "unibooker"
