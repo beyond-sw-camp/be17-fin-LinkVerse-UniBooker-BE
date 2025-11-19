@@ -26,6 +26,7 @@ def buildAndDeploy(moduleName) {
 
     if (!isChanged) {
         echo "Skipping ${moduleName}: No relevant changes detected in ${targetPath} or ${commonPath}."
+        // ★★★ 이 return 문이 병렬 처리에서 스텝을 즉시 종료하는 역할을 합니다.
         return
     }
 
@@ -100,20 +101,24 @@ pipeline {
         }
 
         stage('Parallel Build & Deploy') {
-            steps {
-                script {
-                    def parallelStages = [:]
+                    steps {
+                        script {
+                            def parallelStages = [:]
 
-                    modules.each { module ->
-                        parallelStages["${module}"] = {
-                            // ★★★ container('dind-client') 블록을 제거합니다. ★★★
-                            // 함수 내에서 각 스텝별로 컨테이너가 전환됩니다.
-                            buildAndDeploy(module)
+                            modules.each { module ->
+                                // 각 모듈에 대한 병렬 스테이지 정의
+                                parallelStages["${module}"] = {
+
+                                    // 모든 로직을 하나의 Script Block으로 감싸서 안정성을 높입니다.
+                                    buildAndDeploy(module)
+
+                                }
+                            }
+
+                            // 병렬 실행
+                            parallel parallelStages
                         }
                     }
-                    parallel parallelStages
                 }
-            }
-        }
     }
 }
