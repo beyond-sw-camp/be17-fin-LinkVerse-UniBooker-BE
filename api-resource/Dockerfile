@@ -7,7 +7,7 @@ COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 COPY common ./common
 
-# 11타겟 모듈 복사
+# 1ㄴ1타겟 모듈 복사
 COPY api-resource ./api-resource
 
 # api-resource 모듈만 빌드 (-x test: 테스트 생략)
