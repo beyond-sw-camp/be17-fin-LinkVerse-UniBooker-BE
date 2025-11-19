@@ -6,19 +6,20 @@ def buildAndDeploy(moduleName) {
     def commonPath = "common/"
     def isChanged = false
 
-    // ChangeSets 리스트가 비어있지 않은지 확인
     if (currentBuild.changeSets.isEmpty()) {
+        // 이 메시지는 첫 빌드 시 자주 발생합니다. (정상 동작)
         echo "Skipping ${moduleName}: No change sets found."
         return
     }
 
-    // currentBuild.changeSets (List<ChangeSetList>)를 순회
     currentBuild.changeSets.each { changeSetList ->
-        // ChangeSetList 내의 개별 ChangeSet (Commit)을 순회
         changeSetList.items.each { changeSet ->
-            // ChangeSet 내의 변경된 파일 경로 목록을 순회
-            changeSet.paths.each { path -> // <--- 이 부분이 수정되었습니다.
-                if (path.startsWith(targetPath) || path.startsWith(commonPath)) {
+            changeSet.paths.each { path ->
+
+                // ★★★ 이 부분이 수정되었습니다: .getPath()를 사용하여 명시적인 String을 가져옵니다. ★★★
+                def filePath = path.getPath()
+
+                if (filePath.startsWith(targetPath) || filePath.startsWith(commonPath)) {
                     isChanged = true
                 }
             }
@@ -78,7 +79,7 @@ pipeline {
     agent any
 
     environment {
-        // 사용자가 제공한 환경 변
+        // 사용자가 제공한 환경 변수
         DOCKER_REGISTRY = "linkverseunibooker"
         DOCKER_CREDENTIAL_ID = "dockerhub-cred"
         GIT_CREDENTIAL_ID = "github-user-auth"
@@ -99,13 +100,10 @@ pipeline {
                     def parallelStages = [:]
 
                     modules.each { module ->
-                        // 각 모듈에 대한 병렬 스테이지 정의
                         parallelStages["${module}"] = {
                             buildAndDeploy(module)
                         }
                     }
-
-                    // 정의된 모든 스테이지를 병렬 실행
                     parallel parallelStages
                 }
             }
