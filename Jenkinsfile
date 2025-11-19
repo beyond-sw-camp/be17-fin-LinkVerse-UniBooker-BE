@@ -78,7 +78,7 @@ pipeline {
     agent any
 
     environment {
-        // 사용자가 제공한 환경 변수
+        // 사용자가 제공한 환경 변
         DOCKER_REGISTRY = "linkverseunibooker"
         DOCKER_CREDENTIAL_ID = "dockerhub-cred"
         GIT_CREDENTIAL_ID = "github-user-auth"
