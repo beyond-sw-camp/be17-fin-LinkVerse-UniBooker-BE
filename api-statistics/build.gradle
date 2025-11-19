@@ -45,6 +45,9 @@ dependencies {
     // Feign Client + Resilience4j
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+    // actuator 추가
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 }
 
 tasks.named('test') {
