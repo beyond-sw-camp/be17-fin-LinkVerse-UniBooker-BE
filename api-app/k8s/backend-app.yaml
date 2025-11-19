@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: linkverseunibooker/app:latest
+          image: linkverseunibooker/app:1
           ports:
             - containerPort: 8085
           envFrom:
