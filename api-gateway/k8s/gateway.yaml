@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: gateway
   namespace: unibooker
   labels:
     app: gateway
@@ -22,7 +22,9 @@ spec:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: gateway-config
+                name: api-gateway-config
+            - secretRef:
+                name: api-gateway-secret
           resources:
             requests:
               cpu: 200m
