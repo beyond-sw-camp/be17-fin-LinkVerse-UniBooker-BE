@@ -1,55 +1,53 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-app
+  name: api-gateway
   namespace: unibooker
   labels:
-    app: api-app
+    app: gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app
+      app: gateway
   template:
     metadata:
       labels:
-        app: app
+        app: gateway
     spec:
       containers:
-        - name: app
-          image: linkverseunibooker/app:1
+        - name: gateway
+          image: linkverseunibooker/gateway:1
           ports:
-            - containerPort: 8085
+            - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: backend-app-config
-            - secretRef:
-                name: backend-app-secret
+                name: gateway-config
           resources:
-            limits:
-              cpu: "500m"
-              memory: "768Mi"
             requests:
-              cpu: "250m"
-              memory: "512Mi"
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 800m
+              memory: 512Mi
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8085
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8085
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8085
+              port: 8080
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
