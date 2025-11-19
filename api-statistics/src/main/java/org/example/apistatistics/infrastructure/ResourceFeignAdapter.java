@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name="resourceClient", url = "http://localhost:8081")
+@FeignClient(name="api-resource")
 public interface ResourceFeignAdapter {
 
     // 관리자 전체 대시보드에 필요한 리소스 그룹 데이터 조회

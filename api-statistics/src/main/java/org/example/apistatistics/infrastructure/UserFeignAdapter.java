@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name="userClient", url = "http://localhost:8085")
+@FeignClient(name="api-app")
 public interface UserFeignAdapter {
 
     // 관리자 전체 대시보드에 필요한 회사 가입 고객 수

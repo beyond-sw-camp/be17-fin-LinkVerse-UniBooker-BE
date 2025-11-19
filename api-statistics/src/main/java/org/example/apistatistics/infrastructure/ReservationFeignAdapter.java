@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "reservationClient", url = "http://localhost:8082")
+@FeignClient(name = "api-reservation")
 public interface ReservationFeignAdapter {
 
     // 관리자 전체 대시보드에 필요한 회사의 총 예약 수
