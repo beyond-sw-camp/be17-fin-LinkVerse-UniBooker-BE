@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,9 @@ import java.util.List;
 
 /**
  * Spring Security 설정
+ * - Gateway에서 이미 JWT 인증 처리
+ * - 내부 서비스이므로 모든 요청 허용
+ * - PasswordEncoder 빈 제공
  */
 @Configuration
 @EnableWebSecurity
@@ -24,22 +28,30 @@ public class SecurityConfig {
 
     /**
      * PasswordEncoder Bean 등록
-     * - BCrypt 암호화 사용
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * CORS 설정
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(List.of("http://localhost:5173", "http://localhost:5174", "https://unibooker.kro.kr"));
+
+        // ✅ 수정: setAllowedHeaders → setAllowedOrigins
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "https://unibooker.kro.kr"
+        ));
+
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
-
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("*"));
         configuration.setMaxAge(3600L);
@@ -50,33 +62,37 @@ public class SecurityConfig {
     }
 
     /**
+     * ✅ 신규 추가: 정적 리소스 Security 무시
+     */
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers(
+                        "/favicon.ico",
+                        "/.well-known/**",
+                        "/error"
+                );
+    }
+
+    /**
      * Security Filter Chain 설정
-     * - 공개 API 제외하고 인증 요구
-     * - JWT 검증은 API Gateway에서
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CSRF 비활성화 (내부 서비스)
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
+
+                // CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // 세션 사용 안 함
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // ===== 공개 API (인증 불필요) =====
-                        .requestMatchers(
-                                "/api/companies/slug/**",        // Company 정보 조회
-                                "/api/companies/check-slug",      // Slug 중복 확인
-                                "/api/companies/check-business-number", // 사업자번호 확인
-                                "/api/admin/signup",              // 관리자 회원가입
-                                "/api/admin/signup/status",       // 회원가입 상태
-                                "/api/auth/**",                   // 인증 관련 (로그인, 토큰 갱신)
-                                "/api/users/signup",              // 일반 사용자 회원가입
-                                "/api/users/check-email",
-                                "/ws/**"
-                        ).permitAll()
 
-                        // ===== 나머지는 인증 필요 (Gateway에서 검증) =====
-                        .anyRequest().permitAll() // Gateway에서 이미 검증했으므로 허용
+                // 모든 요청 허용 (Gateway에서 이미 인증 완료)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
                 );
 
         return http.build();

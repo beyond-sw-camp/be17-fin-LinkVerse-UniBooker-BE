@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 슈퍼 관리자 DTO
+ * 슈퍼 관리자 관련 DTO 모음
+ * - 슈퍼 관리자 로그인
+ * - 기업 관리자 목록 조회
+ * - 관리자 상태 관리
  */
 public class SuperDto {
 

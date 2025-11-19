@@ -1,5 +1,8 @@
 package org.example.apiapp.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.common.util.CookieUtil;
 import org.example.common.model.UserRole;
 import org.example.apiapp.domain.user.model.dto.UserDto;
@@ -16,26 +19,28 @@ import org.springframework.web.bind.annotation.*;
  * 공통 인증 컨트롤러
  * - 모든 권한(USER, ADMIN, MANAGER, SUPER)에서 사용하는 공통 인증 기능
  * - 토큰 갱신
- *
- * [변경 이력]
- * - 권한별 로그인/회원가입 기능은 각 권한별 Controller로 분리
- *   (UserController, AdminController, SuperController)
- * - 토큰 갱신 기능만 공통 기능으로 유지
  */
 @Slf4j
+@Tag(name = "Auth API", description = "공통 인증 API")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
+    /** 인증 서비스 */
     private final AuthService authService;
 
     /**
      * 토큰 갱신 (모든 권한 공통)
-     * - 쿠키에서 refreshToken 추출
-     * - 갱신된 토큰을 쿠키에 저장
-     * - Response Body에는 토큰 제외
      */
+    @Operation(
+            summary = "토큰 갱신",
+            description = "만료된 Access Token을 Refresh Token을 사용하여 갱신합니다. 모든 권한(USER, ADMIN, MANAGER, SUPER)에서 공통으로 사용됩니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "토큰 갱신 성공"),
+                    @ApiResponse(responseCode = "401", description = "Refresh Token이 없거나 유효하지 않음")
+            }
+    )
     @PostMapping("/refresh")
     public ResponseEntity<UserDto.LoginResponse> refreshToken(
             HttpServletRequest request,
@@ -80,7 +85,7 @@ public class AuthController {
     }
 
     /**
-     * 쿠키에서 refreshToken 추출 (모든 권한 순차 확인)
+     * 쿠키에서 Refresh Token 추출
      */
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();

@@ -48,7 +48,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     // Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'  // ← 2.6.0에서 2.5.0으로 변경
 
     // AWS S3
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0'

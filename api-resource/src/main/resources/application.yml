@@ -93,3 +93,11 @@ management:
 # CloudFront 설정 추가
 cloudfront:
   url: ${CLOUDFRONT_URL:https://d2h9e9y86awp4t.cloudfront.net}
+
+# 스웨거 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    enabled: false  # ← UI는 Gateway에서만!

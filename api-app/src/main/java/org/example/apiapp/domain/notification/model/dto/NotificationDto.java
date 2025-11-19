@@ -12,8 +12,17 @@ import org.springframework.data.domain.Page;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+/**
+ * 알림 관련 DTO 모음
+ * - 알림 생성 요청
+ * - 알림 조회 응답
+ * - 엔티티 변환 메서드
+ */
 public class NotificationDto {
 
+    /**
+     * 알림 생성 요청 DTO
+     */
     @Getter
     @Builder
     @Schema(description = "알림 생성 요청 DTO")
@@ -29,7 +38,7 @@ public class NotificationDto {
         private String message;
 
         /**
-         * DTO → 엔티티 변환 메서드
+         * DTO → 엔티티 변환
          */
         public Notifications toEntity(Users user) {
             return Notifications.builder()
@@ -44,13 +53,15 @@ public class NotificationDto {
         }
     }
 
-
+    /**
+     * 알림 조회 응답 DTO
+     */
     @Getter
     @Builder
-    @Schema(description = "알림 조회")
+    @Schema(description = "알림 조회 응답")
     public static class NotificationRes {
 
-        @Schema(description = "알림 아이디", example = "1")
+        @Schema(description = "알림 ID", example = "1")
         private Long id;
 
         @Schema(description = "제목", example = "신규 가입 신청")
@@ -62,11 +73,12 @@ public class NotificationDto {
         @Schema(description = "알림 읽음 여부", example = "true")
         private Boolean isRead;
 
-        @Schema(description = "알림 생성 시간", example = "")
+        @Schema(description = "알림 생성 시간", example = "2시간 전")
         private String createdAt;
 
-
-        // 단일 엔티티 → DTO 변환
+        /**
+         * 엔티티 → DTO 변환
+         */
         public static NotificationRes fromEntity(Notifications notification) {
             return NotificationRes.builder()
                     .id(notification.getId())
@@ -77,12 +89,16 @@ public class NotificationDto {
                     .build();
         }
 
-        // 엔티티 리스트 → DTO 리스트 변환
+        /**
+         * 엔티티 리스트 → DTO 페이지 변환
+         */
         public static Page<NotificationRes> fromEntityList(Page<Notifications> notifications) {
             return notifications.map(NotificationRes::fromEntity);
         }
 
-        // 시간 포맷팅
+        /**
+         * 시간 포맷팅 (N초 전, N분 전, N시간 전, N일 전)
+         */
         private static String formatTimeAgo(LocalDateTime createdAt) {
             Duration duration = Duration.between(createdAt, LocalDateTime.now());
 

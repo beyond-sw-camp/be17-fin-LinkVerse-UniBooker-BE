@@ -32,6 +32,9 @@ dependencies {
     // 예외 처리용
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // Swagger - 제거!
+    // implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
     // Servlet API (CookieUtil용)
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 

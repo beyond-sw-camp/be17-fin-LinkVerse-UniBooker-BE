@@ -38,9 +38,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CompanyController {
 
+    /** 관리자 서비스 */
     private final AdminService adminService;
+
+    /** 기업 레포지토리 */
     private final CompanyRepository companyRepository;
+
+    /** 기업 서비스 */
     private final CompanyService companyService;
+
+    /** 슈퍼 관리자 서비스 */
     private final SuperService superService;
 
     // ========== 공개 API ==========
@@ -100,22 +107,6 @@ public class CompanyController {
     // ========== SUPER 권한 API ==========
 
     /**
-     * 승인 대기 기업 목록 조회 (Deprecated)
-     */
-    @Deprecated
-    @Operation(
-            summary = "[Deprecated] 승인 대기 기업 목록 조회",
-            description = "⚠️ Deprecated: /api/super/applications를 사용하세요. 승인 대기 중인 기업 목록을 조회합니다."
-    )
-    @GetMapping("/pending")
-    public BaseResponse<List<CompanyDto.PendingResponse>> getPendingCompanies() {
-        log.warn("⚠️ Deprecated API called: GET /api/companies/pending - Use /api/super/applications instead");
-
-        List<CompanyDto.PendingResponse> response = adminService.getPendingCompanies();
-        return BaseResponse.success(response);
-    }
-
-    /**
      * 기업 상세 조회
      */
     @Operation(
@@ -129,44 +120,6 @@ public class CompanyController {
             Long companyId) {
 
         CompanyDto.DetailResponse response = adminService.getCompanyDetail(companyId);
-        return BaseResponse.success(response);
-    }
-
-    /**
-     * 기업 승인 (Deprecated)
-     */
-    @Deprecated
-    @Operation(
-            summary = "[Deprecated] 기업 승인",
-            description = "⚠️ Deprecated: /api/super/applications/{companyId}/approve를 사용하세요. 기업 가입 신청을 승인합니다."
-    )
-    @PostMapping("/{companyId}/approve")
-    public BaseResponse<CompanyDto.ApprovalResponse> approveCompany(
-            @PathVariable Long companyId,
-            @AuthenticationPrincipal Long approvedBy) {
-
-        log.warn("⚠️ Deprecated API called: POST /api/companies/{}/approve - Use /api/super/applications/{}/approve instead", companyId, companyId);
-
-        CompanyDto.ApprovalResponse response = adminService.approveCompany(companyId, approvedBy);
-        return BaseResponse.success(response);
-    }
-
-    /**
-     * 기업 거절 (Deprecated)
-     */
-    @Deprecated
-    @Operation(
-            summary = "[Deprecated] 기업 거절",
-            description = "⚠️ Deprecated: /api/super/applications/{companyId}/reject를 사용하세요. 기업 가입 신청을 거절합니다."
-    )
-    @PostMapping("/{companyId}/reject")
-    public BaseResponse<CompanyDto.ApprovalResponse> rejectCompany(
-            @PathVariable Long companyId,
-            @RequestBody @Valid CompanyDto.ApprovalRequest request) {
-
-        log.warn("⚠️ Deprecated API called: POST /api/companies/{}/reject - Use /api/super/applications/{}/reject instead", companyId, companyId);
-
-        CompanyDto.ApprovalResponse response = adminService.rejectCompany(companyId, request.getRejectionReason());
         return BaseResponse.success(response);
     }
 

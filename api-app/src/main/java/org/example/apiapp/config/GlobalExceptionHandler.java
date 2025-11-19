@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 전역 예외 처리 핸들러
@@ -107,5 +108,14 @@ public class GlobalExceptionHandler {
 
         // 기타는 400
         return HttpStatus.BAD_REQUEST;
+    }
+
+    /**
+     * 정적 리소스 404 에러 무시 (선택)
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException e) {
+        // 로그 남기지 않고 조용히 404 반환
+        return ResponseEntity.notFound().build();
     }
 }

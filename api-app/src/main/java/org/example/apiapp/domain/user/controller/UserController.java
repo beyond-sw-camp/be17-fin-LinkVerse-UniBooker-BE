@@ -22,7 +22,9 @@ import java.util.List;
 
 /**
  * 일반 사용자 컨트롤러
- * - 회원가입, 로그인, 프로필 관리, 비밀번호 관리, 회원 탈퇴
+ * - 회원가입, 로그인, 로그아웃
+ * - 프로필 조회 및 수정, 회원 탈퇴
+ * - 비밀번호 변경, 이메일 중복 확인
  */
 @Slf4j
 @Tag(name = "User API", description = "일반 사용자 회원 관리 API")
@@ -31,13 +33,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
+    /** 사용자 서비스 */
     private final UserService userService;
+
+    /** 인증 서비스 */
     private final AuthService authService;
 
     // ========== 회원가입 ==========
 
     /**
-     * 1. 일반 사용자 회원가입
+     * 일반 사용자 회원가입
      */
     @Operation(
             summary = "일반 사용자 회원가입",
@@ -60,7 +65,7 @@ public class UserController {
     // ========== 로그인 ==========
 
     /**
-     * 2. 일반 사용자 로그인
+     * 일반 사용자 로그인
      */
     @Operation(
             summary = "일반 사용자 로그인",
@@ -103,7 +108,7 @@ public class UserController {
     // ========== 로그아웃 ==========
 
     /**
-     * 2-1. 로그아웃
+     * 로그아웃
      */
     @Operation(
             summary = "로그아웃",
@@ -138,7 +143,7 @@ public class UserController {
     // ========== 현재 사용자 정보 ==========
 
     /**
-     * 3. 현재 로그인한 사용자 정보 조회
+     * 현재 로그인한 사용자 정보 조회
      */
     @Operation(
             summary = "현재 사용자 정보 조회",
@@ -162,7 +167,7 @@ public class UserController {
     // ========== 비밀번호 관리 ==========
 
     /**
-     * 4. 비밀번호 변경
+     * 비밀번호 변경
      */
     @Operation(
             summary = "비밀번호 변경",
@@ -185,7 +190,7 @@ public class UserController {
     }
 
     /**
-     * 5. 비밀번호 찾기 - 임시 비밀번호 발급
+     * 비밀번호 찾기 - 임시 비밀번호 발급
      */
     @Operation(
             summary = "비밀번호 찾기",
@@ -210,7 +215,7 @@ public class UserController {
     // ========== 프로필 관리 ==========
 
     /**
-     * 6. 내 프로필 조회
+     * 내 프로필 조회
      */
     @Operation(
             summary = "내 프로필 조회",
@@ -232,7 +237,7 @@ public class UserController {
     }
 
     /**
-     * 7. 내 프로필 수정
+     * 내 프로필 수정
      */
     @Operation(
             summary = "내 프로필 수정",
@@ -258,7 +263,7 @@ public class UserController {
     // ========== 회원 탈퇴 ==========
 
     /**
-     * 8. 회원 탈퇴
+     * 회원 탈퇴
      */
     @Operation(
             summary = "회원 탈퇴",
@@ -284,7 +289,7 @@ public class UserController {
     // ========== 이메일 관리 ==========
 
     /**
-     * 9. 이메일 중복 확인 (기업별)
+     * 이메일 중복 확인 (기업별)
      */
     @Operation(
             summary = "이메일 중복 확인 (기업별)",
@@ -306,7 +311,7 @@ public class UserController {
     }
 
     /**
-     * 10. 이메일로 가입한 기업 목록 조회
+     * 이메일로 가입한 기업 목록 조회
      */
     @Operation(
             summary = "이메일로 가입한 기업 목록 조회",
@@ -327,7 +332,7 @@ public class UserController {
     }
 
     /**
-     * 11. 아이디 찾기 (이메일 조회)
+     * 아이디 찾기 (이메일 조회)
      */
     @Operation(
             summary = "아이디 찾기",

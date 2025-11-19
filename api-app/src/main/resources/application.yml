@@ -125,3 +125,12 @@ aws:
 file:
   upload:
     max-size: 5242880  # 5MB
+
+# 스웨거 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    enabled: false
+  show-deprecated: false

@@ -40,15 +40,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SuperController {
 
+    /** 슈퍼 관리자 서비스 */
     private final SuperService superService;
+
+    /** 관리자 서비스 */
     private final AdminService adminService;
+
+    /** 기업 서비스 */
     private final CompanyService companyService;
+
+    /** 인증 서비스 */
     private final AuthService authService;
 
     // ========== 슈퍼 관리자 로그인 ==========
 
     /**
-     * 1. 슈퍼 관리자 로그인
+     * 슈퍼 관리자 로그인
      */
     @Operation(
             summary = "슈퍼 관리자 로그인",
@@ -97,7 +104,7 @@ public class SuperController {
     }
 
     /**
-     * 1-1. 슈퍼 관리자 로그아웃
+     * 슈퍼 관리자 로그아웃
      */
     @Operation(
             summary = "슈퍼 관리자 로그아웃",
@@ -136,7 +143,7 @@ public class SuperController {
     // ========== 신청 관리 (4개 API) ==========
 
     /**
-     * 2. 승인 대기 기업 목록 조회
+     * 승인 대기 기업 목록 조회
      */
     @Operation(
             summary = "승인 대기 기업 목록 조회",
@@ -164,7 +171,7 @@ public class SuperController {
     }
 
     /**
-     * 3. 기업 신청 상세 조회
+     * 기업 신청 상세 조회
      */
     @Operation(
             summary = "기업 신청 상세 조회",
@@ -195,7 +202,7 @@ public class SuperController {
     }
 
     /**
-     * 4. 기업 신청 승인
+     * 기업 신청 승인
      */
     @Operation(
             summary = "기업 신청 승인",
@@ -229,7 +236,7 @@ public class SuperController {
     }
 
     /**
-     * 5. 기업 신청 거절
+     * 기업 신청 거절
      */
     @Operation(
             summary = "기업 신청 거절",
@@ -265,7 +272,7 @@ public class SuperController {
     // ========== 기업 관리 (3개 API) ==========
 
     /**
-     * 6. 기업 상세 조회
+     * 기업 상세 조회
      */
     @Operation(
             summary = "기업 상세 조회",
@@ -296,7 +303,7 @@ public class SuperController {
     }
 
     /**
-     * 7. 기업 상태 변경 (ACTIVE ↔ SUSPENDED)
+     * 기업 상태 변경 (ACTIVE ↔ SUSPENDED)
      */
     @Operation(
             summary = "기업 상태 변경",
@@ -330,7 +337,7 @@ public class SuperController {
     }
 
     /**
-     * 8. 특정 기업의 관리자 목록 조회
+     * 특정 기업의 관리자 목록 조회
      */
     @Operation(
             summary = "기업 관리자 목록 조회",
@@ -361,7 +368,7 @@ public class SuperController {
     }
 
     /**
-     * 5-1. 전체 기업 목록 조회 (페이징)
+     * 전체 기업 목록 조회 (페이징)
      */
     @Operation(
             summary = "전체 기업 목록 조회",
@@ -413,7 +420,7 @@ public class SuperController {
     // ========== 관리자 관리 (2개 API) ==========
 
     /**
-     * 9. 관리자+매니저 목록 조회
+     * 관리자+매니저 목록 조회
      */
     @Operation(
             summary = "관리자+매니저 목록 조회",
@@ -469,7 +476,7 @@ public class SuperController {
     }
 
     /**
-     * 10. 관리자/매니저 상태 변경
+     * 관리자/매니저 상태 변경
      */
     @Operation(
             summary = "관리자/매니저 상태 변경",

@@ -4,7 +4,6 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-
 group = 'org.example'
 version = '0.0.1-SNAPSHOT'
 description = 'api-queue'
@@ -19,13 +18,11 @@ ext {
     set('springCloudVersion', "2025.0.0")
 }
 
-
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
-
 
 repositories {
     mavenCentral()
@@ -44,7 +41,6 @@ dependencies {
     // === Eureka ===
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-
     // === Kafka ===
     implementation 'org.springframework.kafka:spring-kafka'
 
@@ -53,7 +49,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     // === Swagger ===
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
     // === Test ===
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

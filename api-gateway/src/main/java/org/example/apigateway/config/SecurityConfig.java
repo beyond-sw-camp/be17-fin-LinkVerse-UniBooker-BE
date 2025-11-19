@@ -17,6 +17,15 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
                 .authorizeExchange(exchanges -> exchanges
+                        // ===== ✅ Swagger UI 경로 허용 =====
+                        .pathMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api-*/v3/api-docs/**",
+                                "/webjars/**",
+                                "/swagger-resources/**"
+                        ).permitAll()
                         .anyExchange().permitAll()
                 )
                 .build();

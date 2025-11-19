@@ -26,8 +26,9 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 관리자 및 매니저 관리 컨트롤러
- * - 관리자 본인 관리 (회원가입, 로그인, 프로필 등)
- * - 매니저 관리 (생성, 조회, 수정, 삭제)
+ * - 관리자 회원가입, 로그인, 프로필 관리
+ * - 매니저 계정 생성, 수정, 삭제
+ * - 비밀번호 재설정 및 기업 로고 업데이트
  */
 @Slf4j
 @Tag(name = "Admin API", description = "관리자 및 매니저 관리 API")
@@ -36,14 +37,19 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminController {
 
+    /** 관리자 서비스 */
     private final AdminService adminService;
+
+    /** 사용자 서비스 */
     private final UserService userService;
+
+    /** 인증 서비스 */
     private final AuthService authService;
 
-    // ========== 관리자 본인 관리 (10개 API) ==========
+    // ========== 관리자 본인 관리 ==========
 
     /**
-     * 1. 관리자 회원가입 신청
+     * 관리자 회원가입 신청
      */
     @Operation(
             summary = "관리자 회원가입 신청",
@@ -64,7 +70,7 @@ public class AdminController {
     }
 
     /**
-     * 2. 관리자 회원가입 상태 조회
+     * 관리자 회원가입 상태 조회
      */
     @Operation(
             summary = "관리자 회원가입 상태 조회",
@@ -85,7 +91,7 @@ public class AdminController {
     }
 
     /**
-     * 3. 관리자 로그인
+     * 관리자 로그인
      */
     @Operation(
             summary = "관리자 로그인",
@@ -99,7 +105,7 @@ public class AdminController {
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid AdminDto.AdminLoginRequest request,
-            HttpServletResponse response) {  // ← HttpServletResponse 추가
+            HttpServletResponse response) {
 
         log.info("관리자 로그인 시도 - email: {}", request.getEmail());
 
@@ -134,7 +140,7 @@ public class AdminController {
     }
 
     /**
-     * 3-1. 로그아웃
+     * 로그아웃
      */
     @Operation(
             summary = "로그아웃",
@@ -150,7 +156,7 @@ public class AdminController {
             @RequestHeader("X-User-Id") Long userId,
             @Parameter(description = "사용자 권한 (JWT에서 추출)", required = true)
             @RequestHeader("X-User-Role") String userRole,
-            HttpServletResponse response) {  // ← HttpServletResponse 추가
+            HttpServletResponse response) {
 
         log.info("관리자 로그아웃 - userId: {}, role: {}", userId, userRole);
 
@@ -170,7 +176,7 @@ public class AdminController {
     }
 
     /**
-     * 3-2. 내 프로필 조회
+     * 내 프로필 조회
      */
     @Operation(
             summary = "내 프로필 조회",
@@ -200,7 +206,7 @@ public class AdminController {
     }
 
     /**
-     * 3-3. 내 프로필 수정
+     * 내 프로필 수정
      */
     @Operation(
             summary = "내 프로필 수정",
@@ -232,7 +238,7 @@ public class AdminController {
     }
 
     /**
-     * 3-4. 회원 탈퇴
+     * 회원 탈퇴
      */
     @Operation(
             summary = "회원 탈퇴",
@@ -264,7 +270,7 @@ public class AdminController {
     }
 
     /**
-     * 4. 비밀번호 재설정
+     * 비밀번호 재설정
      */
     @Operation(
             summary = "비밀번호 재설정",
@@ -287,7 +293,7 @@ public class AdminController {
     }
 
     /**
-     * 5. 기업 로고 업데이트
+     * 기업 로고 업데이트
      */
     @Operation(
             summary = "기업 로고 업데이트",
@@ -310,10 +316,10 @@ public class AdminController {
         return BaseResponse.success("기업 로고가 성공적으로 변경되었습니다.");
     }
 
-    // ========== 매니저 관리 (4개 API - ADMIN 권한 필요) ==========
+    // ========== 매니저 관리 (ADMIN 권한 필요) ==========
 
     /**
-     * 6. 매니저 목록 조회
+     * 매니저 목록 조회
      */
     @Operation(
             summary = "매니저 목록 조회",
@@ -347,7 +353,7 @@ public class AdminController {
     }
 
     /**
-     * 7. 매니저 계정 생성
+     * 매니저 계정 생성
      */
     @Operation(
             summary = "매니저 계정 생성",
@@ -380,7 +386,7 @@ public class AdminController {
     }
 
     /**
-     * 8. 매니저 정보 수정
+     * 매니저 정보 수정
      */
     @Operation(
             summary = "매니저 정보 수정",
@@ -415,7 +421,7 @@ public class AdminController {
     }
 
     /**
-     * 9. 매니저 계정 삭제
+     * 매니저 계정 삭제
      */
     @Operation(
             summary = "매니저 계정 삭제",
@@ -448,7 +454,7 @@ public class AdminController {
     }
 
     /**
-     * 10. 이메일 중복 확인
+     * 이메일 중복 확인
      */
     @Operation(
             summary = "이메일 중복 확인",
@@ -469,7 +475,7 @@ public class AdminController {
     }
 
     /**
-     * 12. MANAGER → ADMIN 승격 (SUPER 전용)
+     * MANAGER를 ADMIN으로 승격 (SUPER 전용)
      */
     @Operation(
             summary = "MANAGER를 ADMIN으로 승격",

@@ -21,13 +21,49 @@ spring:
 
       routes:
         # ===== WebSocket (최우선) =====
-#        - id: websocket-route
-#          order: 0
-#          uri: lb://api-app
-#          predicates:
-#            - Path=/ws/**
+        - id: websocket-route
+          order: 0
+          uri: lb://api-app
+          predicates:
+            - Path=/ws/**
 
-        # ===== Resource Service =====
+        # ===== Swagger UI 라우팅 추가 =====
+        - id: api-app-swagger-docs
+          uri: lb://api-app
+          predicates:
+            - Path=/api-app/v3/api-docs/**
+          filters:
+            - RewritePath=/api-app/(?<segment>.*), /${segment}
+
+        - id: api-resource-swagger-docs
+          uri: lb://api-resource
+          predicates:
+            - Path=/api-resource/v3/api-docs/**
+          filters:
+            - RewritePath=/api-resource/(?<segment>.*), /${segment}
+
+        - id: api-reservation-swagger-docs
+          uri: lb://api-reservation
+          predicates:
+            - Path=/api-reservation/v3/api-docs/**
+          filters:
+            - RewritePath=/api-reservation/(?<segment>.*), /${segment}
+
+        - id: api-queue-swagger-docs
+          uri: lb://api-queue
+          predicates:
+            - Path=/api-queue/v3/api-docs/**
+          filters:
+            - RewritePath=/api-queue/(?<segment>.*), /${segment}
+
+        - id: api-statistics-swagger-docs
+          uri: lb://api-statistics
+          predicates:
+            - Path=/api-statistics/v3/api-docs/**
+          filters:
+            - RewritePath=/api-statistics/(?<segment>.*), /${segment}
+
+        # ===== 기존 라우팅들 =====
         - id: resource-service
           order: -1
           uri: lb://api-resource
@@ -36,7 +72,6 @@ spring:
           filters:
             - JwtAuthenticationFilter
 
-        # ===== Reservation Service =====
         - id: reservation-service
           order: -1
           uri: lb://api-reservation
@@ -45,7 +80,6 @@ spring:
           filters:
             - JwtAuthenticationFilter
 
-        # ===== Statistics Service =====
         - id: statistics-service
           order: -1
           uri: lb://api-statistics
@@ -54,7 +88,6 @@ spring:
           filters:
             - JwtAuthenticationFilter
 
-        # ===== Queue Service =====
         - id: queue-service
           order: -1
           uri: lb://api-queue
@@ -63,7 +96,6 @@ spring:
           filters:
             - JwtAuthenticationFilter
 
-        # ===== Main Service (가장 마지막 매칭) =====
         - id: main-service
           order: 0
           uri: lb://api-app
@@ -78,7 +110,6 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
-
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
@@ -87,6 +118,27 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-validity: 3600000
   refresh-token-validity: 604800000
+
+# ===== ✅ SpringDoc 설정 추가 =====
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: API Gateway
+        url: /v3/api-docs
+      - name: API-APP (Main Service)
+        url: /api-app/v3/api-docs
+      - name: API-RESOURCE
+        url: /api-resource/v3/api-docs
+      - name: API-RESERVATION
+        url: /api-reservation/v3/api-docs
+      - name: API-QUEUE
+        url: /api-queue/v3/api-docs
+      - name: API-STATISTICS
+        url: /api-statistics/v3/api-docs
 
 management:
   endpoints:

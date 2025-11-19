@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ImageUploadController {
 
+    /** 이미지 업로드 서비스 */
     private final ImageUploadService imageUploadService;
 
     /**
