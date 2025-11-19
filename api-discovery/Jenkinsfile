@@ -62,8 +62,8 @@ spec:
   }
 
   environment {
-    SERVICE_PATH = 'api-resource'
-    IMAGE_NAME = 'linkverseunibooker/resource'
+    SERVICE_PATH = 'api-discovery'
+    IMAGE_NAME = 'linkverseunibooker/discovery'
     IMAGE_TAG  = "${env.BUILD_NUMBER}"
     DEPLOY_NAMESPACE = 'unibooker'
   }
@@ -76,7 +76,7 @@ spec:
             set -x
             cd ${WORKSPACE}
             chmod +x ./gradlew || true
-            ./gradlew :api-resource:build -x test --no-daemon --parallel
+            ./gradlew :api-discovery:build -x test --no-daemon --parallel
           """
         }
       }
@@ -102,7 +102,7 @@ spec:
     stage('Result') {
       steps {
         container('deploy') {
-          sh 'echo "Resource Service Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
+          sh 'echo "Discovery Service Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
         }
       }
     }
