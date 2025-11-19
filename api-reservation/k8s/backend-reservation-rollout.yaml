@@ -1,11 +1,12 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: backend-reservation-rollout
+  name: backend-reservation
   namespace: unibooker
+  labels:
+    app: reservation
 spec:
-  replicas: 2
-  revisionHistoryLimit: 2
+  replicas: 1
   selector:
     matchLabels:
       app: reservation
@@ -17,7 +18,6 @@ spec:
       containers:
         - name: reservation
           image: linkverseunibooker/reservation:1
-          imagePullPolicy: Always
           ports:
             - containerPort: 8082
           envFrom:
@@ -36,7 +36,7 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8082
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
@@ -53,8 +53,3 @@ spec:
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
-  strategy:
-    blueGreen:
-      activeService: backend-reservation-service
-      autoPromotionEnabled: true
-      autoPromotionSeconds: 30
