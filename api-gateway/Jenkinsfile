@@ -60,21 +60,23 @@ spec:
 """
     }
   }
+
   environment {
-    SERVICE_PATH = 'api-app'
-    IMAGE_NAME = 'linkverseunibooker/app'
+    SERVICE_PATH = 'api-gateway'
+    IMAGE_NAME = 'linkverseunibooker/gateway'
     IMAGE_TAG  = "${env.BUILD_NUMBER}"
+    DEPLOY_NAMESPACE = 'unibooker'
   }
 
   stages {
-    stage('Gradle Partial Build') {
+    stage('Gradle Build') {
       steps {
         container('gradle') {
           sh """
             set -x
             cd ${WORKSPACE}
             chmod +x ./gradlew || true
-            ./gradlew :${SERVICE_PATH}:bootJar --no-daemon --parallel -x test
+            ./gradlew :api-gateway:build -x test --no-daemon --parallel
           """
         }
       }
@@ -84,11 +86,11 @@ spec:
       steps {
         container('kaniko') {
           sh """
-            cd ${WORKSPACE}
+            cd ${WORKSPACE}/${SERVICE_PATH}
             /kaniko/executor \
-              --context=${WORKSPACE} \
+              --context=${WORKSPACE}/${SERVICE_PATH} \
               --dockerfile=${WORKSPACE}/${SERVICE_PATH}/Dockerfile \
-              --destination=${IMAGE_NAME}:${IMAGE_TAG} \
+              --destination=${IMAGE_NAME}:1 \
               --destination=${IMAGE_NAME}:latest \
               --cache=true \
               --cache-dir=/cache
@@ -100,9 +102,10 @@ spec:
     stage('Result') {
       steps {
         container('deploy') {
-          sh 'echo "Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
+          sh 'echo "Gateway Service Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
         }
       }
     }
+
   }
 }

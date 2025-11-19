@@ -80,11 +80,15 @@ def modules = [
     'api-resource',
     'api-statistics'
 ]
+
 pipeline {
     agent any
 
     environment {
-        // ... (환경 변수) ...
+        DOCKER_REGISTRY = "docker.io"
+        DOCKER_CREDENTIAL_ID = "dockerhub-cred"
+        GIT_CREDENTIAL_ID = "github-user-auth"
+        GIT_REPO_URL = "github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE.git"
     }
 
     stages {
