@@ -1,111 +1,78 @@
 pipeline {
-  agent {
-    kubernetes {
-      label "gradle-kaniko-${UUID.randomUUID().toString()}"
-      defaultContainer 'gradle'
-      yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  namespace: jenkins-ci
-spec:
-  serviceAccountName: jenkins
-  restartPolicy: Never
-  containers:
-    - name: gradle
-      image: gradle:8.9-jdk17
-      command: ['sleep']
-      args: ['infinity']
-      volumeMounts:
-        - name: gradle-cache
-          mountPath: /home/gradle/.gradle
-        - name: workspace-volume
-          mountPath: /home/jenkins/agent
+    agent any
 
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command: ['/busybox/sh', '-c', 'sleep infinity']
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker
-        - name: kaniko-cache
-          mountPath: /cache
-        - name: workspace-volume
-          mountPath: /home/jenkins/agent
+    environment {
+        // 환경 변수 설정
+        DOCKER_REGISTRY = "your-docker-registry.com" // Docker Registry 주소 (예: ghcr.io, docker.io)
+        DOCKER_CREDENTIAL_ID = "docker-hub-credentials" // Jenkins에 저장된 Docker Credential ID
+        GIT_CREDENTIAL_ID = "github-user-auth"        // Jenkins에 저장된 GitHub Credential ID (Manifest Push용)
 
-    - name: deploy
-      image: ubuntu:22.04
-      command: ['sleep']
-      args: ['infinity']
-      volumeMounts:
-        - name: workspace-volume
-          mountPath: /home/jenkins/agent
+        PROJECT_NAME = "unibooker"
+        MODULE_NAME = "api-resource"
+        IMAGE_TAG = "${env.BUILD_NUMBER}" // Jenkins 빌드 번호를 이미지 태그로 사용
 
-  volumes:
-    - name: gradle-cache
-      persistentVolumeClaim:
-        claimName: gradle-cache-pvc
-    - name: kaniko-cache
-      persistentVolumeClaim:
-        claimName: kaniko-cache-pvc
-    - name: workspace-volume
-      persistentVolumeClaim:
-        claimName: workspace-pvc
-    - name: docker-config
-      secret:
-        secretName: dockerhub-cred
-        items:
-          - key: .dockerconfigjson
-            path: config.json
-"""
+        // K8s Manifest 파일 경로 (ArgoCD가 보는 파일)
+        MANIFEST_PATH = "api-resource/k8s/backend-resource-rollout.yaml"
+        GIT_REPO_URL = "github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE.git"
     }
-  }
 
-  environment {
-    SERVICE_PATH = 'api-resource'
-    IMAGE_NAME = 'linkverseunibooker/resource'
-    IMAGE_TAG  = "${env.BUILD_NUMBER}"
-    DEPLOY_NAMESPACE = 'unibooker'
-  }
-
-  stages {
-    stage('Gradle Build') {
-      steps {
-        container('gradle') {
-          sh """
-            set -x
-            cd ${WORKSPACE}
-            chmod +x ./gradlew || true
-            ./gradlew :api-resource:build -x test --no-daemon --parallel
-          """
+    stages {
+        stage('Initialize & Check Changes') {
+            steps {
+                echo "Pipeline started for ${MODULE_NAME} (Build ${IMAGE_TAG})"
+                // 변경 사항이 없으면 아래 when 조건에 의해 단계들이 건너뜀
+            }
         }
-      }
-    }
 
-    stage('Kaniko Build & Push') {
-      steps {
-        container('kaniko') {
-          sh """
-            cd ${WORKSPACE}/${SERVICE_PATH}
-            /kaniko/executor \
-              --context=${WORKSPACE}/${SERVICE_PATH} \
-              --dockerfile=${WORKSPACE}/${SERVICE_PATH}/Dockerfile \
-              --destination=${IMAGE_NAME}:1 \
-              --destination=${IMAGE_NAME}:latest \
-              --cache=true \
-              --cache-dir=/cache
-          """
+        stage('Build Gradle & Docker') {
+            // ★ 핵심: api-resource 폴더 내부에 변경 사항이 있을 때만 실행 ★
+            when {
+                changeset "${MODULE_NAME}/**"
+            }
+            steps {
+                echo "Building ${MODULE_NAME}..."
+
+                // 1. Gradle Build (루트에서 실행)
+                sh "chmod +x ./gradlew"
+                sh "./gradlew :${MODULE_NAME}:clean :${MODULE_NAME}:build -x test"
+
+                // 2. Docker Build & Push
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", "${DOCKER_CREDENTIAL_ID}") {
+                        // -f 옵션으로 모듈 내 Dockerfile 지정, 컨텍스트는 루트(.)
+                        def image = docker.build("${DOCKER_REGISTRY}/${PROJECT_NAME}/${MODULE_NAME}:${IMAGE_TAG}", "-f ${MODULE_NAME}/Dockerfile .")
+                        image.push()
+                        image.push("latest") // latest 태그도 함께 푸시
+                    }
+                }
+            }
         }
-      }
-    }
 
-    stage('Result') {
-      steps {
-        container('deploy') {
-          sh 'echo "Resource Service Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
+        stage('Update Manifest & Deploy (GitOps)') {
+            when {
+                changeset "${MODULE_NAME}/**"
+            }
+            steps {
+                // ArgoCD의 배포를 유발하기 위해 K8s Manifest 파일의 이미지 태그를 Git에 업데이트
+                withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh """
+                        # Git 설정 (Jenkins 봇 정보)
+                        git config user.email 'jenkins@yourcompany.com'
+                        git config user.name 'Jenkins Bot'
+
+                        # K8s Manifest 파일 이미지 태그 수정 (sed 사용)
+                        # sed 명령은 Deployment/Rollout YAML 파일 내의 'image: ...' 부분을 찾아 태그를 변경합니다.
+                        sed -i.bak 's|image: ${DOCKER_REGISTRY}/${PROJECT_NAME}/${MODULE_NAME}:.*|image: ${DOCKER_REGISTRY}/${PROJECT_NAME}/${MODULE_NAME}:${IMAGE_TAG}|' ${MANIFEST_PATH}
+
+                        # 변경사항 Commit & Push (ArgoCD 트리거)
+                        git add ${MANIFEST_PATH}
+                        git commit -m "Update ${MODULE_NAME} image tag to ${IMAGE_TAG} [skip ci]"
+
+                        # GitHub Personal Access Token을 사용하여 Push
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO_URL} HEAD:main
+                    """
+                }
+            }
         }
-      }
     }
-
-  }
 }
