@@ -1,11 +1,12 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: backend-resource-rollout
+  name: backend-resource
   namespace: unibooker
+  labels:
+    app: resource
 spec:
-  replicas: 2
-  revisionHistoryLimit: 2
+  replicas: 1
   selector:
     matchLabels:
       app: resource
@@ -16,8 +17,7 @@ spec:
     spec:
       containers:
         - name: resource
-          image: linkverseunibooker/resource:1
-          imagePullPolicy: Always
+          image: linkverseunibooker/v:1
           ports:
             - containerPort: 8081
           envFrom:
@@ -36,7 +36,7 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8081
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
@@ -53,8 +53,3 @@ spec:
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
-  strategy:
-    blueGreen:
-      activeService: backend-resource-service
-      autoPromotionEnabled: true
-      autoPromotionSeconds: 30

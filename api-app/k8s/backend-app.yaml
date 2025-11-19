@@ -4,7 +4,7 @@ metadata:
   name: backend-app
   namespace: unibooker
   labels:
-    app: api-app
+    app: app
 spec:
   replicas: 1
   selector:
