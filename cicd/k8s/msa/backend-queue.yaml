@@ -1,30 +1,30 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: backend-statistics-rollout
+  name: backend-queue
   namespace: unibooker
+  labels:
+    app: queue
 spec:
-  replicas: 2
-  revisionHistoryLimit: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: statistics
+      app: queue
   template:
     metadata:
       labels:
-        app: statistics
+        app: queue
     spec:
       containers:
-        - name: statistics
-          image: linkverseunibooker/statistics:1
-          imagePullPolicy: Always
+        - name: queue
+          image: linkverseunibooker/queue:1
           ports:
-            - containerPort: 8084
+            - containerPort: 8083
           envFrom:
             - configMapRef:
-                name: backend-statistics-config
+                name: backend-queue-config
             - secretRef:
-                name: backend-statistics-secret
+                name: backend-queue-secret
           resources:
             limits:
               cpu: "500m"
@@ -35,26 +35,21 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
-            initialDelaySeconds: 30
+              port: 8083
+            initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
+              port: 8083
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
+              port: 8083
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
-  strategy:
-    blueGreen:
-      activeService: backend-statistics-service
-      autoPromotionEnabled: true
-      autoPromotionSeconds: 30

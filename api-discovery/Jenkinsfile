@@ -1,0 +1,111 @@
+pipeline {
+  agent {
+    kubernetes {
+      label "gradle-kaniko-${UUID.randomUUID().toString()}"
+      defaultContainer 'gradle'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: jenkins-ci
+spec:
+  serviceAccountName: jenkins
+  restartPolicy: Never
+  containers:
+    - name: gradle
+      image: gradle:8.9-jdk17
+      command: ['sleep']
+      args: ['infinity']
+      volumeMounts:
+        - name: gradle-cache
+          mountPath: /home/gradle/.gradle
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command: ['/busybox/sh', '-c', 'sleep infinity']
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+        - name: kaniko-cache
+          mountPath: /cache
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+
+    - name: deploy
+      image: ubuntu:22.04
+      command: ['sleep']
+      args: ['infinity']
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
+
+  volumes:
+    - name: gradle-cache
+      persistentVolumeClaim:
+        claimName: gradle-cache-pvc
+    - name: kaniko-cache
+      persistentVolumeClaim:
+        claimName: kaniko-cache-pvc
+    - name: workspace-volume
+      persistentVolumeClaim:
+        claimName: workspace-pvc
+    - name: docker-config
+      secret:
+        secretName: dockerhub-cred
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+"""
+    }
+  }
+
+  environment {
+    SERVICE_PATH = 'api-discovery'
+    IMAGE_NAME = 'linkverseunibooker/discovery'
+    IMAGE_TAG  = "${env.BUILD_NUMBER}"
+    DEPLOY_NAMESPACE = 'unibooker'
+  }
+
+  stages {
+    stage('Gradle Build') {
+      steps {
+        container('gradle') {
+          sh """
+            set -x
+            cd ${WORKSPACE}
+            chmod +x ./gradlew || true
+            ./gradlew :api-discovery:build -x test --no-daemon --parallel
+          """
+        }
+      }
+    }
+
+    stage('Kaniko Build & Push') {
+      steps {
+        container('kaniko') {
+          sh """
+            cd ${WORKSPACE}/${SERVICE_PATH}
+            /kaniko/executor \
+              --context=${WORKSPACE}/${SERVICE_PATH} \
+              --dockerfile=${WORKSPACE}/${SERVICE_PATH}/Dockerfile \
+              --destination=${IMAGE_NAME}:1 \
+              --destination=${IMAGE_NAME}:latest \
+              --cache=true \
+              --cache-dir=/cache
+          """
+        }
+      }
+    }
+
+    stage('Result') {
+      steps {
+        container('deploy') {
+          sh 'echo "Discovery Service Build Completed: ${IMAGE_NAME}:${IMAGE_TAG}"'
+        }
+      }
+    }
+
+  }
+}

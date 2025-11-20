@@ -17,7 +17,7 @@ feign:
 resilience4j:
   circuitbreaker:
     instances:
-      B_API_CIRCUIT:
+      api-resource-circuit:
         # 서킷 브레이커의 상태
         # Closed : 정상적인 상태
         # Open : api-b가 일정 비율 이상으로 실패하거나 지연되면 "열림" 상태로 변경됨
