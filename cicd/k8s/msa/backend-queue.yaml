@@ -1,53 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: backend-queue
   namespace: unibooker
   labels:
-    app: gateway
+    app: queue
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gateway
+      app: queue
   template:
     metadata:
       labels:
-        app: gateway
+        app: queue
     spec:
       containers:
-        - name: gateway
-          image: linkverseunibooker/gateway:1
+        - name: queue
+          image: linkverseunibooker/queue:1
           ports:
-            - containerPort: 8080
+            - containerPort: 8083
           envFrom:
             - configMapRef:
-                name: gateway-config
+                name: backend-queue-config
+            - secretRef:
+                name: backend-queue-secret
           resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
             limits:
-              cpu: 800m
-              memory: 512Mi
+              cpu: "500m"
+              memory: "768Mi"
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8083
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
