@@ -19,7 +19,10 @@ public class CorsConfig {
         corsConfig.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "https://unibooker.kro.kr"
+                "https://unibooker.kro.kr",
+                "http://unibooker.kro.kr",
+                "http://www.unibooker.kro.kr",
+                "https://www.unibooker.kro.kr"
         ));
 
         // 허용 메서드
