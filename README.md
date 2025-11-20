@@ -74,7 +74,8 @@
 <br><br>
 
 ## 🏗️ 시스템 아키텍처 [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/3.-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
-![3. 시스템아키텍처](https://github.com/user-attachments/assets/3ee61bd4-ea56-418a-883f-76f39a38b772)
+![3. 시스템아키텍처](https://github.com/user-attachments/assets/1aeed066-a85b-43ae-8445-f2ec2e136ea7)
+
 
 <br><br>
 
@@ -84,7 +85,7 @@
 <br><br>
 
 ## 🖥 Swagger [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/6.-Swagger-UI)
-> [Swagger-UI 링크로 이동하기](http://15.165.158.232/swagger-ui/index.html)
+> [Swagger-UI 링크로 이동하기](https://www.unibooker.kro.kr/webjars/swagger-ui/index.html)
 
 <br><br>
 
