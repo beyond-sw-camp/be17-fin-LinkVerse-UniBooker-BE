@@ -1,10 +1,3 @@
 rootProject.name = 'unibooker'
 
-include 'api-app'
 include 'api-resource'
-include 'api-queue'
-include 'api-reservation'
-include 'api-gateway'
-include 'api-discovery'
-include 'api-statistics'
-include 'common'
