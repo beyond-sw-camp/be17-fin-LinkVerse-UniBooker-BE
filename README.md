@@ -74,9 +74,9 @@
 <br><br>
 
 ## 🏗️ 시스템 아키텍처 [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/3.-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
-![3. 시스템아키텍처/v1](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/blob/develop/docs/3.%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98.png)
+![3. 시스템아키텍처/v1](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/blob/develop/docs/3.%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%3Av1.png)
 <br>
-![4. 시스템아키텍처/v2]()
+![4. 시스템아키텍처/v2](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/blob/develop/docs/3.%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%3Av2.png)
 <br><br>
 
 ## 🛢️ ERD [🔗](https://github.com/beyond-sw-camp/be17-fin-LinkVerse-UniBooker-BE/wiki/5.-ERD)
