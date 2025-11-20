@@ -79,11 +79,10 @@ public class ResourceUseCase implements ResourceWebPort {
     }
 
 
-    // 리소스 단건 조회
     @Override
     @Transactional
     public ResourceDto.ResourceDetailInfo getResourceById(Long resourceId) {
-        Resources resource = resourcePersistencePort.findByIdAndIsActiveTrueAndDeletedAtIsNull(resourceId)
+        Resources resource = resourcePersistencePort.findByIdAndDeletedAtIsNull(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리소스입니다."));
 
         return resourceService.toResourceDetailInfo(resource);

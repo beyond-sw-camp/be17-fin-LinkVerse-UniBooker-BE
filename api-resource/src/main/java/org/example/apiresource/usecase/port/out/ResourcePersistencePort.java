@@ -1,6 +1,7 @@
 package org.example.apiresource.usecase.port.out;
 
 import org.example.apiresource.domain.model.entity.Resources;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,9 @@ public interface ResourcePersistencePort {
     void save(Resources resource);
 
     Optional<Resources> findById(Long resourceId);
+
+    // 리소스 단건 조회 (수정용 - 삭제되지 않은 리소스)
+    Optional<Resources> findByIdAndDeletedAtIsNull(Long resourceId);
 
     // 리소스 존재 여부 확인
     boolean existsById(Long resourceId);

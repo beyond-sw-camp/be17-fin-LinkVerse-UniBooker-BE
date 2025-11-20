@@ -88,4 +88,13 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
     public int countAllByResourceGroup_CompanyId(Long companyId) {
         return resourceRepository.countAllByResourceGroup_CompanyId(companyId);
     }
+
+    /**
+     * 리소스 단건 조회 (수정용 - 삭제되지 않은 리소스)
+     */
+    @Override
+    @Transactional
+    public Optional<Resources> findByIdAndDeletedAtIsNull(Long resourceId) {
+        return resourceRepository.findByIdAndDeletedAtIsNull(resourceId);
+    }
 }

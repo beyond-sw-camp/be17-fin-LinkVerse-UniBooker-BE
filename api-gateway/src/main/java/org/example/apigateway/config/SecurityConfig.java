@@ -23,8 +23,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api-*/v3/api-docs/**",
-                                "/webjars/**",
-                                "/swagger-resources/**"
+                                "/webjars/**"
                         ).permitAll()
                         .anyExchange().permitAll()
                 )

@@ -26,20 +26,20 @@ public class GatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
-                // ========== Resource Service (추가!) ==========
+                // ========== Resource Service ==========
                 .route("resource-service", r -> r
                         .path("/api/resource/**", "/api/resource-group/**",
                                 "/api/custom-field/**", "/api/category-field/**", "/api/timeslot/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-resource"))
 
-                // ========== Reservation Service (추가!) ==========
+                // ========== Reservation Service ==========
                 .route("reservation-service", r -> r
                         .path("/api/reservation/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-reservation"))
 
-                // ========== Queue Service (추가!) ==========
+                // ========== Queue Service ==========
                 .route("queue-service", r -> r
                         .path("/api/queues/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
@@ -60,13 +60,7 @@ public class GatewayConfig {
                         )
                         .uri("lb://api-app"))
 
-
-                // ========== Main Service - Admin API ==========
-
-                // Auth API (인증 불필요)
-                .route("auth-refresh", r -> r
-                        .path("/api/auth/refresh")
-                        .uri("lb://api-app"))
+                // ========== Admin API ==========
 
                 // Admin 회원가입 (인증 불필요)
                 .route("admin-signup", r -> r
@@ -85,75 +79,73 @@ public class GatewayConfig {
 
                 // Admin 로그인 (인증 불필요)
                 .route("admin-login", r -> r
-                        .path("/api/admins/login", "/api/admins/signup",
-                                "/api/admins/status", "/api/admins/check-email")
+                        .path("/api/admins/login")
                         .uri("lb://api-app"))
 
-                // Admin API (인증 필요) - logout, /me 등
+                // Admin API (인증 필요)
                 .route("admin-protected", r -> r
                         .path("/api/admins/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
 
                 // ========== Super API ==========
+
                 .route("super-login", r -> r
                         .path("/api/super/login")
                         .uri("lb://api-app"))
 
-                // Super API (인증 필요)
                 .route("super-protected", r -> r
                         .path("/api/super/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
 
                 // ========== User API ==========
+
                 .route("user-public", r -> r
                         .path("/api/users/signup", "/api/users/login",
                                 "/api/users/check-email", "/api/users/accounts",
                                 "/api/users/reset-password", "/api/users/find-email")
                         .uri("lb://api-app"))
 
-                // User API (인증 필요)
                 .route("user-protected", r -> r
                         .path("/api/users/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
 
                 // ========== Company API ==========
+
                 .route("company-public", r -> r
                         .path("/api/companies/slug/**", "/api/companies/check-slug",
                                 "/api/companies/check-business-number")
                         .uri("lb://api-app"))
 
-                // Company API (인증 필요)
                 .route("company-protected", r -> r
                         .path("/api/companies/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
 
                 // ========== Notification API ==========
+
                 .route("notification-api", r -> r
                         .path("/api/notifications/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://api-app"))
 
-                // ========== Auth API ==========
-                .route("auth-refresh", r -> r
+                // ========== Auth API (인증 불필요) ==========
+
+                .route("auth-refresh", r -> r  // ✅ 하나만 남김
                         .path("/api/auth/refresh")
                         .uri("lb://api-app"))
 
-                // ========== WebSocket Route ==========
+                // ========== WebSocket ==========
+
                 .route("websocket-route", r -> r
                         .path("/ws/**")
-                        .filters(f -> f
-                                .removeRequestHeader("Origin") // WebSocket handshake용
-                        )
-                        .uri("lb://api-app")
-                )
+                        .filters(f -> f.removeRequestHeader("Origin"))
+                        .uri("lb://api-app"))
 
-                // ========== Actuator (Health Check) ==========
+                // ========== Actuator ==========
 
-                // Actuator (인증 불필요)
                 .route("actuator", r -> r
                         .path("/actuator/**")
                         .uri("lb://api-app"))
