@@ -18,7 +18,7 @@ import java.util.Optional;
 @FeignClient(name="api-resource")
 public interface ResourceFeignAdapter {
     // ========================== 상세 조회 ==========================
-    @CircuitBreaker(name = "GET_RESOURCE_API")
+    @CircuitBreaker(name = "GET_RESOURCE_ALL_API")
     @GetMapping("/api/resource/all/{resourceId}")
     BaseResponse<Resource> findById(@PathVariable("resourceId") Long resourceId);
 
@@ -30,7 +30,7 @@ public interface ResourceFeignAdapter {
 
 
     // ========================== 상세 조회 (활성화 & 미삭제 상태 & 비관적 락) ==========================
-    @CircuitBreaker(name = "GET_RESOURCE_API")
+    @CircuitBreaker(name = "GET_RESOURCE_PESSIMISTIC_API")
     @GetMapping("/api/resource/pessimistic/{resourceId}")
     BaseResponse<Resource> findResourceByIdForUpdate(@PathVariable("resourceId") Long resourceId);
 
