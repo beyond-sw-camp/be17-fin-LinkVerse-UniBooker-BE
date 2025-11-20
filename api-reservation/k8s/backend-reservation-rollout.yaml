@@ -1,7 +1,7 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: backend-reservation
+  name: backend-reservation-rollout
   namespace: unibooker
   labels:
     app: reservation
@@ -10,6 +10,7 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: reservation=linkverseunibooker/reservation
     argocd-image-updater.argoproj.io/reservation.update-strategy: latest
     argocd-image-updater.argoproj.io/reservation.allow-tags: "latest"
+    argocd-image-updater.argoproj.io/write-back-method: git
 spec:
   replicas: 1
   selector:
@@ -22,7 +23,7 @@ spec:
     spec:
       containers:
         - name: reservation
-          image: linkverseunibooker/reservation:latest
+          image: linkverseunibooker/reservation:latest   # latest 기준
           ports:
             - containerPort: 8082
           envFrom:
@@ -37,6 +38,7 @@ spec:
             requests:
               cpu: "250m"
               memory: "512Mi"
+
           startupProbe:
             httpGet:
               path: /actuator/health
@@ -44,6 +46,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 110
+
           readinessProbe:
             httpGet:
               path: /actuator/health
@@ -51,6 +54,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
+
           livenessProbe:
             httpGet:
               path: /actuator/health
@@ -58,3 +62,10 @@ spec:
             initialDelaySeconds: 120
             periodSeconds: 20
             failureThreshold: 3
+
+  strategy:
+    blueGreen:               # Blue/Green 배포 방식
+      activeService: backend-reservation
+      previewService: backend-reservation-preview
+      autoPromotionEnabled: true
+      autoPromotionSeconds: 10
