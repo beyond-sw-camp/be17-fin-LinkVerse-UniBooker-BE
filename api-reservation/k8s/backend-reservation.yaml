@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: reservation
-          image: linkverseunibooker/reservation-dev:latest
+          image: linkverseunibooker/reservation-dev:dev-12
           imagePullPolicy: Always
           ports:
             - containerPort: 8082
