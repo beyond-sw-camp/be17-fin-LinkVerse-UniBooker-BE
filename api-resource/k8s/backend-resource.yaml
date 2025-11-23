@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: resource
-          image: linkverseunibooker/resource:latest
+          image: linkverseunibooker/resource:3
           ports:
             - containerPort: 8081
           envFrom:
