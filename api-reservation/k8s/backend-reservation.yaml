@@ -23,6 +23,13 @@ spec:
           image: linkverseunibooker/reservation:1
           ports:
             - containerPort: 8082
+
+          envFrom:
+            - configMapRef:
+                name: backend-reservation-config
+            - secretRef:
+                name: backend-reservation-secret
+
           readinessProbe:
             httpGet:
               path: /actuator/health
