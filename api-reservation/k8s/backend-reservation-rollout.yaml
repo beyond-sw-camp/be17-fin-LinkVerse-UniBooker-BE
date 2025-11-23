@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: reservation
-          image: linkverseunibooker/reservation:latest   # latest 기준
+          image: linkverseunibooker/reservation:2   # latest 기준
           ports:
             - containerPort: 8082
           envFrom:
