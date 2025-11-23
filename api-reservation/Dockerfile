@@ -1,6 +1,9 @@
 FROM gradle:8.9-jdk17 AS builder
 WORKDIR /app
-COPY . .
+COPY api-reservation ./api-reservation
+COPY common ./common
+COPY settings.gradle .
+COPY build.gradle .
 RUN gradle :api-reservation:clean :api-reservation:bootJar --no-daemon
 
 FROM eclipse-temurin:17-jre
