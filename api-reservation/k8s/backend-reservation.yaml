@@ -4,7 +4,7 @@ metadata:
   name: backend-reservation-dev
   namespace: unibooker
   annotations:
-    argocd-image-updater.argoproj.io/image-list: linkverseunibooker/reservation
+    argocd-image-updater.argoproj.io/image-list: linkverseunibooker/reservation-dev
     argocd-image-updater.argoproj.io/reservation.update-strategy: latest
     argocd-image-updater.argoproj.io/reservation.allow-tags: regexp:.*
   labels:
@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: reservation
-          image: linkverseunibooker/reservation:latest
+          image: linkverseunibooker/reservation-dev:latest
           ports:
             - containerPort: 8082
           envFrom:
