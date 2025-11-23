@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: reservation
-          image: linkverseunibooker/reservation:2
+          image: linkverseunibooker/reservation:1
           ports:
             - containerPort: 8082
           envFrom:
