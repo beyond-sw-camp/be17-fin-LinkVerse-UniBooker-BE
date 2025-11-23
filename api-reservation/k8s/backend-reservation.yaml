@@ -5,11 +5,6 @@ metadata:
   namespace: unibooker
   labels:
     app: reservation
-  annotations:
-    # Argo Image Updater 설정
-    argocd-image-updater.argoproj.io/image-list: reservation=linkverseunibooker/reservation
-    argocd-image-updater.argoproj.io/reservation.update-strategy: latest
-    argocd-image-updater.argoproj.io/reservation.allow-tags: "latest"
 spec:
   replicas: 1
   selector:
