@@ -3,6 +3,7 @@ WORKDIR /app
 COPY . .
 RUN gradle :api-reservation:clean :api-reservation:bootJar --no-daemon
 
+#TEst
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/api-reservation/build/libs/*.jar app.jar
