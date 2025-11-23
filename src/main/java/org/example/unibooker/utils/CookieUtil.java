@@ -22,7 +22,7 @@ public class CookieUtil {
     /** HTTPS 전용 여부 (개발: false, 운영: true) */
     private static final boolean SECURE = true;
 
-    private static final String DOMAIN = "unibooker.kro.kr";
+    private static final String DOMAIN = "unibooker.r-e.kr";
 
     // ===== 권한별 쿠키 이름 및 경로 생성 =====
 

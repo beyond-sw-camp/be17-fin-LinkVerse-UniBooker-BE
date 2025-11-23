@@ -165,8 +165,8 @@ public class SecurityConfig {
 
         // 허용할 Origin (프론트엔드 URL)
         configuration.setAllowedOrigins(Arrays.asList(
-                "https://www.unibooker.kro.kr",
-                "http://www.unibooker.kro.kr",
+                "https://www.unibooker.r-e.kr",
+                "http://www.unibooker.r-e.kr",
                 "http://localhost:5173",
                 "http://127.0.0.1:5173"
         ));
