@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: statistics
-          image: linkverseunibooker/statistics:1
+          image: linkverseunibooker/statistics:2
           ports:
             - containerPort: 8084
           envFrom:
