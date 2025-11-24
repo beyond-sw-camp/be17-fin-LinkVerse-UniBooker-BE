@@ -206,7 +206,7 @@ public class CompanyController {
 
     @Operation(summary = "플랫폼 대시보드 데이터 조회", description = "기간별 사용자(기업, 고객) 가입 수, 현재 활성화된 사용자(기업, 고객) 수를 조회합니다.")
     @GetMapping("/statistics/{year}")
-    public CompanyDto.StatisticsResponse getStatistics(@PathVariable int year) {
+    public CompanyDto.YearlyStatisticsResponse getStatistics(@PathVariable int year) {
         return companyService.getStatisticsByYear(year);
     }
 

@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -407,20 +404,37 @@ public class CompanyService {
                 .build();
     }
 
-    public CompanyDto.StatisticsResponse getStatisticsByYear(int year) {
+    public CompanyDto.YearlyStatisticsResponse getStatisticsByYear(int year) {
 
-        long registeredCompanies = companyRepository.countCompaniesByYear(year);
-        long registeredCustomers = userRepository.countUsersByYear(year);
+        // 1~12월 0으로 초기화된 리스트 생성
+        List<Integer> monthlyNewCompanies = new ArrayList<>(Collections.nCopies(12, 0));
+        List<Integer> monthlyNewCustomers = new ArrayList<>(Collections.nCopies(12, 0));
 
-        long activeCompanies = companyRepository.countAllByStatus(CompanyStatus.ACTIVE);
-        long activeCustomers = userRepository.countAllByRoleAndStatus(UserRole.USER, UserStatus.ACTIVE);
+        // 월별 기업
+        List<Object[]> companyCounts = companyRepository.countMonthlyCompaniesByYear(year);
+        for (Object[] row : companyCounts) {
+            int month = ((Number) row[0]).intValue();  // 1~12
+            int count = ((Number) row[1]).intValue();
+            monthlyNewCompanies.set(month - 1, count);
+        }
 
-        return CompanyDto.StatisticsResponse.builder()
-                .year(year)
-                .registeredCompanies(registeredCompanies)
-                .registeredCustomers(registeredCustomers)
-                .activeCompanies(activeCompanies)
-                .activeCustomers(activeCustomers)
+        // 월별 고객
+        List<Object[]> customerCounts = userRepository.countMonthlyUsersByYear(year);
+        for (Object[] row : customerCounts) {
+            int month = ((Number) row[0]).intValue();
+            int count = ((Number) row[1]).intValue();
+            monthlyNewCustomers.set(month - 1, count);
+        }
+
+        // 누적 ACTIVE 회사 / 고객 (연도 상관 없음)
+        long totalCompanies = companyRepository.countAllByStatus(CompanyStatus.ACTIVE);
+        long totalCustomers = userRepository.countAllByRoleAndStatus(UserRole.USER, UserStatus.ACTIVE);
+
+        return CompanyDto.YearlyStatisticsResponse.builder()
+                .monthlyNewCompanies(monthlyNewCompanies)
+                .monthlyNewCustomers(monthlyNewCustomers)
+                .totalCompanies((int) totalCompanies)
+                .totalCustomers((int) totalCustomers)
                 .build();
     }
 

@@ -128,4 +128,13 @@ public interface CompanyRepository extends JpaRepository<Companies, Long> {
 
     @Query("SELECT COUNT(u) FROM Users u WHERE u.companyId = :companyId")
     int countUsersByCompanyId(@Param("companyId") Long companyId);
+
+    @Query("""
+    SELECT MONTH(c.approvedAt) AS monthValue, COUNT(c) AS countValue
+    FROM Companies c
+    WHERE YEAR(c.approvedAt) = :year
+    GROUP BY MONTH(c.approvedAt)
+    ORDER BY MONTH(c.approvedAt)
+""")
+    List<Object[]> countMonthlyCompaniesByYear(@Param("year") int year);
 }

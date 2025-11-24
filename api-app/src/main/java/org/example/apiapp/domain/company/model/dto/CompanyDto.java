@@ -391,4 +391,14 @@ public class CompanyDto {
         @Schema(description = "현재 활성 상태인 고객 수", example = "9321")
         private long activeCustomers;
     }
+
+    @Getter
+    @Builder
+    public static class YearlyStatisticsResponse  {
+
+        private List<Integer> monthlyNewCompanies;   // 1월~12월 기업 가입 수
+        private List<Integer> monthlyNewCustomers;   // 1월~12월 고객 가입 수
+        private int totalCompanies;                  // 전체 기업 누적 수
+        private int totalCustomers;                  // 전체 고객 누적 수
+    }
 }

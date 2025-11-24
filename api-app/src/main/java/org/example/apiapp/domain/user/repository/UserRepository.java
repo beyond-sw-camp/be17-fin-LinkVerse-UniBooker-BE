@@ -218,4 +218,13 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     long countUsersByYear(@Param("year") int year);
 
     long countAllByRoleAndStatus(UserRole userRole, UserStatus userStatus);
+
+    @Query("""
+    SELECT MONTH(u.createdAt) AS monthValue, COUNT(u) AS countValue
+    FROM Users u
+    WHERE YEAR(u.createdAt) = :year
+    GROUP BY MONTH(u.createdAt)
+    ORDER BY MONTH(u.createdAt)
+""")
+    List<Object[]> countMonthlyUsersByYear(@Param("year") int year);
 }

@@ -15,7 +15,7 @@ public interface UserFeignAdapter {
     int getAdminTotalDashboardUserCount(@PathVariable("companyId") Long companyId);
 
 
-    @CircuitBreaker(name = "GET_SUPER_DASHBOARD_API")
-    @GetMapping("/api/companies/statistics/{year}")
-    DashboardDto.YearlyStatisticsResponse getYearlyStatistics(@PathVariable("year") int year);
+        @CircuitBreaker(name = "GET_SUPER_DASHBOARD_API")
+        @GetMapping("/api/companies/statistics/{year}")
+        DashboardDto.YearlyStatisticsResponse getYearlyStatistics(@PathVariable("year") int year);
 }
