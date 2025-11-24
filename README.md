@@ -128,7 +128,7 @@
 - ID : super@unibooker.com
 - PW : super1234
 
-### [기업 관리자 바로가기](https://www.unibooker.kro.kr/admin/home)
+### [기업 관리자 바로가기](https://www.unibooker.kro.kr/admin/login)
 
 - ID : admin@unibooker.com
 - PW : Lqwer1234!
