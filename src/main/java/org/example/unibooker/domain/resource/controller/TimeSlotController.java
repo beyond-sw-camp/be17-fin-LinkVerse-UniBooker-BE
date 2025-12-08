@@ -22,6 +22,7 @@ public class TimeSlotController {
 
 
     // ---------------- 조회 ----------------
+    @Operation(summary = "일별 타임슬롯 조회 (예외 포함)", description = "특정 리소스의 월별 일별 타임슬롯과 예외를 조회합니다.")
     @GetMapping("/{resourceId}/timeslots/exceptions")
     public List<TimeSlotDto.DailyTimeSlotResponse> getTimeSlots(
             @PathVariable Long resourceId,
@@ -35,6 +36,7 @@ public class TimeSlotController {
 
 
     // ---------------- 정규 운영 시간 조회 ----------------
+    @Operation(summary = "정규 운영 시간 조회", description = "특정 리소스의 정규 운영 시간을 조회합니다.")
     @GetMapping("/{resourceId}/timeslots")
     public BaseResponse<List<TimeSlotDto.TimeSlotResponse>> getTimeSlots(@PathVariable Long resourceId) {
         List<TimeSlotDto.TimeSlotResponse> slots = timeSlotService.getTimeSlots(resourceId);
@@ -44,6 +46,7 @@ public class TimeSlotController {
 
 
     // ---------------- 예외 운영 시간 조회 ----------------
+    @Operation(summary = "예외 운영 시간 조회", description = "특정 리소스의 예외 운영 시간(휴무일 등)을 조회합니다.")
     @GetMapping("/{resourceId}/exceptions")
     public BaseResponse<List<TimeSlotDto.TimeSlotExceptionResponse>> getResourceExceptions(
             @PathVariable Long resourceId) {

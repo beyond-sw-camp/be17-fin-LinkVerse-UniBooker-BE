@@ -1,5 +1,6 @@
 package org.example.unibooker.domain.notification.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Hidden
 @RestController
 @RequestMapping("/api/test")
 @RequiredArgsConstructor

@@ -1,5 +1,6 @@
 package org.example.unibooker.domain.notification.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.example.unibooker.common.BaseResponse;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+@Hidden
 @RestController
 @RequestMapping("/api/test")
 @RequiredArgsConstructor

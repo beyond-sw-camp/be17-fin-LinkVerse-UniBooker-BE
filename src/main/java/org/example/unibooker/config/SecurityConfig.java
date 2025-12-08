@@ -53,6 +53,9 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        // ===== OPTIONS preflight 요청 허용 =====
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // ===== 회원가입 =====
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admins/signup").permitAll()
@@ -136,9 +139,15 @@ public class SecurityConfig {
 
                         .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
 
+                        // ===== 대기열 =====
+                        .requestMatchers("/api/queues/**").authenticated()
+
                         // ===== actuator ====
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+
+                        // ===== Redis 테스트 (개발용) =====
+                        .requestMatchers("/api/redis-test/**").permitAll()
 
 
                         // ===== 그 외 모든 요청은 인증 필요 =====
@@ -165,8 +174,9 @@ public class SecurityConfig {
 
         // 허용할 Origin (프론트엔드 URL)
         configuration.setAllowedOrigins(Arrays.asList(
-                "https://www.unibooker.kro.kr",
-                "http://www.unibooker.kro.kr",
+                "https://www.unibooker.n-e.kr",    // ← 프론트엔드 새 도메인
+                "https://app.unibooker.n-e.kr",
+                "http://3.34.5.183",
                 "http://localhost:5173",
                 "http://127.0.0.1:5173"
         ));

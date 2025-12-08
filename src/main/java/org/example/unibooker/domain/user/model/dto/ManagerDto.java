@@ -178,12 +178,25 @@ public class ManagerDto {
      */
     @Getter
     @Builder
+    @Schema(description = "매니저 수정 응답")
     public static class UpdateResponse {
+
+        @Schema(description = "처리 결과 메시지", example = "매니저 정보가 수정되었습니다.")
         private String message;
+
+        @Schema(description = "매니저 ID", example = "5")
         private Long managerId;
+
+        @Schema(description = "매니저 이름", example = "박매니저")
         private String name;
+
+        @Schema(description = "매니저 이메일", example = "manager@abc.com")
         private String email;
+
+        @Schema(description = "매니저 연락처", example = "010-5678-1234")
         private String phone;
+
+        @Schema(description = "수정 일시", example = "2025-10-16T15:30:00")
         private LocalDateTime updatedAt;
     }
 }

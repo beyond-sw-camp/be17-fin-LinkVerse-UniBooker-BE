@@ -123,36 +123,6 @@ public class UserController {
         return BaseResponse.success(response);
     }
 
-    // ========== Refresh Token 갱신 ==========
-
-    /**
-     * Access Token 갱신
-     * - Refresh Token을 사용하여 새로운 Access Token 발급
-     */
-    @Operation(summary = "Access Token 갱신",
-            description = "Refresh Token을 사용하여 만료된 Access Token을 갱신합니다.")
-    @PostMapping("/refresh")
-    public BaseResponse<AuthDto.RefreshTokenResponse> refreshToken(
-            @CookieValue(value = "userRefreshToken", required = false) String refreshToken,  // ← 수정: refreshToken → userRefreshToken
-            HttpServletResponse response) {
-
-        // Cookie에서 Refresh Token 없으면 에러
-        if (refreshToken == null) {
-            throw new RefreshTokenException.RefreshTokenNotFoundException();
-        }
-
-        // Access Token 갱신 (role 정보 포함)
-        AuthDto.RefreshTokenResponseWithToken tokenResponse = authService.refreshAccessToken(refreshToken);
-
-        // 새로운 Access Token을 HttpOnly Cookie에 저장 (role 기반)
-        response.addCookie(CookieUtil.createAccessTokenCookie(
-                tokenResponse.getAccessToken(),
-                tokenResponse.getRole()  // ← 이제 컴파일 에러 해결
-        ));
-
-        return BaseResponse.success(tokenResponse.toResponse());
-    }
-
 // ========== 비밀번호 변경 ==========
 
     /**

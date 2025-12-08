@@ -82,6 +82,8 @@ public class AdminController {
      * - 단일 세션 정책: 기존 모든 역할의 쿠키 삭제 후 새 쿠키 생성
      * - JWT 토큰을 HTTP-Only 쿠키로 설정
      */
+    @Operation(summary = "관리자 로그인",
+            description = "관리자 계정으로 로그인합니다. JWT 토큰이 HttpOnly 쿠키로 설정됩니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid AdminDto.AdminLoginRequest request,
@@ -111,6 +113,8 @@ public class AdminController {
      * 로그아웃
      * - UserService의 공통 로그아웃 로직 사용
      */
+    @Operation(summary = "관리자 로그아웃",
+            description = "현재 로그인 세션을 종료하고 토큰을 삭제합니다.")
     @PostMapping("/logout")
     public BaseResponse<AuthDto.LogoutResponse> logout(
             @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,  // 타입 변경: Long → AuthDto.AuthAdmin
@@ -127,6 +131,8 @@ public class AdminController {
      * 비밀번호 재설정 (첫 로그인 시 필수)
      * - ADMIN 및 MANAGER 모두 사용 가능
      */
+    @Operation(summary = "비밀번호 재설정",
+            description = "첫 로그인 시 비밀번호를 재설정합니다. ADMIN 및 MANAGER 모두 사용 가능합니다.")
     @PatchMapping("/password/reset")
     public BaseResponse<AdminDto.PasswordResetResponse> resetPassword(
             @RequestBody @Valid AdminDto.PasswordResetRequest request,
@@ -144,6 +150,8 @@ public class AdminController {
      * 내 프로필 조회
      * - ADMIN 및 MANAGER 모두 사용 가능
      */
+    @Operation(summary = "내 프로필 조회",
+            description = "현재 로그인한 관리자의 프로필 정보를 조회합니다.")
     @GetMapping("/me")
     public BaseResponse<UserDto.ProfileResponse> getMyProfile(
             @AuthenticationPrincipal AuthDto.AdminLike admin,  // ← AuthAdmin → AdminLike

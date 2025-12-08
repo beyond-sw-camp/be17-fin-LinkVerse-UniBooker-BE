@@ -266,4 +266,26 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      * 특정 기업의 모든 사용자 조회
      */
     List<Users> findByCompany_Id(Long companyId);
+
+    // ========== 성별/연령대 통계 ==========
+
+    /**
+     * 기업별 성별 통계 조회
+     */
+    @Query("SELECT u.gender, COUNT(u) FROM Users u " +
+            "WHERE u.company.id = :companyId " +
+            "AND u.role = 'USER' " +
+            "AND u.status != 'DELETED' " +
+            "GROUP BY u.gender")
+    List<Object[]> countByGenderAndCompanyId(@Param("companyId") Long companyId);
+
+    /**
+     * 기업별 USER 목록 조회 (연령대 계산용)
+     */
+    @Query("SELECT u FROM Users u " +
+            "WHERE u.company.id = :companyId " +
+            "AND u.role = 'USER' " +
+            "AND u.status != 'DELETED' " +
+            "AND u.birthDate IS NOT NULL")
+    List<Users> findUsersWithBirthDateByCompanyId(@Param("companyId") Long companyId);
 }

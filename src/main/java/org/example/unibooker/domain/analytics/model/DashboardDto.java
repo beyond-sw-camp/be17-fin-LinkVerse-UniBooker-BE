@@ -105,9 +105,14 @@ public class DashboardDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "기업 통계 정보")
     public static class CompanyStats {
-        private int currentCompanyCount; // 현재 가입 수
-        private List<Integer> monthlyNewRegistrations; // 월별 신규 가입
+
+        @Schema(description = "현재 기업 수", example = "50")
+        private int currentCompanyCount;
+
+        @Schema(description = "월별 신규 가입 수")
+        private List<Integer> monthlyNewRegistrations;
     }
 
     @Getter
@@ -115,9 +120,14 @@ public class DashboardDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "고객 통계 정보")
     public static class CustomerStats {
-        private int currentCustomerCount; // 현재 가입 수
-        private List<Integer> cumulativeRegistrations; // 누적 가입
+
+        @Schema(description = "현재 고객 수", example = "1500")
+        private int currentCustomerCount;
+
+        @Schema(description = "누적 가입 수")
+        private List<Integer> cumulativeRegistrations;
     }
 
     @Getter
@@ -125,19 +135,187 @@ public class DashboardDto {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "서비스 통계 정보")
     public static class ServiceStats {
-        private int totalServiceCount; // 총 서비스 수
-        private List<Integer> categoryCounts; // 예약, 좌석 예매, 이벤트 신청 순
-        private List<String> categoryLabels; // ["예약", "좌석 예매", "이벤트 신청"]
+
+        @Schema(description = "총 서비스 수", example = "120")
+        private int totalServiceCount;
+
+        @Schema(description = "카테고리별 개수 (예약, 좌석, 이벤트 순)")
+        private List<Integer> categoryCounts;
+
+        @Schema(description = "카테고리 라벨", example = "[\"예약\", \"좌석 예매\", \"이벤트 신청\"]")
+        private List<String> categoryLabels;
     }
 
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "에러 로그 요약 정보")
     public static class ErrorLogs {
+
+        @Schema(description = "에러 코드", example = "500")
         private String code;
+
+        @Schema(description = "에러 메시지", example = "Internal Server Error")
         private String message;
-        private String time; // 나중에 LocalDateTime 타입으로 변경 가능
+
+        @Schema(description = "발생 시간", example = "2025-10-20T15:30:00")
+        private String time;
     }
 
+    // ==================== 리소스 그룹별 대시보드 ====================
+
+    /**
+     * 리소스 그룹별 대시보드 응답
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "리소스 그룹별 대시보드 응답")
+    public static class ResourceGroupDashboardResponse {
+
+        @Schema(description = "총 서비스 수", example = "5")
+        private int resourceCount;
+
+        @Schema(description = "누적 예약 수", example = "120")
+        private int cumReservationCount;
+
+        @Schema(description = "누적 취소 수", example = "15")
+        private int cumCancleCount;
+
+        @Schema(description = "이용자 수 (예약한 고유 사용자)", example = "45")
+        private int useCustomerCount;
+
+        @Schema(description = "전체 고객 수", example = "200")
+        private int totalCustomerCount;
+
+        @Schema(description = "서비스별 성과 리스트")
+        private List<ResourcePerformance> performanceByResources;
+
+        @Schema(description = "오늘 조회 수", example = "85")
+        private int todayViewCount;
+
+        @Schema(description = "어제 조회 수", example = "72")
+        private int yesterDayViewCount;
+
+        @Schema(description = "시간별 예약 수")
+        private List<HourlyCount> houlryReservationCounts;
+
+        @Schema(description = "시간별 조회 수")
+        private List<HourlyViewCount> hourlyViewCounts;
+
+        @Schema(description = "성별 통계")
+        private GenderStats genderStats;
+
+        @Schema(description = "연령대별 통계")
+        private List<AgeGroupStats> ageGroupStats;
+    }
+
+    /**
+     * 서비스별 성과
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "서비스별 성과")
+    public static class ResourcePerformance {
+
+        @Schema(description = "서비스명", example = "대회의실 A")
+        private String resourceName;
+
+        @Schema(description = "예약 비율 (%)", example = "25.5")
+        private double count;
+    }
+
+    /**
+     * 시간별 예약 수
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "시간별 예약 수")
+    public static class HourlyCount {
+
+        @Schema(description = "시간 (0-23)", example = "14")
+        private int hour;
+
+        @Schema(description = "예약 수", example = "12")
+        private int count;
+    }
+
+    /**
+     * 시간별 조회 수
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "시간별 조회 수")
+    public static class HourlyViewCount {
+
+        @Schema(description = "시간 (0-23)", example = "14")
+        private int hour;
+
+        @Schema(description = "조회 수", example = "45")
+        private int viewCount;
+    }
+
+    /**
+     * 성별 통계
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "성별 통계")
+    public static class GenderStats {
+
+        @Schema(description = "남성 수", example = "120")
+        private int maleCount;
+
+        @Schema(description = "여성 수", example = "80")
+        private int femaleCount;
+
+        @Schema(description = "미정의 수", example = "10")
+        private int undefinedCount;
+
+        @Schema(description = "남성 비율 (%)", example = "57.1")
+        private double malePercent;
+
+        @Schema(description = "여성 비율 (%)", example = "38.1")
+        private double femalePercent;
+
+        @Schema(description = "미정의 비율 (%)", example = "4.8")
+        private double undefinedPercent;
+    }
+
+    /**
+     * 연령대별 통계
+     */
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "연령대별 통계")
+    public static class AgeGroupStats {
+
+        @Schema(description = "연령대", example = "20대")
+        private String ageGroup;
+
+        @Schema(description = "인원 수", example = "45")
+        private int count;
+
+        @Schema(description = "비율 (%)", example = "35.5")
+        private double percent;
+    }
 }

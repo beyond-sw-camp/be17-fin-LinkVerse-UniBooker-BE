@@ -40,4 +40,7 @@ public interface ResourceRepository extends JpaRepository<Resources, Long> {
     int countAllByIsActive(Boolean isActive);
 
     List<Resources> findByDeletedAtIsNullAndStartDateIsNotNullAndEndDateIsNotNull();
+
+    /** 리소스 그룹별 삭제되지 않은 리소스 수 */
+    int countByResourceGroupIdAndDeletedAtIsNull(Long resourceGroupId);
 }

@@ -50,6 +50,8 @@ public class SuperController {
      * - 단일 세션 정책: 기존 모든 역할의 쿠키 삭제 후 새 쿠키 생성
      * - Access Token과 Refresh Token을 모두 HttpOnly Cookie에 저장
      */
+    @Operation(summary = "슈퍼 관리자 로그인",
+            description = "슈퍼 관리자 계정으로 로그인합니다. JWT 토큰이 HttpOnly 쿠키로 설정됩니다.")
     @PostMapping("/login")
     public BaseResponse<UserDto.LoginResponse> login(
             @RequestBody @Valid SuperDto.SuperLoginRequest request,
@@ -80,6 +82,8 @@ public class SuperController {
      * - Refresh Token 삭제
      * - Access Token과 Refresh Token 쿠키 삭제
      */
+    @Operation(summary = "슈퍼 관리자 로그아웃",
+            description = "현재 로그인 세션을 종료하고 토큰을 삭제합니다.")
     @PostMapping("/logout")
     public BaseResponse<AuthDto.LogoutResponse> logout(
             @AuthenticationPrincipal AuthDto.AuthAdmin authAdmin,  // 타입 변경: Long → AuthDto.AuthAdmin

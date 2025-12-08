@@ -125,10 +125,19 @@ public class TimeSlotDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @Schema(description = "일별 타임슬롯 응답")
     public static class DailyTimeSlotResponse {
-        private String date; // yyyy-MM-dd
-        private boolean isClosed; // 휴무 여부
-        private List<TimeSlotResponse> slots; // 정규 시간 슬롯
+
+        @Schema(description = "날짜", example = "2025-10-20")
+        private String date;
+
+        @Schema(description = "휴무 여부", example = "false")
+        private boolean isClosed;
+
+        @Schema(description = "타임슬롯 목록")
+        private List<TimeSlotResponse> slots;
+
+        @Schema(description = "비고", example = "공휴일")
         private String note;
 
         public static DailyTimeSlotResponse fromEntity(LocalDate date, boolean isClosed, String note, List<TimeSlotDto.TimeSlotResponse> slotResponses) {

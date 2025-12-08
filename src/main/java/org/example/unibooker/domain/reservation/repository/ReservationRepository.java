@@ -85,13 +85,13 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
     List<Reservations> findAllByResourcesIdAndStartDateBetween(Long resources_id, LocalDateTime startDate, LocalDateTime endDate);
 
     // 특정 기간 동안의 리소스 그룹별 예약수
-    @Query("SELECT DATE(r.startDate), rg.name, COUNT(r) " +
+    @Query("SELECT DATE(r.createdAt), rg.name, COUNT(r) " +
             "FROM Reservations r " +
             "JOIN r.resources res " +
             "JOIN res.resourceGroup rg " +
-            "WHERE rg.company.id = :companyId AND r.startDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY DATE(r.startDate), rg.name " +
-            "ORDER BY DATE(r.startDate) ASC")
+            "WHERE rg.company.id = :companyId AND r.createdAt BETWEEN :startDate AND :endDate " +
+            "GROUP BY DATE(r.createdAt), rg.name " +
+            "ORDER BY DATE(r.createdAt) ASC")
     List<Object[]> countReservationsByGroupAndDate(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query("""
@@ -109,5 +109,36 @@ public interface ReservationRepository extends JpaRepository<Reservations, Long>
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+
+    /** 리소스 그룹별 취소된 예약 수 */
+    @Query("SELECT COUNT(r) FROM Reservations r " +
+            "JOIN r.resources res " +
+            "JOIN res.resourceGroup rg " +
+            "WHERE rg.id = :resourceGroupId AND r.status = 'CANCELLED'")
+    int countCancelledByResourceGroupId(Long resourceGroupId);
+
+    /** 리소스 그룹별 고유 사용자 수 */
+    @Query("SELECT COUNT(DISTINCT r.users.id) FROM Reservations r " +
+            "JOIN r.resources res " +
+            "JOIN res.resourceGroup rg " +
+            "WHERE rg.id = :resourceGroupId")
+    int countDistinctUsersByResourceGroupId(Long resourceGroupId);
+
+    /** 기간 내 리소스별 예약 수 */
+    @Query("SELECT res.name, COUNT(r) FROM Reservations r " +
+            "JOIN r.resources res " +
+            "JOIN res.resourceGroup rg " +
+            "WHERE rg.id = :resourceGroupId AND r.createdAt >= :startDate " +
+            "GROUP BY res.id, res.name")
+    List<Object[]> countByResourceInPeriod(Long resourceGroupId, LocalDateTime startDate);
+
+    /** 시간별 예약 수 */
+    @Query("SELECT HOUR(r.createdAt), COUNT(r) FROM Reservations r " +
+            "JOIN r.resources res " +
+            "JOIN res.resourceGroup rg " +
+            "WHERE rg.id = :resourceGroupId " +
+            "AND r.createdAt >= :startDate AND r.createdAt < :endDate " +
+            "GROUP BY HOUR(r.createdAt)")
+    List<Object[]> countByHour(Long resourceGroupId, LocalDateTime startDate, LocalDateTime endDate);
 
 }

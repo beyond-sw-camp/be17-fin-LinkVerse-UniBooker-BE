@@ -25,9 +25,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(
                         "http://localhost:3000",
-                        "http://localhost:5173",  // ← 이 줄 추가!
+                        "http://localhost:5173",
                         "http://localhost:8080",
-                        "https://www.unibooker.kro.kr"
+                        "https://www.unibooker.kro.kr",
+                        "https://www.unibooker.n-e.kr",
+                        "https://unibooker.n-e.kr"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")

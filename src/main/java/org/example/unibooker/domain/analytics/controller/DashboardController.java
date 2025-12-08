@@ -10,6 +10,7 @@ import org.example.unibooker.domain.analytics.service.DashboardService;
 import org.example.unibooker.domain.user.model.dto.AuthDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +32,16 @@ public class DashboardController {
     @GetMapping("/super")
     public BaseResponse<DashboardDto.SuperDashboardResponse> getPlatformDashboard(@AuthenticationPrincipal AuthDto.AuthenticatedUser authUser){
         DashboardDto.SuperDashboardResponse response = dashboardService.getPlatformDashboard(authUser);
+        return BaseResponse.success(response);
+    }
+
+    @Operation(summary = "리소스 그룹별 대시보드")
+    @GetMapping("/resource-group/{resourceGroupId}")
+    public BaseResponse<DashboardDto.ResourceGroupDashboardResponse> getResourceGroupDashboard(
+            @PathVariable Long resourceGroupId,
+            @AuthenticationPrincipal AuthDto.AuthenticatedUser authUser) {
+        DashboardDto.ResourceGroupDashboardResponse response =
+                dashboardService.getResourceGroupDashboard(resourceGroupId, authUser.getCompanyId());
         return BaseResponse.success(response);
     }
 
